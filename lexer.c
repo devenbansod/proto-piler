@@ -112,7 +112,6 @@ State getNextToken(
     // or a lexical error has occured
     while(curr.final == 0 && curr.error == -1 && *start < buf_len) {
         char next_char = buf[(*start)++];
-        // else if (next_char == ' ') continue;
 
         switch(curr.state_id) {
             // START state
@@ -207,6 +206,7 @@ State getNextToken(
                     case '\n':
                         printf("\nLINE : %d\n", *line);
                         (*line)++;
+                        backup_start++;
                         break;
                     case EOF:
                         curr.state_id = 100;
@@ -583,12 +583,14 @@ State getNextToken(
         }
     }
 
+    // store the lexeme for the token
     int i, j;
     for (i = backup_start, j = 0; j < ((*start) - backup_start); i++, j++) {
         lexeme[j] = buf[i];
     }
     lexeme[j] = '\0';
 
+    // if final state is not reached
     if (curr.final == 0 && *start < buf_len) {
         curr.error = 0;
     }
@@ -629,7 +631,7 @@ int main(int argc, char *argv[]) {
             printf("**** ERROR! INVALID TOKEN  %s ON LINE : %d\n", lexeme, line);
             break;
         }
-        printf("%s : %s\n", lexeme, final_states[a.state_id]);
+        printf("`%s` : %s\n", lexeme, final_states[a.state_id]);
         if (a.state_id == 36) line++;
     }
 
