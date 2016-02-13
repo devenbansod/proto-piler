@@ -7,46 +7,88 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include "keywords_trie.h"
 
 char **final_states;
+Trie *t;
 
-void saveStateNames(char **final_states) {
-    final_states[1]  = "TK_SQL";
-    final_states[2]  = "TK_SQR";
-    final_states[3]  = "TK_SEM";
-    final_states[4]  = "TK_COLON";
-    final_states[5]  = "TK_DOT";
-    final_states[6]  = "TK_OP";
-    final_states[7]  = "TK_CL";
-    final_states[8]  = "TK_PLUS";
-    final_states[9]  = "TK_MINUS";
-    final_states[10] = "TK_MUL";
-    final_states[11] = "TK_DIV";
-    final_states[12] = "TK_NOT";
-    final_states[14] = "TK_NE";
-    final_states[16] = "TK_EQ";
-    final_states[18] = "TK_GE";
-    final_states[19] = "TK_GT";
-    final_states[21] = "TK_LE";
-    final_states[24] = "TK_ASSIGNOP";
-    final_states[25] = "TK_LT";
-    final_states[28] = "TK_AND";
-    final_states[31] = "TK_RECORDID";
-    final_states[34] = "TK_NOT";
-    final_states[36] = "TK_COMMENT";
-    final_states[40] = "TK_RNUM";
-    final_states[41] = "TK_NUM";
-    final_states[45] = "TK_FUNID";
-    final_states[49] = "TK_ID";
-    final_states[51] = "TK_FIELDID";
-    final_states[52] = "TK_COMMA";
+void initKeywordTrie(Trie *t, char **final_states) {
+    t->root = (trieNode*)malloc(sizeof(trieNode));
+    int i = 0;
+    for(i = 0; i < 26; i++) {
+        t->root->children[i] = NULL;
+    }
+    t->size = 1;
+
+    FILE* fp = fopen("keywords.txt", "r");
+
+    i = 0;
+    char temp_str[50];
+    for (i = 61; i < 85; i++) {
+        fscanf(fp, "%s", temp_str);
+        insertKeyword(t, temp_str, strlen(temp_str), i);
+    }
 }
 
-int checkForKeyWord(int state_id) {
-    int present = 0;
-    return 0;
-}
+void initStateNames(char **final_states) {
 
+    strcpy(final_states[1] , "TK_SQL");
+    strcpy(final_states[2] , "TK_SQR");
+    strcpy(final_states[3] , "TK_SEM");
+    strcpy(final_states[4] , "TK_COLON");
+    strcpy(final_states[5] , "TK_DOT");
+    strcpy(final_states[6] , "TK_OP");
+    strcpy(final_states[7] , "TK_CL");
+    strcpy(final_states[8] , "TK_PLUS");
+    strcpy(final_states[9] , "TK_MINUS");
+    strcpy(final_states[10], "TK_MUL");
+    strcpy(final_states[11], "TK_DIV");
+    strcpy(final_states[12], "TK_NOT");
+    strcpy(final_states[14], "TK_NE");
+    strcpy(final_states[16], "TK_EQ");
+    strcpy(final_states[18], "TK_GE");
+    strcpy(final_states[19], "TK_GT");
+    strcpy(final_states[21], "TK_LE");
+    strcpy(final_states[24], "TK_ASSIGNOP");
+    strcpy(final_states[25], "TK_LT");
+    strcpy(final_states[28], "TK_AND");
+    strcpy(final_states[31], "TK_RECORDID");
+    strcpy(final_states[34], "TK_NOT");
+    strcpy(final_states[36], "TK_COMMENT");
+    strcpy(final_states[40], "TK_RNUM");
+    strcpy(final_states[41], "TK_NUM");
+    strcpy(final_states[45], "TK_FUNID");
+    strcpy(final_states[49], "TK_ID");
+    strcpy(final_states[51], "TK_FIELDID");
+    strcpy(final_states[52], "TK_COMMA");
+
+    // keywords
+    strcpy(final_states[61], "TK_WITH");
+    strcpy(final_states[62], "TK_PARAMETERS");
+    strcpy(final_states[63], "TK_END");
+    strcpy(final_states[64], "TK_WHILE");
+    strcpy(final_states[65], "TK_INT");
+    strcpy(final_states[66], "TK_REAL");
+    strcpy(final_states[67], "TK_TYPE");
+    strcpy(final_states[68], "TK_MAIN");
+    strcpy(final_states[69], "TK_GLOBAL");
+    strcpy(final_states[70], "TK_PARAMETER");
+    strcpy(final_states[71], "TK_LIST");
+    strcpy(final_states[72], "TK_INPUT");
+    strcpy(final_states[73], "TK_OUTPUT");
+    strcpy(final_states[74], "TK_ENDWHILE");
+    strcpy(final_states[75], "TK_IF");
+    strcpy(final_states[76], "TK_THEN");
+    strcpy(final_states[77], "TK_ENDIF");
+    strcpy(final_states[78], "TK_READ");
+    strcpy(final_states[79], "TK_WRITE");
+    strcpy(final_states[80], "TK_RETURN");
+    strcpy(final_states[81], "TK_RECORD");
+    strcpy(final_states[82], "TK_ENDRECORD");
+    strcpy(final_states[83], "TK_ELSE");
+    strcpy(final_states[84], "TK_CALL");
+
+}
 
 int isAllExcept(char c, char next_char) {
     if (c == next_char) {
@@ -590,6 +632,17 @@ State getNextToken(
     }
     lexeme[j] = '\0';
 
+    int new_sid;
+    if ((curr.state_id == 45 || curr.state_id == 51)) {
+
+        int k = checkIfKeyword(t, lexeme, j);
+        if (k != -1) {
+            curr.state_id = k;
+            curr.error = -1;
+            curr.final = 1;
+        }
+    }
+
     // if final state is not reached
     if (curr.final == 0 && *start < buf_len) {
         curr.error = 0;
@@ -604,15 +657,19 @@ int main(int argc, char *argv[]) {
         printf("*** ERROR : Incorrect usage! Correct syntax is ./lexer <filename>\n");
     }
 
-    final_states = (char**) malloc(sizeof(char*) * 60);
-
+    // Initialization
+    char **final_states = (char**) malloc(sizeof(char*) * 100);
     int i = 0;
-    for (i = 0; i < 60; i++) {
+    for (i = 0; i < 100; i++) {
         final_states[i] = (char*)malloc(sizeof(char) * 20);
     }
+    initStateNames(final_states);
 
-    saveStateNames(final_states);
+    t = (Trie*)malloc(sizeof(Trie));
+    initKeywordTrie(t, final_states);
 
+
+    // File operations
     int fd1 = open(argv[1], 0400), n;
     char read_char[4096];
 
@@ -625,8 +682,11 @@ int main(int argc, char *argv[]) {
     State a; a.error = -1;
     char lexeme[100];
 
+    // read tokens and print them
     while (start < n) {
-        a = getNextToken(read_char, n, &start, &line, &check_error, lexeme);
+        strcat(read_char, "$");
+
+        a = getNextToken(read_char, n + 1, &start, &line, &check_error, lexeme);
         if (a.error != -1) {
             printf("**** ERROR! INVALID TOKEN  %s ON LINE : %d\n", lexeme, line);
             break;
