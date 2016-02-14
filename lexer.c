@@ -2,11 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "lexer.h"
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <unistd.h>
-#include <ctype.h>
-#include <fcntl.h>
 #include "keywords_trie.h"
 
 char **final_states;
@@ -28,6 +23,8 @@ void initKeywordTrie(Trie *t, char **final_states) {
         fscanf(fp, "%s", temp_str);
         insertKeyword(t, temp_str, strlen(temp_str), i);
     }
+
+    fclose(fp);
 }
 
 void initStateNames(char **final_states) {
@@ -246,8 +243,8 @@ State getNextToken(
                     // SIMPLE THINGS FINISH
 
                     case '\n':
-                        printf("\nLINE : %d\n", *line);
                         (*line)++;
+                        printf("\nLINE : %d\n", *line);
                         backup_start++;
                         break;
                     case EOF:
@@ -655,10 +652,11 @@ int main(int argc, char *argv[]) {
 
     if (argc != 2) {
         printf("*** ERROR : Incorrect usage! Correct syntax is ./lexer <filename>\n");
+        return 0;
     }
 
     // Initialization
-    char **final_states = (char**) malloc(sizeof(char*) * 100);
+    final_states = (char**) malloc(sizeof(char*) * 100);
     int i = 0;
     for (i = 0; i < 100; i++) {
         final_states[i] = (char*)malloc(sizeof(char) * 20);
@@ -671,9 +669,9 @@ int main(int argc, char *argv[]) {
 
     // File operations
     int fd1 = open(argv[1], 0400), n;
-    char read_char[4096];
+    char read_char[32768];
 
-    n = read(fd1, read_char, 4096);
+    n = read(fd1, read_char, 32768);
 
     int start = 0;
     int line = 1;
@@ -682,17 +680,20 @@ int main(int argc, char *argv[]) {
     State a; a.error = -1;
     char lexeme[100];
 
+    printf("\nLINE : %d\n", line);
+
     // read tokens and print them
     while (start < n) {
         strcat(read_char, "$");
 
         a = getNextToken(read_char, n + 1, &start, &line, &check_error, lexeme);
+
         if (a.error != -1) {
-            printf("**** ERROR! INVALID TOKEN  %s ON LINE : %d\n", lexeme, line);
+            printf("**** ERROR! INVALID TOKEN at %s ON LINE : %d\n", lexeme, line);
             break;
         }
+
         printf("`%s` : %s\n", lexeme, final_states[a.state_id]);
-        if (a.state_id == 36) line++;
     }
 
     return 0;
