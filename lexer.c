@@ -1,36 +1,24 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "lexer.h"
+#include "common.h"
 #include "keywords_trie.h"
+#include "lexer.h"
 
 #define MAX_FUNID_LEN 30
 #define MAX_ID_LEN 20
 
 char **final_states;
-Trie *t;
+extern Trie *t;
 
-void initKeywordTrie(Trie *t, char **final_states) {
-    t->root = (trieNode*)malloc(sizeof(trieNode));
+/*
+ * Initialise the names of keywords
+ *
+ */
+void initStateNames() {
+    final_states = (char**) malloc(sizeof(char*) * 100);
+
     int i = 0;
-    for(i = 0; i < 26; i++) {
-        t->root->children[i] = NULL;
+    for (i = 0; i < 100; i++) {
+        final_states[i] = (char*)malloc(sizeof(char) * 20);
     }
-    t->size = 1;
-
-    FILE* fp = fopen("keywords.txt", "r");
-
-    i = 0;
-    char temp_str[50];
-    for (i = 61; i < 85; i++) {
-        fscanf(fp, "%s", temp_str);
-        insertKeyword(t, temp_str, strlen(temp_str), i);
-    }
-
-    fclose(fp);
-}
-
-void initStateNames(char **final_states) {
 
     strcpy(final_states[1] , "TK_SQL");
     strcpy(final_states[2] , "TK_SQR");
@@ -90,6 +78,11 @@ void initStateNames(char **final_states) {
 
 }
 
+
+/*
+ * HELPER FUNCTIONS
+ *
+ */
 int isAllExcept(char c, char next_char) {
     if (c == next_char) {
         return 0;
@@ -664,58 +657,7 @@ State getNextToken(
     if (curr.final == 0 && *start < buf_len) {
         curr.error = 0;
     }
+
     return curr;
-
-}
-
-int main(int argc, char *argv[]) {
-
-    if (argc != 2) {
-        printf("*** ERROR : Incorrect usage! Correct syntax is ./lexer <filename>\n");
-        return 0;
-    }
-
-    // Initialization
-    final_states = (char**) malloc(sizeof(char*) * 100);
-    int i = 0;
-    for (i = 0; i < 100; i++) {
-        final_states[i] = (char*)malloc(sizeof(char) * 20);
-    }
-    initStateNames(final_states);
-
-    t = (Trie*)malloc(sizeof(Trie));
-    initKeywordTrie(t, final_states);
-
-
-    // File operations
-    int fd1 = open(argv[1], 0400), n;
-    char read_char[32768];
-
-    n = read(fd1, read_char, 32768);
-
-    int start = 0;
-    int line = 1;
-    int check_error = 0;
-
-    State a; a.error = -1;
-    char lexeme[100];
-
-    printf("\nLINE : %d\n", line);
-
-    // read tokens and print them
-    while (start < n) {
-        strcat(read_char, "$");
-
-        a = getNextToken(read_char, n + 1, &start, &line, &check_error, lexeme);
-
-        if (a.error != -1) {
-            printf("**** ERROR! INVALID TOKEN at %s ON LINE : %d\n", lexeme, line);
-            break;
-        }
-
-        printf("`%s` : %s\n", lexeme, final_states[a.state_id]);
-    }
-
-    return 0;
 
 }

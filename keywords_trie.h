@@ -1,3 +1,5 @@
+#ifndef KEYWORD_TRIE
+#define KEYWORD_TRIE
 
 #define CHAR_TO_INDEX(c) ((int)c - (int)'a')
 
@@ -18,43 +20,17 @@ struct Trie {
 typedef struct Trie Trie;
 
 
+/*
+ * Interface to keyword_trie
+ *
+ */
+
 // if present returns state_id, else returns -1
-int checkIfKeyword(Trie* t, char *str, int len) {
-	int i = 0, j, k;
-	trieNode* curr = t->root;
+int checkIfKeyword(Trie* t, char *str, int len);
 
-	for(i = 0; i < len; i++) {
-		j = CHAR_TO_INDEX(str[i]);
+// For initiliasation from file I/O
+void insertKeyword(Trie* t, char *str, int len, int value);
 
-		if (curr->children[j] == NULL) {
-			return -1;
-		}
+void initKeywordTrie();
 
-		curr = curr->children[j];
-	}
-
-	if (curr == NULL) return -1;
-	else return curr->state_id;
-}
-
-void insertKeyword(Trie* t, char *str, int len, int value) {
-	int i = 0, j, k;
-	trieNode* curr = t->root;
-
-	for(i = 0; i < len; i++) {
-		j = CHAR_TO_INDEX(str[i]);
-		if (curr->children[j] == NULL) {
-			// add a new node and initialise its children
-			curr->children[j] = (trieNode*)malloc(sizeof(trieNode));
-			for(k = 0; k < 26; k++) {
-				curr->children[j]->children[k] = NULL;
-			}
-		}
-		curr = curr->children[j];
-	}
-
-	curr->state_id = value;
-
-	t->size++;
-	return;
-}
+#endif
