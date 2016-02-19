@@ -1,6 +1,5 @@
 
-struct state
-{
+struct state {
 	int state_id;
 	int final;
 	int error;

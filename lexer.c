@@ -4,6 +4,9 @@
 #include "lexer.h"
 #include "keywords_trie.h"
 
+#define MAX_FUNID_LEN 30
+#define MAX_ID_LEN 20
+
 char **final_states;
 Trie *t;
 
@@ -447,6 +450,11 @@ State getNextToken(
                 break;
 
             case 43:
+                if (*start - backup_start > MAX_FUNID_LEN) {
+                    curr.error = 1;
+                    break;
+                }
+
                 tmp = isalpha(next_char) > 0 ? 1 : 0;
                 switch (tmp) {
                     case 0:
@@ -473,6 +481,10 @@ State getNextToken(
                 break;
 
             case 44:
+                if (*start - backup_start > MAX_FUNID_LEN) {
+                    curr.error = 1;
+                    break;
+                }
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch(tmp) {
                     case 0:
@@ -581,6 +593,10 @@ State getNextToken(
                 break;
 
             case 47:
+                if (*start - backup_start > MAX_ID_LEN) {
+                    curr.error = 1;
+                    break;
+                }
                 tmp = isBtoD(next_char);
                 switch (tmp) {
                     case 0:
@@ -602,6 +618,10 @@ State getNextToken(
                 break;
 
             case 48:
+                if (*start - backup_start > MAX_ID_LEN) {
+                    curr.error = 1;
+                    break;
+                }
                 tmp = is2to7(next_char);
                 switch (tmp) {
                     case 0:

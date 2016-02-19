@@ -19,4 +19,3 @@ end
     c3bcd <--- d2*3.23;
     return [d2,c3bcd];
 end
-
