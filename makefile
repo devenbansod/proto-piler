@@ -7,11 +7,14 @@ stack.o: stack.c
 keywords_trie.o: keywords_trie.c
 	gcc  -c keywords_trie.c
 
-all: lexer.o stack.o keywords_trie.o
-	gcc lexer.o stack.o keywords_trie.o compiler.c -o compiler.out
+symbolTable.o: symbolTable.c
+	gcc  -c symbolTable.c
+
+all: lexer.o stack.o keywords_trie.o symbolTable.o
+	gcc lexer.o stack.o keywords_trie.o symbolTable.o compiler.c -o compiler.out
 
 debug: lexer.o stack.o keywords_trie.o
-	gcc lexer.o stack.o keywords_trie.o compiler.c -g -o compiler.out
+	gcc lexer.o stack.o keywords_trie.o symbolTable.o compiler.c -g -o compiler.out
 
 clean:
 	rm -rf *.gch

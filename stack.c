@@ -6,7 +6,7 @@ void createStack(Stack *s) {
 	s->size = 0;
 }
 
-void push(Symbol t, Stack *s) {
+void push(termNonTerm t, Stack *s) {
 	if (s->size == 0) {
 		s->top = (stackElem*)malloc(sizeof(stackElem));
 		s->top->t = t;
@@ -21,8 +21,8 @@ void push(Symbol t, Stack *s) {
 }
 
 
-Symbol pop(Stack *s) {
-	Symbol ret;
+termNonTerm pop(Stack *s) {
+	termNonTerm ret;
 
 	if (s->size == 0) {
 		ret.error = -1;

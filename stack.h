@@ -1,16 +1,16 @@
 #ifndef STACK
 #define STACK
 
-struct symbol {
+struct termNonTerm {
 	int state_id;
 	int isTerminal;
 	int error;
 };
 
-typedef struct symbol Symbol;
+typedef struct termNonTerm termNonTerm;
 
 struct stackElem {
-	struct symbol t;
+	struct termNonTerm t;
 	struct stackElem *next;
 };
 
