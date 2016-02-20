@@ -1,5 +1,6 @@
 #include "common.h"
 #include "keywords_trie.h"
+#include "fileBuffer.h"
 #include "lexer.h"
 
 #define MAX_FUNID_LEN 30
@@ -133,27 +134,36 @@ int is2to7(char next_char) {
     }
 }
 
-
-
 State getNextToken(
-    char *buf, int buf_len, int *start, int *line, int *check_error,
+    FileBuffer *buf,
+    int *line,
     char *lexeme
 ) {
     State curr; curr.state_id = 0; curr.final = 0; curr.error = -1;
-    int tmp, tmp2;
-    int backup_start = *start;
+    int tmp, tmp2, cur_len = 0;
+    char *backup_start = buf->current;
 
+    int concatChar = 1, moveAhead = 1;
     // loop till it is a final state
     // or a lexical error has occured
-    while(curr.final == 0 && curr.error == -1 && *start < buf_len) {
-        char next_char = buf[(*start)++];
 
-        switch(curr.state_id) {
+    while (curr.final == 0 && curr.error == -1) {
+        char next_char = readChar(buf);
+
+        if (next_char == '$') {
+            curr.error = 100;
+            return curr;
+        } else if (next_char == '\0') {
+            continue;
+        }
+
+        switch (curr.state_id) {
             // START state
             case 0:
                 switch (next_char) {
                     case ' ':
-                        backup_start++;
+                        // backup_start++;
+                        concatChar = 0;
                         break;
                     case '[' :
                         curr.state_id = 1;
@@ -241,11 +251,13 @@ State getNextToken(
                     case '\n':
                         (*line)++;
                         printf("\nLINE : %d\n", *line);
-                        backup_start++;
+                        // backup_start++;
+                        concatChar = 0;
                         break;
                     case EOF:
                         curr.state_id = 100;
                         curr.final = 1;
+                        concatChar = 0;
                         break;
 
                     default:
@@ -306,7 +318,9 @@ State getNextToken(
                         if (isAllExcept('=', next_char)) {
                             curr.state_id = 19;
                             curr.final = 1;
-                            (*start)--;
+                            // (*start)--;
+                            moveAhead = 0;
+                            concatChar = 0;
                         } else {
                             curr.error = 1;
                         }
@@ -321,12 +335,18 @@ State getNextToken(
                         break;
                     case '-' :
                         curr.state_id = 22;
-                        next_char = buf[(*start)++];
+                        moveForward(buf);
+                        lexeme[cur_len++] = next_char;
+                        // next_char = buf[(*start)++];
+                        next_char = readChar(buf);
 
                         switch (next_char) {
                             case '-':
                                 curr.state_id = 23;
-                                next_char = buf[(*start)++];
+                                lexeme[cur_len++] = next_char;
+                                moveForward(buf);
+                                // next_char = buf[(*start)++];
+                                next_char = readChar(buf);
                                 switch (next_char) {
                                     case '-':
                                         curr.state_id = 24;
@@ -345,7 +365,9 @@ State getNextToken(
                         if (isAllExcept('-', next_char) && isAllExcept('=', next_char)) {
                             curr.state_id = 25;
                             curr.final = 1;
-                            (*start)--;
+                            // (*start)--;
+                            moveAhead = 0;
+                            concatChar = 0;
                         } else {
                             curr.error = 1;
                         }
@@ -356,7 +378,10 @@ State getNextToken(
                 switch (next_char) {
                     case '&' :
                         curr.state_id = 27;
-                        next_char = buf[(*start)++];
+                        lexeme[cur_len++] = next_char;
+                        moveForward(buf);
+                        // next_char = buf[(*start)++];
+                        next_char = readChar(buf);
 
                         switch (next_char) {
                             case '&':
@@ -385,7 +410,10 @@ State getNextToken(
                 switch (next_char) {
                     case '@' :
                         curr.state_id = 33;
-                        next_char = buf[(*start)++];
+                        lexeme[cur_len++] = next_char;
+                        moveForward(buf);
+                        // next_char = buf[(*start)++];
+                        next_char = readChar(buf);
                         switch (next_char) {
                             case '@':
                                 curr.state_id = 34;
@@ -405,7 +433,9 @@ State getNextToken(
                     case '\n' :
                         curr.state_id = 36;
                         curr.final = 1;
-                        (*start)--;
+                        // (*start)--;
+                        moveAhead = 0;
+                        concatChar = 0;
                         break;
                     default:
                         curr.error = -1;
@@ -420,7 +450,9 @@ State getNextToken(
                     case 0:
                         curr.state_id = 31;
                         curr.final = 1;
-                        (*start)--;
+                        // (*start)--;
+                        moveAhead = 0;
+                        concatChar = 0;
                         break;
                     default:
                         curr.error = 1;
@@ -443,7 +475,7 @@ State getNextToken(
                 break;
 
             case 43:
-                if (*start - backup_start > MAX_FUNID_LEN) {
+                if (cur_len > MAX_FUNID_LEN) {
                     curr.error = 1;
                     break;
                 }
@@ -456,7 +488,9 @@ State getNextToken(
                             case 0:
                                 curr.state_id = 45;
                                 curr.final = 1;
-                                (*start)--;
+                                // (*start)--;
+                                moveAhead = 0;
+                                concatChar = 0;
                                 break;
                             case 1:
                                 curr.state_id = 44;
@@ -474,7 +508,7 @@ State getNextToken(
                 break;
 
             case 44:
-                if (*start - backup_start > MAX_FUNID_LEN) {
+                if (cur_len > MAX_FUNID_LEN) {
                     curr.error = 1;
                     break;
                 }
@@ -483,14 +517,18 @@ State getNextToken(
                     case 0:
                         curr.state_id = 45;
                         curr.final = 1;
-                        (*start)--;
+                        // (*start)--;
+                        moveAhead = 0;
+                        concatChar = 0;
                         break;
                     case 1:
                         curr.state_id = 44;
                         break;
                     default:
                         curr.state_id = 45;
-                        (*start)--;
+                        // (*start)--;
+                        moveAhead = 0;
+                        concatChar = 0;
                         curr.final = 1;
                 };
                 break;
@@ -507,7 +545,9 @@ State getNextToken(
                             case 1:
                                 curr.state_id = 41;
                                 curr.final = 1;
-                                (*start)--;
+                                // (*start)--;
+                                moveAhead = 0;
+                                concatChar = 0;
                                 break;
                             default:
                                 curr.error = 1;
@@ -556,7 +596,9 @@ State getNextToken(
                     case 0:
                         curr.state_id = 51;
                         curr.final = 1;
-                        (*start)--;
+                        // (*start)--;
+                        moveAhead = 0;
+                        concatChar = 0;
                         break;
                     case 1:
                         curr.state_id = 50;
@@ -586,7 +628,7 @@ State getNextToken(
                 break;
 
             case 47:
-                if (*start - backup_start > MAX_ID_LEN) {
+                if (cur_len > MAX_ID_LEN) {
                     curr.error = 1;
                     break;
                 }
@@ -599,7 +641,9 @@ State getNextToken(
                         } else {
                             curr.state_id = 49;
                             curr.final = 1;
-                            (*start)--;
+                            // (*start)--;
+                            moveAhead = 0;
+                            concatChar = 0;
                         }
                         break;
                     case 1:
@@ -611,7 +655,7 @@ State getNextToken(
                 break;
 
             case 48:
-                if (*start - backup_start > MAX_ID_LEN) {
+                if (cur_len > MAX_ID_LEN) {
                     curr.error = 1;
                     break;
                 }
@@ -620,7 +664,9 @@ State getNextToken(
                     case 0:
                         curr.state_id = 49;
                         curr.final = 1;
-                        (*start)--;
+                        // (*start)--;
+                        moveAhead = 0;
+                        concatChar = 0;
                         break;
                     case 1:
                         curr.state_id = 47;
@@ -633,31 +679,73 @@ State getNextToken(
             default:
                 curr.error = 1;
         }
+
+        if (concatChar)
+            lexeme[cur_len++] = next_char;
+
+        if (moveAhead)
+            moveForward(buf);
+
+        // reset the flags
+        moveAhead = 1;
+        concatChar = 1;
     }
 
     // store the lexeme for the token
-    int i, j;
-    for (i = backup_start, j = 0; j < ((*start) - backup_start); i++, j++) {
-        lexeme[j] = buf[i];
-    }
-    lexeme[j] = '\0';
+    int i = 0, j;
+    // for (i = 0; backup_start != buf->current; backup_start++) {
+    //     lexeme[i++] = *backup_start;
+    // }
+
+    // lexeme[i] = '\0';
+
 
     int new_sid;
-    if ((curr.state_id == 45 || curr.state_id == 51)) {
+    // if ((curr.state_id == 45 || curr.state_id == 51)) {
 
-        int k = checkIfKeyword(t, lexeme, j);
-        if (k != -1) {
-            curr.state_id = k;
-            curr.error = -1;
-            curr.final = 1;
-        }
-    }
+    //     int k = checkIfKeyword(t, lexeme, i);
+    //     if (k != -1) {
+    //         curr.state_id = k;
+    //         curr.error = -1;
+    //         curr.final = 1;
+    //     }
+    // }
 
     // if final state is not reached
-    if (curr.final == 0 && *start < buf_len) {
+    if (curr.final == 0) {
         curr.error = 0;
     }
+    // printf("Lexeme : `%s`\n", lexeme);
 
     return curr;
+
+}
+
+
+void lexicalAnalysis(char *filepath) {
+
+    FileBuffer b;
+    initFileBuffer(&b, filepath);
+
+    int line = 1;
+    State a; a.error = -1;
+    char lexeme[101];
+    int i = 0;
+    char *start;
+    // read tokens and print them
+    while (1) {
+        start = b.current;
+        a = getNextToken(&b, &line, lexeme);
+
+        if (a.error != -1 && a.error != 100) {
+            printf("**** ERROR! INVALID TOKEN at %s ON LINE : %d\n", lexeme, line);
+            break;
+        } else if (a.error == 100) {
+            break;
+        }
+
+        printf("`%s` : %s\n", lexeme, final_states[a.state_id]);
+        memset(lexeme, '\0', 100);
+    }
 
 }

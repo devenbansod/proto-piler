@@ -1,3 +1,4 @@
+#include "fileBuffer.h"
 #ifndef LEXER
 #define LEXER
 
@@ -12,8 +13,11 @@ typedef struct state State;
 void initStateNames();
 
 State getNextToken(
-    char *buf, int buf_len, int *start, int *line, int *check_error,
+    FileBuffer *buf,
+    int *line,
     char *lexeme
 );
+
+void lexicalAnalysis(char *filepath);
 
 #endif
