@@ -3,9 +3,9 @@
 #define LEXER
 
 struct state {
-	int state_id;
-	int final;
-	int error;
+    int state_id;
+    int final;
+    int error;
 };
 
 typedef struct state State;
