@@ -1,6 +1,11 @@
 #include "common.h"
+#include "lexerDef.h"
 #include "lexer.h"
-#include "keywords_trie.h"
+
+#include "keywordTrieDef.h"
+#include "keywordTrie.h"
+
+#include "stackDef.h"
 #include "stack.h"
 
 extern char **final_states;

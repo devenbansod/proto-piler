@@ -1,5 +1,5 @@
 #include "common.h"
-#include "stack.h"
+#include "stackDef.h"
 
 void createStack(Stack *s) {
     s->top = NULL;

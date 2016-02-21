@@ -1,16 +1,5 @@
-#ifndef FILE_BUFFER
-#define FILE_BUFFER
-#define MAX_BUFFER 4097
-
-struct fileBuffer {
-    char buf1[MAX_BUFFER];
-    char buf2[MAX_BUFFER];
-    int curBuf;
-    char *current;
-    int fd;
-};
-
-typedef struct fileBuffer FileBuffer;
+#ifndef FILE_BUFFER_INTERFACE
+#define FILE_BUFFER_INTERFACE
 
 /*
  * Interface to FileBuffer

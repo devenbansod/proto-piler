@@ -1,5 +1,7 @@
 #include "common.h"
-#include "symbolTable.h"
+#include "symbolTableDef.h"
+
+void insertSymbol(SymbolTable* st, char *id, int id_len, struct sym_value v);
 
 /*
  * HASH FUNCTION
@@ -117,7 +119,6 @@ void insertSymbol(SymbolTable* st, char *id, int id_len, struct sym_value v) {
         st = rehash_table(st, st->size * 2);
     }
 }
-
 
 /*
  * Find a symbol in the symbol table

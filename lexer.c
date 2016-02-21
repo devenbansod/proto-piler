@@ -1,7 +1,7 @@
 #include "common.h"
-#include "keywords_trie.h"
-#include "fileBuffer.h"
-#include "lexer.h"
+#include "keywordTrieDef.h"
+#include "fileBufferDef.h"
+#include "lexerDef.h"
 
 #define MAX_FUNID_LEN 30
 #define MAX_ID_LEN 20

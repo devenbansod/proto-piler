@@ -1,26 +1,9 @@
-#ifndef STACK
-#define STACK
+#ifndef STACK_INTERFACE
+#define STACK_INTERFACE
 
-struct termNonTerm {
-    int state_id;
-    int isTerminal;
-    int error;
-};
-
-typedef struct termNonTerm termNonTerm;
-
-struct stackElem {
-    struct termNonTerm t;
-    struct stackElem *next;
-};
-
-typedef struct stackElem stackElem;
-
-struct stack {
-    struct stackElem* top;
-    int size;
-};
-
-typedef struct stack Stack;
+Stack* createStack();
+void push(termNonTerm t, Stack *s);
+termNonTerm pop(Stack *s);
+int getSize(Stack *s);
 
 #endif

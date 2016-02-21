@@ -1,5 +1,5 @@
 #include "common.h"
-#include "fileBuffer.h"
+#include "fileBufferDef.h"
 
 void reloadBuffer(FileBuffer *b, int buf_num) {
     if (buf_num == 1) {

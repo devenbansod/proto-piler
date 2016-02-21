@@ -1,14 +1,7 @@
-#include "fileBuffer.h"
-#ifndef LEXER
-#define LEXER
+#include "fileBufferDef.h"
 
-struct state {
-    int state_id;
-    int final;
-    int error;
-};
-
-typedef struct state State;
+#ifndef LEXER_INTERFACE
+#define LEXER_INTERFACE
 
 void initStateNames();
 
