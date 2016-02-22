@@ -69,5 +69,7 @@ int checkIfKeyword(Trie* t, char *str, int len) {
     }
 
     if (curr == NULL) return -1;
-    else return curr->state_id;
+    else {
+        return curr->state_id;
+    }
 }

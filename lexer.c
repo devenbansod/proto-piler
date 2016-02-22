@@ -691,31 +691,23 @@ State getNextToken(
         concatChar = 1;
     }
 
-    // store the lexeme for the token
-    int i = 0, j;
-    // for (i = 0; backup_start != buf->current; backup_start++) {
-    //     lexeme[i++] = *backup_start;
-    // }
 
-    // lexeme[i] = '\0';
-
-
+    // check for keywords
     int new_sid;
-    // if ((curr.state_id == 45 || curr.state_id == 51)) {
+    if ((curr.state_id == 45 || curr.state_id == 51)) {
 
-    //     int k = checkIfKeyword(t, lexeme, i);
-    //     if (k != -1) {
-    //         curr.state_id = k;
-    //         curr.error = -1;
-    //         curr.final = 1;
-    //     }
-    // }
+        int k = checkIfKeyword(t, lexeme, cur_len);
+        if (k != -1) {
+            curr.state_id = k;
+            curr.error = -1;
+            curr.final = 1;
+        }
+    }
 
     // if final state is not reached
     if (curr.final == 0) {
         curr.error = 0;
     }
-    // printf("Lexeme : `%s`\n", lexeme);
 
     return curr;
 
