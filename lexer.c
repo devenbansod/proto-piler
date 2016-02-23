@@ -150,10 +150,7 @@ State getNextToken(
     while (curr.final == 0 && curr.error == -1) {
         char next_char = readChar(buf);
 
-        if (next_char == '$') {
-            curr.error = 100;
-            return curr;
-        } else if (next_char == '\0') {
+        if (next_char == '\0') {
             continue;
         }
 
@@ -246,11 +243,14 @@ State getNextToken(
                     case '_' :
                         curr.state_id = 42;
                         break;
+                    case '$' :
+                        curr.error = 100;
+                        break;
                     // SIMPLE THINGS FINISH
 
                     case '\n':
                         (*line)++;
-                        printf("\nLINE : %d\n", *line);
+                        // printf("\nLINE : %d\n", *line);
                         // backup_start++;
                         concatChar = 0;
                         break;
@@ -689,6 +689,28 @@ State getNextToken(
         // reset the flags
         moveAhead = 1;
         concatChar = 1;
+
+        if (next_char == '$') {
+            if (curr.state_id == 17
+                || curr.state_id == 20
+                || curr.state_id == 30
+                || curr.state_id == 35
+                || curr.state_id == 37
+                || curr.state_id == 43
+                || curr.state_id == 44
+                || curr.state_id == 47
+                || curr.state_id == 48
+                || curr.state_id == 51
+                || curr.state_id == 0
+            ) {
+                curr.final = 1;
+                break;
+            } else {
+                printf("curr %d\n", curr.state_id);
+                curr.error = 100;
+                return curr;
+            }
+        }
     }
 
 
@@ -708,6 +730,9 @@ State getNextToken(
     if (curr.final == 0) {
         curr.error = 0;
     }
+
+    strcpy(curr.lexeme, lexeme);
+    curr.line_no = *line;
 
     return curr;
 
@@ -736,7 +761,7 @@ void lexicalAnalysis(char *filepath) {
             break;
         }
 
-        printf("`%s` : %s\n", lexeme, final_states[a.state_id]);
+        printf("LINE %d --> `%s` : %s\n", a.line_no, a.lexeme, final_states[a.state_id]);
         memset(lexeme, '\0', 100);
     }
 

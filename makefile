@@ -14,10 +14,10 @@ symbolTable.o: symbolTable.c
 	gcc  -c -g symbolTable.c
 
 all: fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o
-	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o compiler.c -o compiler.out
+	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o driver.c -o compiler.out
 
 debug: fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o
-	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o compiler.c -g -o compiler.out
+	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o driver.c -g -o compiler.out
 
 clean:
 	rm -rf *.gch
