@@ -5,12 +5,14 @@
 
 void initStateNames();
 
+FILE* getStream(FILE *fp, FileBuffer *b, int k);
+
 State getNextToken(
     FileBuffer *buf,
     int *line,
     char *lexeme
 );
 
-void lexicalAnalysis(char *filepath);
+void lexicalAnalysis(FILE *fp, int k);
 
 #endif

@@ -5,7 +5,6 @@
  * Interface to FileBuffer
  *
  */
-void initFileBuffer(FileBuffer *b, char *pathname);
 void moveForward(FileBuffer *b);
 char readChar(FileBuffer *b);
 

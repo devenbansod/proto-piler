@@ -134,6 +134,21 @@ int is2to7(char next_char) {
     }
 }
 
+
+FILE* getStream(FILE *fp, FileBuffer *b, int k) {
+    b->fp = fp;
+    b->size_of_buffer = k + 1;
+
+    b->buf1 = (char*)malloc(sizeof(char) * k);
+    b->buf2 = (char*)malloc(sizeof(char) * k);
+
+    reloadBuffer(b, 1);
+    b->curBuf = 1;
+    b->current = b->buf1;
+    return b->fp;
+}
+
+
 State getNextToken(
     FileBuffer *buf,
     int *line,
@@ -739,10 +754,10 @@ State getNextToken(
 }
 
 
-void lexicalAnalysis(char *filepath) {
+void lexicalAnalysis(FILE *fp, int k) {
 
     FileBuffer b;
-    initFileBuffer(&b, filepath);
+    fp = getStream(fp, &b, k);
 
     int line = 1;
     State a; a.error = -1;

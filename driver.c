@@ -18,12 +18,14 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    FILE *fp = fopen(argv[1], "r");
+
     // Initialization
     initStateNames();
     initKeywordTrie();
 
     // Run lexical analysis
-    lexicalAnalysis(argv[1]);
+    lexicalAnalysis(fp, 4096);
 
     // Lexical analysis
     free(final_states);

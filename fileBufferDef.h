@@ -3,11 +3,12 @@
 #define MAX_BUFFER 4097
 
 struct fileBuffer {
-    char buf1[MAX_BUFFER];
-    char buf2[MAX_BUFFER];
+    char *buf1;
+    char *buf2;
     int curBuf;
     char *current;
-    int fd;
+    FILE *fp;
+    int size_of_buffer;
 };
 
 typedef struct fileBuffer FileBuffer;
