@@ -59,6 +59,10 @@ int checkIfKeyword(Trie* t, char *str, int len) {
     trieNode* curr = t->root;
 
     for(i = 0; i < len; i++) {
+        if (! isalpha(str[i])) {
+            return -1;
+        }
+
         j = CHAR_TO_INDEX(str[i]);
 
         if (curr->children[j] == NULL) {

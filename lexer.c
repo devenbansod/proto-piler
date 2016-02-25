@@ -173,7 +173,8 @@ State getNextToken(
             // START state
             case 0:
                 switch (next_char) {
-                    case ' ':
+                    case '\t':
+                    case ' ' :
                         // backup_start++;
                         concatChar = 0;
                         break;
@@ -261,12 +262,13 @@ State getNextToken(
                     case '$' :
                         curr.error = 100;
                         break;
-                    // SIMPLE THINGS FINISH
 
+                    // SIMPLE THINGS FINISH
+                    case '\r':
                     case '\n':
                         (*line)++;
-                        // printf("\nLINE : %d\n", *line);
                         // backup_start++;
+                        moveAhead = 1;
                         concatChar = 0;
                         break;
                     case EOF:
@@ -288,14 +290,14 @@ State getNextToken(
                                         curr.state_id = 46;
                                         break;
                                     default:
-                                        curr.error = 1;
+                                        curr.error = 3;
                                 };
                                 break;
                             case 1:
                                 curr.state_id = 37;
                                 break;
                             default:
-                                curr.error = 1;
+                                curr.error = 3;
                         }
 
                 };
@@ -308,7 +310,7 @@ State getNextToken(
                         curr.final = 1;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -319,7 +321,7 @@ State getNextToken(
                         curr.final = 1;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -337,7 +339,7 @@ State getNextToken(
                             moveAhead = 0;
                             concatChar = 0;
                         } else {
-                            curr.error = 1;
+                            curr.error = 3;
                         }
                 };
                 break;
@@ -368,11 +370,11 @@ State getNextToken(
                                         curr.final = 1;
                                         break;
                                     default:
-                                        curr.error = 1;
+                                        curr.error = 3;
                                 }
                                 break;
                             default:
-                                curr.error = 1;
+                                curr.error = 3;
                         }
                         break;
 
@@ -384,7 +386,7 @@ State getNextToken(
                             moveAhead = 0;
                             concatChar = 0;
                         } else {
-                            curr.error = 1;
+                            curr.error = 3;
                         }
                 };
                 break;
@@ -406,7 +408,7 @@ State getNextToken(
                         }
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -417,7 +419,7 @@ State getNextToken(
                         curr.state_id = 30;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -435,22 +437,24 @@ State getNextToken(
                                 curr.final = 1;
                                 break;
                             default :
-                                curr.error = 1;
+                                curr.error = 3;
                         }
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
             case 35:
                 switch (next_char) {
                     case '\n' :
+                    case '\r' :
                         curr.state_id = 36;
                         curr.final = 1;
                         // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
+                        // (*line)++;
                         break;
                     default:
                         curr.error = -1;
@@ -470,7 +474,7 @@ State getNextToken(
                         concatChar = 0;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
 
                 };
                 break;
@@ -479,22 +483,17 @@ State getNextToken(
                 tmp = isalpha(next_char) > 0 ? 1 : 0;
                 switch (tmp) {
                     case 0:
-                        curr.error = 1;
+                        curr.error = 3;
                         break;
                     case 1:
                         curr.state_id = 43;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
             case 43:
-                if (cur_len > MAX_FUNID_LEN) {
-                    curr.error = 1;
-                    break;
-                }
-
                 tmp = isalpha(next_char) > 0 ? 1 : 0;
                 switch (tmp) {
                     case 0:
@@ -511,22 +510,18 @@ State getNextToken(
                                 curr.state_id = 44;
                                 break;
                             default:
-                                curr.error = 1;
+                                curr.error = 3;
                         }
                         break;
                     case 1:
                         curr.state_id = 43;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
             case 44:
-                if (cur_len > MAX_FUNID_LEN) {
-                    curr.error = 1;
-                    break;
-                }
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch(tmp) {
                     case 0:
@@ -565,14 +560,14 @@ State getNextToken(
                                 concatChar = 0;
                                 break;
                             default:
-                                curr.error = 1;
+                                curr.error = 3;
                         };
                         break;
                     case 1:
                         curr.state_id = 37;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -580,13 +575,13 @@ State getNextToken(
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch (tmp) {
                     case 0:
-                        curr.error = 1;
+                        curr.error = 3;
                         break;
                     case 1:
                         curr.state_id = 39;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -594,14 +589,14 @@ State getNextToken(
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch (tmp) {
                     case 0:
-                        curr.error = 1;
+                        curr.error = 3;
                         break;
                     case 1:
                         curr.state_id = 40;
                         curr.final = 1;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -619,7 +614,7 @@ State getNextToken(
                         curr.state_id = 50;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
@@ -631,22 +626,18 @@ State getNextToken(
                         if (tmp2) {
                             curr.state_id = 50;
                         } else {
-                            curr.error = 1;
+                            curr.error = 3;
                         }
                         break;
                     case 1:
                         curr.state_id = 47;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
             case 47:
-                if (cur_len > MAX_ID_LEN) {
-                    curr.error = 1;
-                    break;
-                }
                 tmp = isBtoD(next_char);
                 switch (tmp) {
                     case 0:
@@ -665,15 +656,11 @@ State getNextToken(
                         curr.state_id = 47;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
             case 48:
-                if (cur_len > MAX_ID_LEN) {
-                    curr.error = 1;
-                    break;
-                }
                 tmp = is2to7(next_char);
                 switch (tmp) {
                     case 0:
@@ -687,12 +674,12 @@ State getNextToken(
                         curr.state_id = 47;
                         break;
                     default:
-                        curr.error = 1;
+                        curr.error = 3;
                 };
                 break;
 
             default:
-                curr.error = 1;
+                curr.error = 3;
         }
 
         if (concatChar)
@@ -741,18 +728,52 @@ State getNextToken(
         }
     }
 
-    // if final state is not reached
-    if (curr.final == 0) {
-        curr.error = 0;
-    }
-
     strcpy(curr.lexeme, lexeme);
     curr.line_no = *line;
+
+    if ((curr.state_id == 49
+        && cur_len > MAX_ID_LEN)
+        || (curr.state_id == 45
+        && cur_len > MAX_FUNID_LEN)
+    ) {
+        curr.error = 1;
+    }
 
     return curr;
 
 }
 
+void reportError (FILE *fp, int error_code, State err_tok) {
+    char error[100];
+    switch (error_code) {
+        case -1 :
+        case 100:
+        case 50 :
+            return;
+
+        case 1  :
+            fprintf(stderr, "*** ERROR 1: Identifier `%s` at line : %d "
+                "is longer than maximum prescribed length of 20 characters\n",
+                err_tok.lexeme, err_tok.line_no
+            );
+            break;
+        case 2  :
+            fprintf(stderr, "*** ERROR 2: Unknown symbol `%s` at line %d\n",
+                err_tok.lexeme, err_tok.line_no
+            );
+            break;
+        case 3  :
+            fprintf(stderr, "*** ERROR 3: Unknown pattern `%s` at line %d\n",
+                err_tok.lexeme, err_tok.line_no
+            );
+            break;
+        case 4  :
+            break;
+
+        default:
+            return;
+    }
+}
 
 void lexicalAnalysis(FILE *fp, int k) {
 
@@ -770,8 +791,9 @@ void lexicalAnalysis(FILE *fp, int k) {
         a = getNextToken(&b, &line, lexeme);
 
         if (a.error != -1 && a.error != 100) {
-            printf("**** ERROR! INVALID TOKEN at %s ON LINE : %d\n", lexeme, line);
-            break;
+            reportError(stderr, a.error, a);
+            memset(lexeme, '\0', 100);
+            continue;
         } else if (a.error == 100) {
             break;
         }
