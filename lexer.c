@@ -6,6 +6,8 @@
 #define MAX_FUNID_LEN 30
 #define MAX_ID_LEN 20
 
+#define STR_CPY_STATE_NAME(X) strcpy(final_states[X], #X)
+
 char **final_states;
 extern Trie *t;
 
@@ -21,61 +23,61 @@ void initStateNames() {
         final_states[i] = (char*)malloc(sizeof(char) * 20);
     }
 
-    strcpy(final_states[1] , "TK_SQL");
-    strcpy(final_states[2] , "TK_SQR");
-    strcpy(final_states[3] , "TK_SEM");
-    strcpy(final_states[4] , "TK_COLON");
-    strcpy(final_states[5] , "TK_DOT");
-    strcpy(final_states[6] , "TK_OP");
-    strcpy(final_states[7] , "TK_CL");
-    strcpy(final_states[8] , "TK_PLUS");
-    strcpy(final_states[9] , "TK_MINUS");
-    strcpy(final_states[10], "TK_MUL");
-    strcpy(final_states[11], "TK_DIV");
-    strcpy(final_states[12], "TK_NOT");
-    strcpy(final_states[14], "TK_NE");
-    strcpy(final_states[16], "TK_EQ");
-    strcpy(final_states[18], "TK_GE");
-    strcpy(final_states[19], "TK_GT");
-    strcpy(final_states[21], "TK_LE");
-    strcpy(final_states[24], "TK_ASSIGNOP");
-    strcpy(final_states[25], "TK_LT");
-    strcpy(final_states[28], "TK_AND");
-    strcpy(final_states[31], "TK_RECORDID");
-    strcpy(final_states[34], "TK_NOT");
-    strcpy(final_states[36], "TK_COMMENT");
-    strcpy(final_states[40], "TK_RNUM");
-    strcpy(final_states[41], "TK_NUM");
-    strcpy(final_states[45], "TK_FUNID");
-    strcpy(final_states[49], "TK_ID");
-    strcpy(final_states[51], "TK_FIELDID");
-    strcpy(final_states[52], "TK_COMMA");
+    STR_CPY_STATE_NAME(TK_SQL);
+    STR_CPY_STATE_NAME(TK_SQR);
+    STR_CPY_STATE_NAME(TK_SEM);
+    STR_CPY_STATE_NAME(TK_COLON);
+    STR_CPY_STATE_NAME(TK_DOT);
+    STR_CPY_STATE_NAME(TK_OP);
+    STR_CPY_STATE_NAME(TK_CL);
+    STR_CPY_STATE_NAME(TK_PLUS);
+    STR_CPY_STATE_NAME(TK_MINUS);
+    STR_CPY_STATE_NAME(TK_MUL);
+    STR_CPY_STATE_NAME(TK_DIV);
+    STR_CPY_STATE_NAME(TK_NOT);
+    STR_CPY_STATE_NAME(TK_NE);
+    STR_CPY_STATE_NAME(TK_EQ);
+    STR_CPY_STATE_NAME(TK_GE);
+    STR_CPY_STATE_NAME(TK_GT);
+    STR_CPY_STATE_NAME(TK_LE);
+    STR_CPY_STATE_NAME(TK_ASSIGNOP);
+    STR_CPY_STATE_NAME(TK_LT);
+    STR_CPY_STATE_NAME(TK_AND);
+    STR_CPY_STATE_NAME(TK_RECORDID);
+    STR_CPY_STATE_NAME(TK_NOT);
+    STR_CPY_STATE_NAME(TK_COMMENT);
+    STR_CPY_STATE_NAME(TK_RNUM);
+    STR_CPY_STATE_NAME(TK_NUM);
+    STR_CPY_STATE_NAME(TK_FUNID);
+    STR_CPY_STATE_NAME(TK_ID);
+    STR_CPY_STATE_NAME(TK_FIELDID);
+    STR_CPY_STATE_NAME(TK_COMMA);
 
     // keywords
-    strcpy(final_states[61], "TK_WITH");
-    strcpy(final_states[62], "TK_PARAMETERS");
-    strcpy(final_states[63], "TK_END");
-    strcpy(final_states[64], "TK_WHILE");
-    strcpy(final_states[65], "TK_INT");
-    strcpy(final_states[66], "TK_REAL");
-    strcpy(final_states[67], "TK_TYPE");
-    strcpy(final_states[68], "TK_MAIN");
-    strcpy(final_states[69], "TK_GLOBAL");
-    strcpy(final_states[70], "TK_PARAMETER");
-    strcpy(final_states[71], "TK_LIST");
-    strcpy(final_states[72], "TK_INPUT");
-    strcpy(final_states[73], "TK_OUTPUT");
-    strcpy(final_states[74], "TK_ENDWHILE");
-    strcpy(final_states[75], "TK_IF");
-    strcpy(final_states[76], "TK_THEN");
-    strcpy(final_states[77], "TK_ENDIF");
-    strcpy(final_states[78], "TK_READ");
-    strcpy(final_states[79], "TK_WRITE");
-    strcpy(final_states[80], "TK_RETURN");
-    strcpy(final_states[81], "TK_RECORD");
-    strcpy(final_states[82], "TK_ENDRECORD");
-    strcpy(final_states[83], "TK_ELSE");
-    strcpy(final_states[84], "TK_CALL");
+    STR_CPY_STATE_NAME(TK_WITH);
+    STR_CPY_STATE_NAME(TK_PARAMETERS);
+    STR_CPY_STATE_NAME(TK_END);
+    STR_CPY_STATE_NAME(TK_WHILE);
+    STR_CPY_STATE_NAME(TK_INT);
+    STR_CPY_STATE_NAME(TK_REAL);
+    STR_CPY_STATE_NAME(TK_TYPE);
+    STR_CPY_STATE_NAME(TK_MAIN);
+    STR_CPY_STATE_NAME(TK_GLOBAL);
+    STR_CPY_STATE_NAME(TK_PARAMETER);
+    STR_CPY_STATE_NAME(TK_LIST);
+    STR_CPY_STATE_NAME(TK_INPUT);
+    STR_CPY_STATE_NAME(TK_OUTPUT);
+    STR_CPY_STATE_NAME(TK_ENDWHILE);
+    STR_CPY_STATE_NAME(TK_IF);
+    STR_CPY_STATE_NAME(TK_THEN);
+    STR_CPY_STATE_NAME(TK_ENDIF);
+    STR_CPY_STATE_NAME(TK_READ);
+    STR_CPY_STATE_NAME(TK_WRITE);
+    STR_CPY_STATE_NAME(TK_RETURN);
+    STR_CPY_STATE_NAME(TK_RECORD);
+    STR_CPY_STATE_NAME(TK_ENDRECORD);
+    STR_CPY_STATE_NAME(TK_ELSE);
+    STR_CPY_STATE_NAME(TK_CALL);
 
 }
 
@@ -149,17 +151,17 @@ FILE* getStream(FILE *fp, FileBuffer *b, int k) {
 }
 
 
-State getNextToken(
+tokenInfo getNextToken(
     FileBuffer *buf,
     int *line,
     char *lexeme
 ) {
-    State curr; curr.state_id = 0; curr.final = 0; curr.error = -1;
+    tokenInfo curr; curr.state_id = 0; curr.final = 0; curr.error = -1;
     int tmp, tmp2, cur_len = 0;
     char *backup_start = buf->current;
 
     int concatChar = 1, moveAhead = 1;
-    // loop till it is a final state
+    // loop till it is a final tokenInfo
     // or a lexical error has occured
 
     while (curr.final == 0 && curr.error == -1) {
@@ -170,64 +172,63 @@ State getNextToken(
         }
 
         switch (curr.state_id) {
-            // START state
+            // START tokenInfo
             case 0:
                 switch (next_char) {
                     case '\t':
                     case ' ' :
-                        // backup_start++;
                         concatChar = 0;
                         break;
                     case '[' :
-                        curr.state_id = 1;
+                        curr.state_id = TK_SQL;
                         curr.final = 1;
                         break;
                     case ']' :
-                        curr.state_id = 2;
+                        curr.state_id = TK_SQR;
                         curr.final = 1;
                         break;
                     case ';' :
-                        curr.state_id = 3;
+                        curr.state_id = TK_SEM;
                         curr.final = 1;
                         break;
                     case ':' :
-                        curr.state_id = 4;
+                        curr.state_id = TK_COLON;
                         curr.final = 1;
                         break;
                     case '.' :
-                        curr.state_id = 5;
+                        curr.state_id = TK_DOT;
                         curr.final = 1;
                         break;
                     case '(' :
-                        curr.state_id = 6;
+                        curr.state_id = TK_OP;
                         curr.final = 1;
                         break;
                     case ')' :
-                        curr.state_id = 7;
+                        curr.state_id = TK_CL;
                         curr.final = 1;
                         break;
                     case '+' :
-                        curr.state_id = 8;
+                        curr.state_id = TK_PLUS;
                         curr.final = 1;
                         break;
                     case '-' :
-                        curr.state_id = 9;
+                        curr.state_id = TK_MINUS;
                         curr.final = 1;
                         break;
                     case '*' :
-                        curr.state_id = 10;
+                        curr.state_id = TK_MUL;
                         curr.final = 1;
                         break;
                     case '/' :
-                        curr.state_id = 11;
+                        curr.state_id = TK_DIV;
                         curr.final = 1;
                         break;
                     case '~' :
-                        curr.state_id = 12;
+                        curr.state_id = TK_NOT;
                         curr.final = 1;
                         break;
                     case ',' :
-                        curr.state_id = 52;
+                        curr.state_id = TK_COMMA;
                         curr.final = 1;
                         break;
                     // ONLY SINGLE ENDS
@@ -267,7 +268,6 @@ State getNextToken(
                     case '\r':
                     case '\n':
                         (*line)++;
-                        // backup_start++;
                         moveAhead = 1;
                         concatChar = 0;
                         break;
@@ -306,7 +306,7 @@ State getNextToken(
             case 13:
                 switch (next_char) {
                     case '=' :
-                        curr.state_id = 14;
+                        curr.state_id = TK_NE;
                         curr.final = 1;
                         break;
                     default:
@@ -317,7 +317,7 @@ State getNextToken(
             case 15:
                 switch (next_char) {
                     case '=' :
-                        curr.state_id = 16;
+                        curr.state_id = TK_EQ;
                         curr.final = 1;
                         break;
                     default:
@@ -328,14 +328,13 @@ State getNextToken(
             case 17:
                 switch (next_char) {
                     case '=':
-                        curr.state_id = 18;
+                        curr.state_id = TK_GE;
                         curr.final = 1;
                         break;
                     default:
                         if (isAllExcept('=', next_char)) {
-                            curr.state_id = 19;
+                            curr.state_id = TK_GT;
                             curr.final = 1;
-                            // (*start)--;
                             moveAhead = 0;
                             concatChar = 0;
                         } else {
@@ -347,26 +346,25 @@ State getNextToken(
             case 20:
                 switch (next_char) {
                     case '=' :
-                        curr.state_id = 21;
+                        curr.state_id = TK_LE;
                         curr.final = 1;
                         break;
                     case '-' :
                         curr.state_id = 22;
                         moveForward(buf);
                         lexeme[cur_len++] = next_char;
-                        // next_char = buf[(*start)++];
-                        next_char = readChar(buf);
 
+                        next_char = readChar(buf);
                         switch (next_char) {
                             case '-':
                                 curr.state_id = 23;
                                 lexeme[cur_len++] = next_char;
                                 moveForward(buf);
-                                // next_char = buf[(*start)++];
+
                                 next_char = readChar(buf);
                                 switch (next_char) {
                                     case '-':
-                                        curr.state_id = 24;
+                                        curr.state_id = TK_ASSIGNOP;
                                         curr.final = 1;
                                         break;
                                     default:
@@ -380,9 +378,8 @@ State getNextToken(
 
                     default:
                         if (isAllExcept('-', next_char) && isAllExcept('=', next_char)) {
-                            curr.state_id = 25;
+                            curr.state_id = TK_LT;
                             curr.final = 1;
-                            // (*start)--;
                             moveAhead = 0;
                             concatChar = 0;
                         } else {
@@ -397,12 +394,11 @@ State getNextToken(
                         curr.state_id = 27;
                         lexeme[cur_len++] = next_char;
                         moveForward(buf);
-                        // next_char = buf[(*start)++];
-                        next_char = readChar(buf);
 
+                        next_char = readChar(buf);
                         switch (next_char) {
                             case '&':
-                                curr.state_id = 28;
+                                curr.state_id = TK_AND;
                                 curr.final = 1;
                                 break;
                         }
@@ -429,11 +425,11 @@ State getNextToken(
                         curr.state_id = 33;
                         lexeme[cur_len++] = next_char;
                         moveForward(buf);
-                        // next_char = buf[(*start)++];
+
                         next_char = readChar(buf);
                         switch (next_char) {
                             case '@':
-                                curr.state_id = 34;
+                                curr.state_id = TK_OR;
                                 curr.final = 1;
                                 break;
                             default :
@@ -449,12 +445,10 @@ State getNextToken(
                 switch (next_char) {
                     case '\n' :
                     case '\r' :
-                        curr.state_id = 36;
+                        curr.state_id = TK_COMMENT;
                         curr.final = 1;
-                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
-                        // (*line)++;
                         break;
                     default:
                         curr.error = -1;
@@ -467,9 +461,8 @@ State getNextToken(
                     case 1:
                         break;
                     case 0:
-                        curr.state_id = 31;
+                        curr.state_id = TK_RECORDID;
                         curr.final = 1;
-                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -500,9 +493,8 @@ State getNextToken(
                         tmp2 = isdigit(next_char) ? 1 : 0;
                         switch(tmp2) {
                             case 0:
-                                curr.state_id = 45;
+                                curr.state_id = TK_FUNID;
                                 curr.final = 1;
-                                // (*start)--;
                                 moveAhead = 0;
                                 concatChar = 0;
                                 break;
@@ -525,9 +517,8 @@ State getNextToken(
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch(tmp) {
                     case 0:
-                        curr.state_id = 45;
+                        curr.state_id = TK_FUNID;
                         curr.final = 1;
-                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -535,8 +526,7 @@ State getNextToken(
                         curr.state_id = 44;
                         break;
                     default:
-                        curr.state_id = 45;
-                        // (*start)--;
+                        curr.state_id = TK_FUNID;
                         moveAhead = 0;
                         concatChar = 0;
                         curr.final = 1;
@@ -553,9 +543,8 @@ State getNextToken(
                                 curr.state_id = 38;
                                 break;
                             case 1:
-                                curr.state_id = 41;
+                                curr.state_id = TK_NUM;
                                 curr.final = 1;
-                                // (*start)--;
                                 moveAhead = 0;
                                 concatChar = 0;
                                 break;
@@ -592,7 +581,7 @@ State getNextToken(
                         curr.error = 3;
                         break;
                     case 1:
-                        curr.state_id = 40;
+                        curr.state_id = TK_RNUM;
                         curr.final = 1;
                         break;
                     default:
@@ -604,9 +593,8 @@ State getNextToken(
                 tmp = isSmallAlpha(next_char);
                 switch (tmp) {
                     case 0:
-                        curr.state_id = 51;
+                        curr.state_id = TK_FIELDID;
                         curr.final = 1;
-                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -645,9 +633,8 @@ State getNextToken(
                         if (tmp2) {
                             curr.state_id = 48;
                         } else {
-                            curr.state_id = 49;
+                            curr.state_id = TK_ID;
                             curr.final = 1;
-                            // (*start)--;
                             moveAhead = 0;
                             concatChar = 0;
                         }
@@ -664,9 +651,8 @@ State getNextToken(
                 tmp = is2to7(next_char);
                 switch (tmp) {
                     case 0:
-                        curr.state_id = 49;
+                        curr.state_id = TK_ID;
                         curr.final = 1;
-                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -743,7 +729,7 @@ State getNextToken(
 
 }
 
-void reportError (FILE *fp, int error_code, State err_tok) {
+void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
     char error[100];
     switch (error_code) {
         case -1 :
@@ -781,7 +767,7 @@ void lexicalAnalysis(FILE *fp, int k) {
     fp = getStream(fp, &b, k);
 
     int line = 1;
-    State a; a.error = -1;
+    tokenInfo a; a.error = -1;
     char lexeme[101];
     int i = 0;
     char *start;

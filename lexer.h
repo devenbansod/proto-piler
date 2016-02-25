@@ -7,7 +7,7 @@ void initStateNames();
 
 FILE* getStream(FILE *fp, FileBuffer *b, int k);
 
-State getNextToken(
+tokenInfo getNextToken(
     FileBuffer *buf,
     int *line,
     char *lexeme
