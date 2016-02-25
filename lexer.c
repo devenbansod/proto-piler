@@ -137,6 +137,39 @@ int is2to7(char next_char) {
 }
 
 
+void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
+    char error[100];
+    switch (error_code) {
+        case -1 :
+        case 100:
+        case 50 :
+            return;
+
+        case 1  :
+            fprintf(stderr, "*** ERROR 1: Identifier `%s` at line : %d "
+                "is longer than maximum prescribed length of 20 characters\n",
+                err_tok.lexeme, err_tok.line_no
+            );
+            break;
+        case 2  :
+            fprintf(stderr, "*** ERROR 2: Unknown symbol `%s` at line %d\n",
+                err_tok.lexeme, err_tok.line_no
+            );
+            break;
+        case 3  :
+            fprintf(stderr, "*** ERROR 3: Unknown pattern `%s` at line %d\n",
+                err_tok.lexeme, err_tok.line_no
+            );
+            break;
+        case 4  :
+            break;
+
+        default:
+            return;
+    }
+}
+
+
 FILE* getStream(FILE *fp, FileBuffer *b, int k) {
     b->fp = fp;
     b->size_of_buffer = k + 1;
@@ -729,37 +762,6 @@ tokenInfo getNextToken(
 
 }
 
-void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
-    char error[100];
-    switch (error_code) {
-        case -1 :
-        case 100:
-        case 50 :
-            return;
-
-        case 1  :
-            fprintf(stderr, "*** ERROR 1: Identifier `%s` at line : %d "
-                "is longer than maximum prescribed length of 20 characters\n",
-                err_tok.lexeme, err_tok.line_no
-            );
-            break;
-        case 2  :
-            fprintf(stderr, "*** ERROR 2: Unknown symbol `%s` at line %d\n",
-                err_tok.lexeme, err_tok.line_no
-            );
-            break;
-        case 3  :
-            fprintf(stderr, "*** ERROR 3: Unknown pattern `%s` at line %d\n",
-                err_tok.lexeme, err_tok.line_no
-            );
-            break;
-        case 4  :
-            break;
-
-        default:
-            return;
-    }
-}
 
 void lexicalAnalysis(FILE *fp, int k) {
 
