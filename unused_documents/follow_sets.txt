@@ -9,7 +9,7 @@
 <dataType> = TK_ID, TK_COLON
 <remaining_list> = TK_SQR
 <primitiveDatatype> = TK_ID, TK_COLON
-<constructedDatatype> TK_ID, TK_COLON
+<constructedDatatype> = TK_ID, TK_COLON
 <typeDefinitions> = TK_TYPE, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL, TK_RETURN
 <typeDefinition> = TK_RECORD, TK_TYPE, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL, TK_RETURN
 <fieldDefinitions> = TK_ENDRECORD
@@ -23,18 +23,24 @@
 <assignmentStmt> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
 <iterativeStmt> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
 <conditionalStmt> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
+<elsePart> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
 <ioStmt> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
 <funCallStmt> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
 <singleOrRecId> = TK_ASSIGNOP
-<arithmeticExpression> TK_SEM
+<new_24> = TK_ASSIGNOP
+<arithmeticExpression> = TK_SEM
+<expPrime> = TK_SEM
+<term> = TK_MUL, TK_DIV, TK_PLUS, TK_MINUS, TK_SEM
+<termPrime> = TK_PLUS, TK_MINUS, TK_SEM
+<temp> = TK_MUL, TK_DIV, TK_PLUS, TK_MINUS, TK_SEM
+<all> = TK_MUL, TK_DIV
+<highPrecedenceOperators> = TK_OP, TK_ID TK_NUM, TK_RNUM, TK_RECORDID
+<lowPrecedenceOperators> = TK_OP, TK_ID TK_NUM, TK_RNUM, TK_RECORDID
+<factor> = TK_MUL, TK_DIV
 <outputParameters> = TK_CALL
 <inputParameters> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
 <allVar> = TK_CL
 <var> = TK_CL, TK_SEM, TK_LT, TK_LE, TK_EQ, TK_GT, TK_GE, TK_NE, TK_THEN
-<product> = TK_PLUS, TK_MINUS, TK_SEM
-<arexp> = TK_SEM
-<term> = TK_MUL, TK_DIV, TK_PLUS, TK_MINUS, TK_SEM
-<pdash> = TK_PLUS, TK_MINUS, TK_SEM
 <booleanExpression> = TK_CL
 <logicalOp> = TK_OP
 <relationalOp> = TK_ID, TK_NUM, TK_RNUM
@@ -42,4 +48,3 @@
 <optionalReturn> = TK_SEM
 <idList> = TK_SQR
 <more_ids> = TK_ID, TK_SQR
-<else_or_not> = TK_RETURN, TK_ID, TK_RECORDID, TK_WHILE, TK_IF, TK_WRITE, TK_READ, TK_SQL, TK_CALL
