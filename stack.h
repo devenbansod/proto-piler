@@ -1,9 +1,10 @@
 #ifndef STACK_INTERFACE
 #define STACK_INTERFACE
 
-Stack* createStack();
+void createStack(Stack *s);
 void push(termNonTerm t, Stack *s);
 termNonTerm pop(Stack *s);
 int getSize(Stack *s);
+stackElem getElem(symbolType, int isTerminal, int error);
 
 #endif

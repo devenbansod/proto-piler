@@ -63,10 +63,12 @@ struct sym_value {
     int temp;
 };
 
-union symbol_type {
+union symbolType {
 	NT a;
 	Terminal b;
 };
+
+typedef union symbolType symbolType;
 
 struct symbol {
     char *id;

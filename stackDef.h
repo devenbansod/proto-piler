@@ -2,7 +2,7 @@
 #define STACK_DEF
 
 struct termNonTerm {
-    int state_id;
+    symbolType st;
     int isTerminal;
     int error;
 };
