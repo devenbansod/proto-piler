@@ -54,8 +54,10 @@ typedef enum {
 	returnStmt,
 	optionalReturn,
 	idList,
-	more_ids
-} NT;
+	more_ids,
+	eps = 500,
+	EOS = 1000
+} NonTerminal;
 
 
 // Might be required later
@@ -63,17 +65,18 @@ struct sym_value {
     int temp;
 };
 
-union symbolType {
-	NT a;
+struct symbolType {
+	int isTerminal;
+	NonTerminal a;
 	Terminal b;
 };
 
-typedef union symbolType symbolType;
+typedef struct symbolType symbolType;
 
 struct symbol {
     char *id;
     int id_len;
-    union symbol_type symbol_name;
+    symbolType symbol_name;
     int unique_id;
     int isTerminal;
     struct sym_value v;

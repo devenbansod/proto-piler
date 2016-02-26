@@ -20,7 +20,6 @@ void push(termNonTerm t, Stack *s) {
     s->size++;
 }
 
-
 termNonTerm pop(Stack *s) {
     termNonTerm ret;
 

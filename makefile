@@ -13,11 +13,14 @@ keywordTrie.o: keywordTrie.c
 symbolTable.o: symbolTable.c
 	gcc  -c -g symbolTable.c
 
-all: fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o
-	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o driver.c -o compiler.out
+parser.o: parser.c
+	gcc  -c -g parser.c
+
+all: fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o
+	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o driver.c -o compiler.out
 
 debug: fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o
-	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o driver.c -g -o compiler.out
+	gcc fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o driver.c -g -o compiler.out
 
 clean:
 	rm -rf *.gch

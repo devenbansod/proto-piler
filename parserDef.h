@@ -1,4 +1,6 @@
 #include "stackDef.h"
+#include "symbolTableDef.h"
+
 #ifndef PARSER_DEF
 #define PARSER_DEF
 

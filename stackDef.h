@@ -1,3 +1,5 @@
+#include "symbolTableDef.h"
+
 #ifndef STACK_DEF
 #define STACK_DEF
 
