@@ -1,9 +1,11 @@
-#include "lexerDef.h"
 #ifndef SYMBOL_TABLE_DEF
 #define SYMBOL_TABLE_DEF
 
+#include "lexerDef.h"
+
 #define MAX_BUCKETS 337
 #define MAX_CHAIN_LENGTH 10
+
 
 typedef enum {
 	program = 200,
@@ -59,19 +61,19 @@ typedef enum {
 	EOS = 1000
 } NonTerminal;
 
+struct symbolType {
+	int isTerminal;
+	NonTerminal NonT;
+	Terminal Term;
+};
+
+typedef struct symbolType symbolType;
+
 
 // Might be required later
 struct sym_value {
     int temp;
 };
-
-struct symbolType {
-	int isTerminal;
-	NonTerminal a;
-	Terminal b;
-};
-
-typedef struct symbolType symbolType;
 
 struct symbol {
     char *id;

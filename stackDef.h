@@ -1,10 +1,11 @@
 #include "symbolTableDef.h"
+#include "parserDef.h"
 
 #ifndef STACK_DEF
 #define STACK_DEF
 
 struct termNonTerm {
-    symbolType st;
+    symbolType symbol_type;
     int isTerminal;
     int error;
 };

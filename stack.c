@@ -39,3 +39,7 @@ termNonTerm pop(Stack *s) {
 int getSize(Stack *s) {
     return s->size;
 }
+
+int isEmpty(Stack *s) {
+    return s->top == NULL;
+}

@@ -1,11 +1,20 @@
 <program> = <otherFunctions> <mainFunction>
 <mainFunction> = TK_MAIN <stmts> TK_END
-<otherFunctions> = <function> <otherFunctions> | eps
+<otherFunctions> = <function> <otherFunctions>
+<otherFunctions> = eps
+
 <function> = TK_FUNID <input_par> <output_par> TK_SEM <stmts> TK_END
+
 <input_par> = TK_INPUT TK_PARAMETER TK_LIST TK_SQL <parameter_list> TK_SQR
-<output_par> = TK_OUTPUT TK_PARAMETER TK_LIST TK_SQL <parameter_list> TK_SQR | eps
+
+<output_par> = TK_OUTPUT TK_PARAMETER TK_LIST TK_SQL <parameter_list> TK_SQR
+<output_par> = eps
+
 <parameter_list> = <dataType> TK_ID <remaining_list>
-<dataType> = <primitiveDatatype> | <constructedDatatype>
+
+<dataType> = <primitiveDatatype>
+<dataType> = <constructedDatatype>
+
 <primitiveDatatype> = TK_INT | TK_REAL
 <constructedDatatype> = TK_RECORD TK_RECORDID
 <remaining_list> = TK_COMMA <parameter_list> | eps
