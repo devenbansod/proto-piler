@@ -8,7 +8,7 @@
 
 
 typedef enum {
-	program = 200,
+	program = 201,
 	mainFunction,
 	otherFunctions,
 	function,

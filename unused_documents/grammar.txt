@@ -2,36 +2,42 @@
 <mainFunction> = TK_MAIN <stmts> TK_END
 <otherFunctions> = <function> <otherFunctions>
 <otherFunctions> = eps
-
 <function> = TK_FUNID <input_par> <output_par> TK_SEM <stmts> TK_END
-
 <input_par> = TK_INPUT TK_PARAMETER TK_LIST TK_SQL <parameter_list> TK_SQR
-
 <output_par> = TK_OUTPUT TK_PARAMETER TK_LIST TK_SQL <parameter_list> TK_SQR
 <output_par> = eps
-
 <parameter_list> = <dataType> TK_ID <remaining_list>
-
 <dataType> = <primitiveDatatype>
 <dataType> = <constructedDatatype>
-
-<primitiveDatatype> = TK_INT | TK_REAL
+<primitiveDatatype> = TK_INT
+<primitiveDatatype> = TK_REAL
 <constructedDatatype> = TK_RECORD TK_RECORDID
-<remaining_list> = TK_COMMA <parameter_list> | eps
+<remaining_list> = TK_COMMA <parameter_list>
+<remaining_list> = eps
 <stmts> = <typeDefinitions> <declarations> <otherStmts> <returnStmt>
-<typeDefinitions> = <typeDefinition> <typeDefinitions> |eps
+<typeDefinitions> = <typeDefinition> <typeDefinitions>
+<typeDefinitions> = eps
 <typeDefinition> = TK_RECORD TK_RECORDID <fieldDefinitions> TK_ENDRECORD TK_SEM
 <fieldDefinitions> = <fieldDefinition> <fieldDefinition> <moreFields>
 <fieldDefinition> = TK_TYPE <primitiveDatatype> TK_COLON TK_FIELDID TK_SEM
-<moreFields> = <fieldDefinition> <moreFields> | eps
-<declarations> = <declaration> <declarations>|eps
+<moreFields> = <fieldDefinition> <moreFields>
+<fieldDefinition> = eps
+<declarations> = <declaration> <declarations>
+<declarations> = eps
 <declaration> = TK_TYPE <dataType> TK_COLON TK_ID <global_or_not> TK_SEM
-<global_or_not> = TK_COLON TK_GLOBAL| eps
-<otherStmts> = <stmt> <otherStmts> | eps
-<stmt> = <assignmentStmt> | <iterativeStmt>|<conditionalStmt>|<ioStmt>| <funCallStmt>
+<global_or_not> = TK_COLON TK_GLOBAL
+<declaration> = eps
+<otherStmts> = <stmt> <otherStmts>
+<otherStmts> = eps
+<stmt> = <assignmentStmt>
+<stmt> = <iterativeStmt>
+<stmt> = <conditionalStmt>
+<stmt> = <ioStmt>
+<stmt> = <funCallStmt>
 <assignmentStmt> = <singleOrRecId> TK_ASSIGNOP <arithmeticExpression> TK_SEM
 <singleOrRecId> = TK_ID <new_24>
-<new_24> = eps | TK_DOT TK_FIELDID
+<new_24> = TK_DOT TK_FIELDID
+<new_24> = eps
 <funCallStmt> = <outputParameters> <inputParameters> TK_CALL TK_FUNID TK_WITH TK_PARAMETERS <inputParameters> TK_SEM
 <outputParameters> = TK_SQL <idList> TK_SQR TK_ASSIGNOP | eps
 <inputParameters> = TK_SQL <idList> TK_SQR

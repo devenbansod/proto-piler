@@ -170,6 +170,170 @@ void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
 }
 
 
+Terminal getTermType(int state_id) {
+    switch (state_id) {
+        case 1 :
+            return TK_SQL;
+            break;
+        case 2 :
+            return TK_SQR;
+            break;
+        case 3 :
+            return TK_SEM;
+            break;
+        case 4 :
+            return TK_COLON;
+            break;
+        case 5 :
+            return TK_DOT;
+            break;
+        case 6 :
+            return TK_OP;
+            break;
+        case 7 :
+            return TK_CL;
+            break;
+        case 8 :
+            return TK_PLUS;
+            break;
+        case 9 :
+            return TK_MINUS;
+            break;
+        case 10 :
+            return TK_MUL;
+            break;
+        case 11 :
+            return TK_DIV;
+            break;
+        case 12 :
+            return TK_NOT;
+            break;
+        case 14 :
+            return TK_NE;
+            break;
+        case 16 :
+            return TK_EQ;
+            break;
+        case 18 :
+            return TK_GE;
+            break;
+        case 19 :
+            return TK_GT;
+            break;
+        case 21 :
+            return TK_LE;
+            break;
+        case 24 :
+            return TK_ASSIGNOP;
+            break;
+        case 25 :
+            return TK_LT;
+            break;
+        case 28 :
+            return TK_AND;
+            break;
+        case 31 :
+            return TK_RECORDID;
+            break;
+        case 34 :
+            return TK_OR;
+            break;
+        case 36 :
+            return TK_COMMENT;
+            break;
+        case 40 :
+            return TK_RNUM;
+            break;
+        case 41 :
+            return TK_NUM;
+            break;
+        case 45 :
+            return TK_FUNID;
+            break;
+        case 49 :
+            return TK_ID;
+            break;
+        case 51 :
+            return TK_FIELDID;
+            break;
+        case 52 :
+            return TK_COMMA;
+            break;
+        case 61 :
+            return TK_WITH;
+            break;
+        case 62 :
+            return TK_PARAMETERS;
+            break;
+        case 63 :
+            return TK_END;
+            break;
+        case 64 :
+            return TK_WHILE;
+            break;
+        case 65 :
+            return TK_INT;
+            break;
+        case 66 :
+            return TK_REAL;
+            break;
+        case 67 :
+            return TK_TYPE;
+            break;
+        case 68 :
+            return TK_MAIN;
+            break;
+        case 69 :
+            return TK_GLOBAL;
+            break;
+        case 70 :
+            return TK_PARAMETER;
+            break;
+        case 71 :
+            return TK_LIST;
+            break;
+        case 72 :
+            return TK_INPUT;
+            break;
+        case 73 :
+            return TK_OUTPUT;
+            break;
+        case 74 :
+            return TK_ENDWHILE;
+            break;
+        case 75 :
+            return TK_IF;
+            break;
+        case 76 :
+            return TK_THEN;
+            break;
+        case 77 :
+            return TK_ENDIF;
+            break;
+        case 78 :
+            return TK_READ;
+            break;
+        case 79 :
+            return TK_WRITE;
+            break;
+        case 80 :
+            return TK_RETURN;
+            break;
+        case 81 :
+            return TK_RECORD;
+            break;
+        case 82 :
+            return TK_ENDRECORD;
+            break;
+        case 83 :
+            return TK_ELSE;
+            break;
+        case 84 :
+            return TK_CALL;
+            break;
+    }
+}
+
 FILE* getStream(FILE *fp, FileBuffer *b, int k) {
     b->fp = fp;
     b->size_of_buffer = k + 1;
@@ -189,13 +353,15 @@ tokenInfo getNextToken(
     int *line,
     char *lexeme
 ) {
-    tokenInfo curr; curr.state_id = 0; curr.final = 0; curr.error = -1;
+    DFA_state curr; curr.state_id = 0; curr.final = 0; curr.error = -1;
     int tmp, tmp2, cur_len = 0;
     char *backup_start = buf->current;
 
     int concatChar = 1, moveAhead = 1;
-    // loop till it is a final tokenInfo
+    // loop till it is a final DFA_state
     // or a lexical error has occured
+
+    tokenInfo ret_tok;
 
     while (curr.final == 0 && curr.error == -1) {
         char next_char = readChar(buf);
@@ -205,63 +371,64 @@ tokenInfo getNextToken(
         }
 
         switch (curr.state_id) {
-            // START tokenInfo
+            // START DFA_state
             case 0:
                 switch (next_char) {
                     case '\t':
                     case ' ' :
+                        // backup_start++;
                         concatChar = 0;
                         break;
                     case '[' :
-                        curr.state_id = TK_SQL;
+                        curr.state_id = 1;
                         curr.final = 1;
                         break;
                     case ']' :
-                        curr.state_id = TK_SQR;
+                        curr.state_id = 2;
                         curr.final = 1;
                         break;
                     case ';' :
-                        curr.state_id = TK_SEM;
+                        curr.state_id = 3;
                         curr.final = 1;
                         break;
                     case ':' :
-                        curr.state_id = TK_COLON;
+                        curr.state_id = 4;
                         curr.final = 1;
                         break;
                     case '.' :
-                        curr.state_id = TK_DOT;
+                        curr.state_id = 5;
                         curr.final = 1;
                         break;
                     case '(' :
-                        curr.state_id = TK_OP;
+                        curr.state_id = 6;
                         curr.final = 1;
                         break;
                     case ')' :
-                        curr.state_id = TK_CL;
+                        curr.state_id = 7;
                         curr.final = 1;
                         break;
                     case '+' :
-                        curr.state_id = TK_PLUS;
+                        curr.state_id = 8;
                         curr.final = 1;
                         break;
                     case '-' :
-                        curr.state_id = TK_MINUS;
+                        curr.state_id = 9;
                         curr.final = 1;
                         break;
                     case '*' :
-                        curr.state_id = TK_MUL;
+                        curr.state_id = 10;
                         curr.final = 1;
                         break;
                     case '/' :
-                        curr.state_id = TK_DIV;
+                        curr.state_id = 11;
                         curr.final = 1;
                         break;
                     case '~' :
-                        curr.state_id = TK_NOT;
+                        curr.state_id = 12;
                         curr.final = 1;
                         break;
                     case ',' :
-                        curr.state_id = TK_COMMA;
+                        curr.state_id = 52;
                         curr.final = 1;
                         break;
                     // ONLY SINGLE ENDS
@@ -301,6 +468,7 @@ tokenInfo getNextToken(
                     case '\r':
                     case '\n':
                         (*line)++;
+                        // backup_start++;
                         moveAhead = 1;
                         concatChar = 0;
                         break;
@@ -339,7 +507,7 @@ tokenInfo getNextToken(
             case 13:
                 switch (next_char) {
                     case '=' :
-                        curr.state_id = TK_NE;
+                        curr.state_id = 14;
                         curr.final = 1;
                         break;
                     default:
@@ -350,7 +518,7 @@ tokenInfo getNextToken(
             case 15:
                 switch (next_char) {
                     case '=' :
-                        curr.state_id = TK_EQ;
+                        curr.state_id = 16;
                         curr.final = 1;
                         break;
                     default:
@@ -361,13 +529,14 @@ tokenInfo getNextToken(
             case 17:
                 switch (next_char) {
                     case '=':
-                        curr.state_id = TK_GE;
+                        curr.state_id = 18;
                         curr.final = 1;
                         break;
                     default:
                         if (isAllExcept('=', next_char)) {
-                            curr.state_id = TK_GT;
+                            curr.state_id = 19;
                             curr.final = 1;
+                            // (*start)--;
                             moveAhead = 0;
                             concatChar = 0;
                         } else {
@@ -379,25 +548,26 @@ tokenInfo getNextToken(
             case 20:
                 switch (next_char) {
                     case '=' :
-                        curr.state_id = TK_LE;
+                        curr.state_id = 21;
                         curr.final = 1;
                         break;
                     case '-' :
                         curr.state_id = 22;
                         moveForward(buf);
                         lexeme[cur_len++] = next_char;
-
+                        // next_char = buf[(*start)++];
                         next_char = readChar(buf);
+
                         switch (next_char) {
                             case '-':
                                 curr.state_id = 23;
                                 lexeme[cur_len++] = next_char;
                                 moveForward(buf);
-
+                                // next_char = buf[(*start)++];
                                 next_char = readChar(buf);
                                 switch (next_char) {
                                     case '-':
-                                        curr.state_id = TK_ASSIGNOP;
+                                        curr.state_id = 24;
                                         curr.final = 1;
                                         break;
                                     default:
@@ -411,8 +581,9 @@ tokenInfo getNextToken(
 
                     default:
                         if (isAllExcept('-', next_char) && isAllExcept('=', next_char)) {
-                            curr.state_id = TK_LT;
+                            curr.state_id = 25;
                             curr.final = 1;
+                            // (*start)--;
                             moveAhead = 0;
                             concatChar = 0;
                         } else {
@@ -427,11 +598,12 @@ tokenInfo getNextToken(
                         curr.state_id = 27;
                         lexeme[cur_len++] = next_char;
                         moveForward(buf);
-
+                        // next_char = buf[(*start)++];
                         next_char = readChar(buf);
+
                         switch (next_char) {
                             case '&':
-                                curr.state_id = TK_AND;
+                                curr.state_id = 28;
                                 curr.final = 1;
                                 break;
                         }
@@ -458,11 +630,11 @@ tokenInfo getNextToken(
                         curr.state_id = 33;
                         lexeme[cur_len++] = next_char;
                         moveForward(buf);
-
+                        // next_char = buf[(*start)++];
                         next_char = readChar(buf);
                         switch (next_char) {
                             case '@':
-                                curr.state_id = TK_OR;
+                                curr.state_id = 34;
                                 curr.final = 1;
                                 break;
                             default :
@@ -478,10 +650,12 @@ tokenInfo getNextToken(
                 switch (next_char) {
                     case '\n' :
                     case '\r' :
-                        curr.state_id = TK_COMMENT;
+                        curr.state_id = 36;
                         curr.final = 1;
+                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
+                        // (*line)++;
                         break;
                     default:
                         curr.error = -1;
@@ -494,8 +668,9 @@ tokenInfo getNextToken(
                     case 1:
                         break;
                     case 0:
-                        curr.state_id = TK_RECORDID;
+                        curr.state_id = 31;
                         curr.final = 1;
+                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -526,8 +701,9 @@ tokenInfo getNextToken(
                         tmp2 = isdigit(next_char) ? 1 : 0;
                         switch(tmp2) {
                             case 0:
-                                curr.state_id = TK_FUNID;
+                                curr.state_id = 45;
                                 curr.final = 1;
+                                // (*start)--;
                                 moveAhead = 0;
                                 concatChar = 0;
                                 break;
@@ -550,8 +726,9 @@ tokenInfo getNextToken(
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch(tmp) {
                     case 0:
-                        curr.state_id = TK_FUNID;
+                        curr.state_id = 45;
                         curr.final = 1;
+                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -559,7 +736,8 @@ tokenInfo getNextToken(
                         curr.state_id = 44;
                         break;
                     default:
-                        curr.state_id = TK_FUNID;
+                        curr.state_id = 45;
+                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         curr.final = 1;
@@ -576,8 +754,9 @@ tokenInfo getNextToken(
                                 curr.state_id = 38;
                                 break;
                             case 1:
-                                curr.state_id = TK_NUM;
+                                curr.state_id = 41;
                                 curr.final = 1;
+                                // (*start)--;
                                 moveAhead = 0;
                                 concatChar = 0;
                                 break;
@@ -614,7 +793,7 @@ tokenInfo getNextToken(
                         curr.error = 3;
                         break;
                     case 1:
-                        curr.state_id = TK_RNUM;
+                        curr.state_id = 40;
                         curr.final = 1;
                         break;
                     default:
@@ -626,8 +805,9 @@ tokenInfo getNextToken(
                 tmp = isSmallAlpha(next_char);
                 switch (tmp) {
                     case 0:
-                        curr.state_id = TK_FIELDID;
+                        curr.state_id = 51;
                         curr.final = 1;
+                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -666,8 +846,9 @@ tokenInfo getNextToken(
                         if (tmp2) {
                             curr.state_id = 48;
                         } else {
-                            curr.state_id = TK_ID;
+                            curr.state_id = 49;
                             curr.final = 1;
+                            // (*start)--;
                             moveAhead = 0;
                             concatChar = 0;
                         }
@@ -684,8 +865,9 @@ tokenInfo getNextToken(
                 tmp = is2to7(next_char);
                 switch (tmp) {
                     case 0:
-                        curr.state_id = TK_ID;
+                        curr.state_id = 49;
                         curr.final = 1;
+                        // (*start)--;
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -729,7 +911,12 @@ tokenInfo getNextToken(
             } else {
                 printf("curr %d\n", curr.state_id);
                 curr.error = 100;
-                return curr;
+
+                strcpy(ret_tok.lexeme, lexeme);
+                ret_tok.line_no = *line;
+                ret_tok.error = curr.error;
+
+                return ret_tok;
             }
         }
     }
@@ -747,9 +934,6 @@ tokenInfo getNextToken(
         }
     }
 
-    strcpy(curr.lexeme, lexeme);
-    curr.line_no = *line;
-
     if ((curr.state_id == 49
         && cur_len > MAX_ID_LEN)
         || (curr.state_id == 45
@@ -758,7 +942,21 @@ tokenInfo getNextToken(
         curr.error = 1;
     }
 
-    return curr;
+    strcpy(ret_tok.lexeme, lexeme);
+    ret_tok.line_no = *line;
+    ret_tok.error = curr.error;
+
+    if (curr.final && curr.error < 0) {
+        ret_tok.term_type = getTermType(curr.state_id);
+    } else {
+        ret_tok.term_type = ERROR;
+    }
+
+    if (curr.error == 100) {
+        ret_tok.term_type = EOI;
+    }
+
+    return ret_tok;
 
 }
 
@@ -773,20 +971,21 @@ void lexicalAnalysis(FILE *fp, int k) {
     char lexeme[101];
     int i = 0;
     char *start;
+
     // read tokens and print them
     while (1) {
         start = b.current;
         a = getNextToken(&b, &line, lexeme);
 
-        if (a.error != -1 && a.error != 100) {
+        if (a.term_type == ERROR) {
             reportError(stderr, a.error, a);
             memset(lexeme, '\0', 100);
             continue;
-        } else if (a.error == 100) {
+        } else if (a.term_type == EOI) {
             break;
         }
 
-        printf("LINE %d --> `%s` : %s\n", a.line_no, a.lexeme, final_states[a.state_id]);
+        printf("LINE %d --> `%s` : %s\n", a.line_no, a.lexeme, final_states[a.term_type]);
         memset(lexeme, '\0', 100);
     }
 
