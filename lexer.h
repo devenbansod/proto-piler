@@ -1,7 +1,7 @@
-#include "fileBufferDef.h"
-
 #ifndef LEXER_INTERFACE
 #define LEXER_INTERFACE
+#include "fileBufferDef.h"
+#include "keywordTrieDef.h"
 
 void initStateNames();
 
@@ -14,5 +14,7 @@ tokenInfo getNextToken(
 );
 
 void lexicalAnalysis(FILE *fp, int k);
+
+void reportError (FILE *fp, int error_code, tokenInfo err_tok);
 
 #endif

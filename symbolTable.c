@@ -95,11 +95,10 @@ void insertSymbol(SymbolTable* st, char *id, int id_len, struct sym_value v) {
     int h_index = hash(id, id_len);
     symbolTableElem* curr = st->symbolArray[h_index];
 
-    int i = 0, found = 0;
+    int i = 0;
     while (curr) {
         if (strcmp(curr->id, id) == 0) {
             curr->v = v;
-            found = 1;
             break;
         }
         curr = curr->next;

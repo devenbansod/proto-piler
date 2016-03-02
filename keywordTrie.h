@@ -1,6 +1,6 @@
 #ifndef KEYWORD_TRIE_INTERFACE
 #define KEYWORD_TRIE_INTERFACE
-
+#include "keywordTrieDef.h"
 /*
  * Interface to keyword_trie
  *

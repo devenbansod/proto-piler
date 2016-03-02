@@ -56,7 +56,7 @@ void initKeywordTrie() {
 
 // if present returns state_id, else returns -1
 int checkIfKeyword(Trie* t, char *str, int len) {
-    int i = 0, j, k;
+    int i = 0, j;
     trieNode* curr = t->root;
 
     for(i = 0; i < len; i++) {

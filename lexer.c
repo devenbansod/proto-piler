@@ -1,15 +1,16 @@
 #include "common.h"
-#include "keywordTrieDef.h"
-#include "fileBufferDef.h"
+#include "keywordTrie.h"
 #include "lexerDef.h"
+#include "fileBuffer.h"
+
 
 #define MAX_FUNID_LEN 30
 #define MAX_ID_LEN 20
 
 #define STR_CPY_STATE_NAME(X) strcpy(final_states[X], #X)
 
-char **final_states;
 extern Trie *t;
+char** final_states;
 
 /*
  * Initialise the names of keywords
@@ -100,14 +101,39 @@ int isAllExcept(char c, char next_char) {
         || next_char == '<' || next_char == '>'
         || next_char == '&' || next_char == '@'
         || next_char == '-' || next_char == '%'
+        || next_char == '_' || next_char == '$'
         || next_char == '\n' || next_char == ' '
-        || next_char == '\t'
+        || next_char == '\t' || next_char == ','
+        || next_char == '#'
     ) {
         return 1;
     } else {
         return -1;
     }
 
+}
+
+int checkIfInLanguage(char next_char) {
+    if (isalpha(next_char) || isdigit(next_char) ? 1 : 0
+        || next_char == ']' || next_char == '['
+        || next_char == ';' || next_char == ':'
+        || next_char == '.' || next_char == '('
+        || next_char == ')' || next_char == '+'
+        || next_char == '-' || next_char == '*'
+        || next_char == '/' || next_char == '~'
+        || next_char == '!' || next_char == '='
+        || next_char == '<' || next_char == '>'
+        || next_char == '&' || next_char == '@'
+        || next_char == '-' || next_char == '%'
+        || next_char == '\n' || next_char == ' '
+        || next_char == '\t' || next_char == '\r'
+        || next_char == '_' || next_char == '#'
+        || next_char == ','
+    ) {
+        return 1;
+    } else {
+        return -1;
+    }
 }
 
 int isSmallAlpha(char next_char) {
@@ -138,7 +164,6 @@ int is2to7(char next_char) {
 
 
 void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
-    char error[100];
     switch (error_code) {
         case -1 :
         case 100:
@@ -146,18 +171,18 @@ void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
             return;
 
         case 1  :
-            fprintf(stderr, "*** ERROR 1: Identifier `%s` at line : %d "
+            fprintf(stderr, "*** ERROR 1: Identifier at line : <%d> "
                 "is longer than maximum prescribed length of 20 characters\n",
-                err_tok.lexeme, err_tok.line_no
+                err_tok.line_no
             );
             break;
         case 2  :
-            fprintf(stderr, "*** ERROR 2: Unknown symbol `%s` at line %d\n",
-                err_tok.lexeme, err_tok.line_no
-            );
+            // fprintf(stderr, "*** ERROR 2: Unknown symbol `%s` at line %d\n",
+            //     err_tok.lexeme, err_tok.line_no
+            // );
             break;
         case 3  :
-            fprintf(stderr, "*** ERROR 3: Unknown pattern `%s` at line %d\n",
+            fprintf(stderr, "*** ERROR 3: Unknown pattern <%s> at line <%d>\n",
                 err_tok.lexeme, err_tok.line_no
             );
             break;
@@ -165,6 +190,7 @@ void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
             break;
 
         default:
+            printf("Some error!\n");
             return;
     }
 }
@@ -331,7 +357,11 @@ Symbol getTermType(int state_id) {
         case 84 :
             return TK_CALL;
             break;
+        default :
+            return -1;
     }
+
+    return -1;
 }
 
 FILE* getStream(FILE *fp, FileBuffer *b, int k) {
@@ -355,7 +385,6 @@ tokenInfo getNextToken(
 ) {
     DFA_state curr; curr.state_id = 0; curr.final = 0; curr.error = -1;
     int tmp, tmp2, cur_len = 0;
-    char *backup_start = buf->current;
 
     int concatChar = 1, moveAhead = 1;
     // loop till it is a final DFA_state
@@ -363,12 +392,19 @@ tokenInfo getNextToken(
 
     tokenInfo ret_tok;
 
-    while (curr.final == 0 && curr.error == -1) {
+    while (curr.final == 0 && curr.error == -1 && curr.state_id != ERROR) {
         char next_char = readChar(buf);
 
         if (next_char == '\0') {
+            if (checkEndOfFile(buf))
+                curr.error = 100;
             continue;
         }
+
+        if (checkIfInLanguage(next_char) == -1) {
+            printf("*** ERROR 2 : Unrecognised symbol <%c> at line <%d>\n", next_char, *line);
+        }
+
 
         switch (curr.state_id) {
             // START DFA_state
@@ -376,7 +412,6 @@ tokenInfo getNextToken(
                 switch (next_char) {
                     case '\t':
                     case ' ' :
-                        // backup_start++;
                         concatChar = 0;
                         break;
                     case '[' :
@@ -460,15 +495,11 @@ tokenInfo getNextToken(
                     case '_' :
                         curr.state_id = 42;
                         break;
-                    case '$' :
-                        curr.error = 100;
-                        break;
 
                     // SIMPLE THINGS FINISH
-                    case '\r':
+                    // case '\r':
                     case '\n':
                         (*line)++;
-                        // backup_start++;
                         moveAhead = 1;
                         concatChar = 0;
                         break;
@@ -478,11 +509,15 @@ tokenInfo getNextToken(
                         concatChar = 0;
                         break;
 
+                    // If some stray symbol when in START state,
+                    // It is UNKNOWN SYMBOL
                     default:
                         tmp = isdigit(next_char) ? 1 : 0;
                         switch (tmp) {
                             case 0:
                                 tmp2 = isBtoD(next_char);
+                                tmp = checkIfInLanguage(next_char);
+                                tmp2 = (tmp == -1) ? -1 : tmp;
                                 switch (tmp2) {
                                     case 0:
                                         curr.state_id = 50;
@@ -491,14 +526,14 @@ tokenInfo getNextToken(
                                         curr.state_id = 46;
                                         break;
                                     default:
-                                        curr.error = 3;
+                                        curr.error = 2;
                                 };
                                 break;
                             case 1:
                                 curr.state_id = 37;
                                 break;
                             default:
-                                curr.error = 3;
+                                curr.error = 2;
                         }
 
                 };
@@ -511,7 +546,12 @@ tokenInfo getNextToken(
                         curr.final = 1;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -522,7 +562,12 @@ tokenInfo getNextToken(
                         curr.final = 1;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -536,11 +581,13 @@ tokenInfo getNextToken(
                         if (isAllExcept('=', next_char)) {
                             curr.state_id = 19;
                             curr.final = 1;
-                            // (*start)--;
                             moveAhead = 0;
                             concatChar = 0;
+                        } else if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
                         } else {
                             curr.error = 3;
+                            concatChar = 0;
                         }
                 };
                 break;
@@ -555,7 +602,6 @@ tokenInfo getNextToken(
                         curr.state_id = 22;
                         moveForward(buf);
                         lexeme[cur_len++] = next_char;
-                        // next_char = buf[(*start)++];
                         next_char = readChar(buf);
 
                         switch (next_char) {
@@ -563,7 +609,7 @@ tokenInfo getNextToken(
                                 curr.state_id = 23;
                                 lexeme[cur_len++] = next_char;
                                 moveForward(buf);
-                                // next_char = buf[(*start)++];
+
                                 next_char = readChar(buf);
                                 switch (next_char) {
                                     case '-':
@@ -571,11 +617,21 @@ tokenInfo getNextToken(
                                         curr.final = 1;
                                         break;
                                     default:
-                                        curr.error = 3;
+                                        if (checkIfInLanguage(next_char) == -1) {
+                                            curr.error = 2;
+                                        } else {
+                                            curr.error = 3;
+                                            concatChar = 0;
+                                        }
                                 }
                                 break;
                             default:
-                                curr.error = 3;
+                                if (checkIfInLanguage(next_char) == -1) {
+                                    curr.error = 2;
+                                } else {
+                                    curr.error = 3;
+                                    concatChar = 0;
+                                }
                         }
                         break;
 
@@ -583,11 +639,14 @@ tokenInfo getNextToken(
                         if (isAllExcept('-', next_char) && isAllExcept('=', next_char)) {
                             curr.state_id = 25;
                             curr.final = 1;
-                            // (*start)--;
+
                             moveAhead = 0;
                             concatChar = 0;
+                        } else if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
                         } else {
                             curr.error = 3;
+                            concatChar = 0;
                         }
                 };
                 break;
@@ -598,7 +657,7 @@ tokenInfo getNextToken(
                         curr.state_id = 27;
                         lexeme[cur_len++] = next_char;
                         moveForward(buf);
-                        // next_char = buf[(*start)++];
+
                         next_char = readChar(buf);
 
                         switch (next_char) {
@@ -606,10 +665,17 @@ tokenInfo getNextToken(
                                 curr.state_id = 28;
                                 curr.final = 1;
                                 break;
+                            default:
+                                concatChar = 0;
                         }
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -620,7 +686,12 @@ tokenInfo getNextToken(
                         curr.state_id = 30;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -630,7 +701,7 @@ tokenInfo getNextToken(
                         curr.state_id = 33;
                         lexeme[cur_len++] = next_char;
                         moveForward(buf);
-                        // next_char = buf[(*start)++];
+
                         next_char = readChar(buf);
                         switch (next_char) {
                             case '@':
@@ -639,10 +710,16 @@ tokenInfo getNextToken(
                                 break;
                             default :
                                 curr.error = 3;
+                                concatChar = 0;
                         }
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -652,13 +729,12 @@ tokenInfo getNextToken(
                     case '\r' :
                         curr.state_id = 36;
                         curr.final = 1;
-                        // (*start)--;
+
                         moveAhead = 0;
                         concatChar = 0;
-                        // (*line)++;
+
                         break;
-                    default:
-                        curr.error = -1;
+                    // default:
                 };
                 break;
 
@@ -670,12 +746,17 @@ tokenInfo getNextToken(
                     case 0:
                         curr.state_id = 31;
                         curr.final = 1;
-                        // (*start)--;
+
                         moveAhead = 0;
                         concatChar = 0;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
 
                 };
                 break;
@@ -685,12 +766,18 @@ tokenInfo getNextToken(
                 switch (tmp) {
                     case 0:
                         curr.error = 3;
+                        concatChar = 0;
                         break;
                     case 1:
                         curr.state_id = 43;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -703,7 +790,7 @@ tokenInfo getNextToken(
                             case 0:
                                 curr.state_id = 45;
                                 curr.final = 1;
-                                // (*start)--;
+
                                 moveAhead = 0;
                                 concatChar = 0;
                                 break;
@@ -711,14 +798,24 @@ tokenInfo getNextToken(
                                 curr.state_id = 44;
                                 break;
                             default:
+                            if (checkIfInLanguage(next_char) == -1) {
+                                curr.error = 2;
+                            } else {
                                 curr.error = 3;
+                                concatChar = 0;
+                            }
                         }
                         break;
                     case 1:
                         curr.state_id = 43;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -728,7 +825,7 @@ tokenInfo getNextToken(
                     case 0:
                         curr.state_id = 45;
                         curr.final = 1;
-                        // (*start)--;
+
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -737,7 +834,7 @@ tokenInfo getNextToken(
                         break;
                     default:
                         curr.state_id = 45;
-                        // (*start)--;
+
                         moveAhead = 0;
                         concatChar = 0;
                         curr.final = 1;
@@ -756,19 +853,29 @@ tokenInfo getNextToken(
                             case 1:
                                 curr.state_id = 41;
                                 curr.final = 1;
-                                // (*start)--;
+
                                 moveAhead = 0;
                                 concatChar = 0;
                                 break;
                             default:
-                                curr.error = 3;
+                                if (checkIfInLanguage(next_char) == -1) {
+                                    curr.error = 2;
+                                } else {
+                                    curr.error = 3;
+                                    concatChar = 0;
+                                }
                         };
                         break;
                     case 1:
                         curr.state_id = 37;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -776,13 +883,23 @@ tokenInfo getNextToken(
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch (tmp) {
                     case 0:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                         break;
                     case 1:
                         curr.state_id = 39;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -790,14 +907,24 @@ tokenInfo getNextToken(
                 tmp = isdigit(next_char) ? 1 : 0;
                 switch (tmp) {
                     case 0:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                         break;
                     case 1:
                         curr.state_id = 40;
                         curr.final = 1;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -807,7 +934,7 @@ tokenInfo getNextToken(
                     case 0:
                         curr.state_id = 51;
                         curr.final = 1;
-                        // (*start)--;
+
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -815,7 +942,12 @@ tokenInfo getNextToken(
                         curr.state_id = 50;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -827,14 +959,24 @@ tokenInfo getNextToken(
                         if (tmp2) {
                             curr.state_id = 50;
                         } else {
-                            curr.error = 3;
+                            if (checkIfInLanguage(next_char) == -1) {
+                                curr.error = 2;
+                            } else {
+                                curr.error = 3;
+                                concatChar = 0;
+                            }
                         }
                         break;
                     case 1:
                         curr.state_id = 47;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -848,7 +990,7 @@ tokenInfo getNextToken(
                         } else {
                             curr.state_id = 49;
                             curr.final = 1;
-                            // (*start)--;
+
                             moveAhead = 0;
                             concatChar = 0;
                         }
@@ -857,7 +999,12 @@ tokenInfo getNextToken(
                         curr.state_id = 47;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
@@ -867,7 +1014,7 @@ tokenInfo getNextToken(
                     case 0:
                         curr.state_id = 49;
                         curr.final = 1;
-                        // (*start)--;
+
                         moveAhead = 0;
                         concatChar = 0;
                         break;
@@ -875,15 +1022,25 @@ tokenInfo getNextToken(
                         curr.state_id = 47;
                         break;
                     default:
-                        curr.error = 3;
+                        if (checkIfInLanguage(next_char) == -1) {
+                            curr.error = 2;
+                        } else {
+                            curr.error = 3;
+                            concatChar = 0;
+                        }
                 };
                 break;
 
             default:
-                curr.error = 3;
+                if (checkIfInLanguage(next_char) == -1) {
+                    curr.error = 2;
+                } else {
+                    curr.error = 3;
+                    concatChar = 0;
+                }
         }
 
-        if (concatChar)
+        if (curr.error <= 0 && concatChar)
             lexeme[cur_len++] = next_char;
 
         if (moveAhead)
@@ -923,7 +1080,6 @@ tokenInfo getNextToken(
 
 
     // check for keywords
-    int new_sid;
     if ((curr.state_id == 45 || curr.state_id == 51)) {
 
         int k = checkIfKeyword(t, lexeme, cur_len);
@@ -934,19 +1090,28 @@ tokenInfo getNextToken(
         }
     }
 
-    if ((curr.state_id == 49
+    if ((curr.state_id == 31
         && cur_len > MAX_ID_LEN)
         || (curr.state_id == 45
+        && cur_len > MAX_ID_LEN)
+        || (curr.state_id == 49
+        && cur_len > MAX_ID_LEN)
+        || (curr.state_id == 51
         && cur_len > MAX_FUNID_LEN)
     ) {
+        int i;
+        for(i = 20; i < cur_len; i++) {
+            lexeme[i] = '\0';
+        }
         curr.error = 1;
     }
 
+    memset(ret_tok.lexeme, '\0', 100);
     strcpy(ret_tok.lexeme, lexeme);
     ret_tok.line_no = *line;
     ret_tok.error = curr.error;
 
-    if (curr.final && curr.error < 0) {
+    if (curr.final && ((curr.error < 0) || (curr.error == 1))) {
         ret_tok.symbol_type = getTermType(curr.state_id);
     } else {
         ret_tok.symbol_type = ERROR;
@@ -963,18 +1128,17 @@ tokenInfo getNextToken(
 
 void lexicalAnalysis(FILE *fp, int k) {
 
+    initStateNames(final_states);
+
     FileBuffer b;
     fp = getStream(fp, &b, k);
 
     int line = 1;
     tokenInfo a; a.error = -1;
     char lexeme[101];
-    int i = 0;
-    char *start;
 
     // read tokens and print them
     while (1) {
-        start = b.current;
         a = getNextToken(&b, &line, lexeme);
 
         if (a.symbol_type == ERROR) {
@@ -985,7 +1149,7 @@ void lexicalAnalysis(FILE *fp, int k) {
             break;
         }
 
-        printf("LINE %d --> `%s` : %s\n", a.line_no, a.lexeme, final_states[a.symbol_type]);
+        printf("LINE <%d> --> <%s> : %s\n", a.line_no, a.lexeme, final_states[a.symbol_type]);
         memset(lexeme, '\0', 100);
     }
 

@@ -7,29 +7,38 @@
 
 #include "stackDef.h"
 #include "stack.h"
+#include "treeDef.h"
 
-extern char **final_states;
+#include "parser.h"
+
 extern Trie *t;
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 2) {
-        printf("*** ERROR : Incorrect usage! Correct syntax is ./lexer <filename>\n");
+    if (argc != 3) {
+        printf("*** ERROR : Incorrect usage! \n
+            Correct syntax is ./compiler.out <in_file> <out_file>\n"
+        );
         return 0;
     }
+    parseTree *tree = NULL;
 
     // FILE *fp = fopen(argv[1], "r");
 
     // Initialization
-    initStateNames();
     initKeywordTrie();
 
     // Run lexical analysis
     // lexicalAnalysis(fp, 4096);
+
+    // Parse the code
     parseInputSourceCode(argv[1]);
 
+    // Print the parse tree
+    tree = par
+
+
     // Lexical analysis
-    free(final_states);
     free(t);
 
     return 0;
