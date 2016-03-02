@@ -38,7 +38,7 @@
 <singleOrRecId> = TK_ID <new_24>
 <new_24> = TK_DOT TK_FIELDID
 <new_24> = eps
-<funCallStmt> = <outputParameters> <inputParameters> TK_CALL TK_FUNID TK_WITH TK_PARAMETERS <inputParameters> TK_SEM
+<funCallStmt> = <outputParameters> TK_CALL TK_FUNID TK_WITH TK_PARAMETERS <inputParameters> TK_SEM
 <outputParameters> = TK_SQL <idList> TK_SQR TK_ASSIGNOP | eps
 <inputParameters> = TK_SQL <idList> TK_SQR
 <iterativeStmt> = TK_WHILE TK_OP <booleanExpression> TK_CL <stmt> <otherStmts> TK_ENDWHILE

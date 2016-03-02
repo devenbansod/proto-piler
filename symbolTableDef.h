@@ -57,8 +57,7 @@ typedef enum {
 	optionalReturn,
 	idList,
 	more_ids,
-	eps = 500,
-	EOS = 1000
+	eps = 500
 } NonTerminal;
 
 struct symbolType {

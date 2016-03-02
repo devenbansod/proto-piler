@@ -18,6 +18,7 @@
 #define EPS 500
 #define DOLLAR 1000
 #define DOLLAR_STORE 54
+#define EOS 1000
 
 #include "stackDef.h"
 #include "symbolTableDef.h"
@@ -43,8 +44,9 @@ typedef int parseTable;
 struct treeNode {
 	struct treeNode* parent;
 	int curr_children;
-	struct treeNode* children[10];
-	symbolType symbol_type;
+	int processed_children;
+	struct treeNode **children;
+	termNonTerm t;
 	tokenInfo tk_info;
 };
 
