@@ -49,3 +49,6 @@
 <optionalReturn> = 249
 <idList> = 250
 <more_ids> = 251
+<some_types> = 252
+<other_types> = 253
+<for_ll1> = 254

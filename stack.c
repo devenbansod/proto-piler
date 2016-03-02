@@ -1,41 +1,40 @@
 #include "common.h"
 #include "stackDef.h"
 
-void createStack(Stack *s) {
-    s->top = NULL;
-    s->size = 0;
+Stack* createStack(Stack *s, int size) {
+    s = (Stack *)malloc(sizeof(Stack));
+    s->top = -1;
+    s->size = size;
+    s->arr = (stackElem*)malloc(sizeof(stackElem) * size);
+    return s;
 }
 
-void push(termNonTerm t, Stack *s) {
-    if (s->size == 0) {
-        s->top = (stackElem*)malloc(sizeof(stackElem));
-        s->top->t = t;
-        s->top->next = NULL;
+void push(stackElem t, Stack *s) {
+    if (s->size > s->top + 1) {
+        s->top++;
+        s->arr[s->top] = t;
     } else {
-        stackElem *temp = (stackElem*)malloc(sizeof(stackElem));
-        temp->next = s->top;
-        temp->t = t;
-        s->top = temp;
+        s->arr = (stackElem*)realloc(s->arr, sizeof(stackElem) * s->size * 2);
     }
-    s->size++;
 }
 
-termNonTerm pop(Stack *s) {
-    termNonTerm ret;
+stackElem pop(Stack *s) {
+    stackElem ret;
 
     if (s->size == 0) {
         ret.error = -1;
     } else {
-        stackElem *temp = s->top->next;
-        ret = s->top->t;
-        free(s->top);
-        s->top = temp;
-        s->size--;
+        ret = s->arr[s->top--];
     }
+
     return ret;
 }
 
 
 int getSize(Stack *s) {
-    return s->size;
+    return s->top;
+}
+
+int isEmpty(Stack *s) {
+    return s->top == -1;
 }

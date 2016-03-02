@@ -5,7 +5,7 @@ while
 int
 real
 type
-main
+_main
 global
 parameter
 list

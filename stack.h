@@ -1,10 +1,11 @@
 #ifndef STACK_INTERFACE
 #define STACK_INTERFACE
+#include "stackDef.h"
 
-void createStack(Stack *s);
-void push(termNonTerm t, Stack *s);
-termNonTerm pop(Stack *s);
+Stack* createStack(Stack *s, int size);
+void push(stackElem t, Stack *s);
+stackElem pop(Stack *s);
 int getSize(Stack *s);
-stackElem getElem(symbolType, int isTerminal, int error);
+int isEmpty(Stack *s);
 
 #endif

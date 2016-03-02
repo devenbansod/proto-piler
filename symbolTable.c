@@ -27,7 +27,7 @@ SymbolTable* createSymbolTable(int size) {
 
     int i = 0;
 
-    st->symbolArray = (symbol**)malloc(sizeof(symbol*) * size);
+    st->symbolArray = (symbolTableElem**)malloc(sizeof(symbolTableElem*) * size);
     for(i = 0; i < size; i++) {
         st->symbolArray[i] = NULL;
     }
@@ -44,7 +44,7 @@ SymbolTable* createSymbolTable(int size) {
  */
 void destroySymbolTable(SymbolTable *st) {
     int i = 0;
-    symbol *curr, *prev;
+    symbolTableElem *curr, *prev;
 
     for(i = 0; i < MAX_BUCKETS; i++) {
         prev = st->symbolArray[i];
@@ -69,7 +69,7 @@ void destroySymbolTable(SymbolTable *st) {
 SymbolTable* rehash_table(SymbolTable *st, int new_size) {
     SymbolTable *newst = createSymbolTable(new_size);
     int i;
-    symbol *curr;
+    symbolTableElem *curr;
 
     for (i = 0; i < st->size; i++) {
         if (st->symbolArray[i]) {
@@ -93,7 +93,7 @@ SymbolTable* rehash_table(SymbolTable *st, int new_size) {
 void insertSymbol(SymbolTable* st, char *id, int id_len, struct sym_value v) {
 
     int h_index = hash(id, id_len);
-    symbol* curr = st->symbolArray[h_index];
+    symbolTableElem* curr = st->symbolArray[h_index];
 
     int i = 0, found = 0;
     while (curr) {
@@ -105,7 +105,7 @@ void insertSymbol(SymbolTable* st, char *id, int id_len, struct sym_value v) {
         curr = curr->next;
         i++;
     }
-    curr = (symbol*)malloc(sizeof(symbol));
+    curr = (symbolTableElem*)malloc(sizeof(symbolTableElem));
 
     strcpy(curr->id, id);
     curr->id_len = id_len;
@@ -126,9 +126,9 @@ void insertSymbol(SymbolTable* st, char *id, int id_len, struct sym_value v) {
  *  - else, NULL is returned
  *
  */
-symbol* lookupSymbol(SymbolTable* st, char *id, int id_len) {
+symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len) {
     int h_index = hash(id, id_len);
-    symbol* curr = st->symbolArray[h_index];
+    symbolTableElem* curr = st->symbolArray[h_index];
 
     while (curr != NULL) {
         if (strcmp(curr->id, id) == 0) {

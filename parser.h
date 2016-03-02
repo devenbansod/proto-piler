@@ -1,8 +1,8 @@
 #ifndef PARSER_INTERFACE
 #define PARSER_INTERFACE
 
-void createParseTable(grammarRules *G, parseTable *T);
-void createParseTree(parseTree *t);
+parseTable** createParseTable(grammarRules *G, parseTable *T);
+parseTree* createParseTree(parseTree *t);
 
 parseTree parseInputSourceCode(char *testcaseFile, parseTable T);
 

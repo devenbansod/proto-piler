@@ -45,6 +45,7 @@ void initKeywordTrie() {
 
     i = 0;
     char temp_str[50];
+
     for (i = 61; i < 85; i++) {
         fscanf(fp, "%s", temp_str);
         insertKeyword(t, temp_str, strlen(temp_str), i);
@@ -59,7 +60,7 @@ int checkIfKeyword(Trie* t, char *str, int len) {
     trieNode* curr = t->root;
 
     for(i = 0; i < len; i++) {
-        if (! isalpha(str[i])) {
+        if (! (str[i] == '_' && i == 0) && ! isalpha(str[i])) {
             return -1;
         }
 
