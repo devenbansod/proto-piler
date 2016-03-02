@@ -39,7 +39,10 @@
 <temp> = TK_DOT, eps
 <outputParameters> = TK_SQL, eps
 <inputParameters> = TK_SQL
-<allVar> = TK_ID, TK_NUM, TK_RNUM, TK_RECORDID
+<allVar> = TK_ID, TK_NUM, TK_RNUM
+<some_types> = TK_NUM, TK_RNUM
+<other_types> = TK_ID
+<for_ll1> = TK_DOT, eps
 <var> = TK_ID, TK_NUM, TK_RNUM
 <booleanExpression> = TK_NOT, TK_ID, TK_NUM, TK_RNUM, TK_OP
 <logicalOp> = TK_AND, TK_OR

@@ -1,20 +1,22 @@
+#ifndef STACK_DEF
+#define STACK_DEF
+#include "treeDef.h"
 #include "symbolTableDef.h"
 #include "parserDef.h"
 
-#ifndef STACK_DEF
-#define STACK_DEF
 
-struct termNonTerm {
-    symbolType symbol_type;
+struct stackElem {
+    Symbol symbol_type;
+    treeNode* t_node;
     int isTerminal;
     int error;
 };
 
-typedef struct termNonTerm termNonTerm;
+typedef struct stackElem stackElem;
 
 struct stack {
     int top;
-    termNonTerm *arr;
+    stackElem *arr;
     int size;
 };
 

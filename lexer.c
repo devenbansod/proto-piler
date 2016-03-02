@@ -170,7 +170,7 @@ void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
 }
 
 
-Terminal getTermType(int state_id) {
+Symbol getTermType(int state_id) {
     switch (state_id) {
         case 1 :
             return TK_SQL;
@@ -947,13 +947,13 @@ tokenInfo getNextToken(
     ret_tok.error = curr.error;
 
     if (curr.final && curr.error < 0) {
-        ret_tok.term_type = getTermType(curr.state_id);
+        ret_tok.symbol_type = getTermType(curr.state_id);
     } else {
-        ret_tok.term_type = ERROR;
+        ret_tok.symbol_type = ERROR;
     }
 
     if (curr.error == 100) {
-        ret_tok.term_type = EOI;
+        ret_tok.symbol_type = EOI;
     }
 
     return ret_tok;
@@ -977,15 +977,15 @@ void lexicalAnalysis(FILE *fp, int k) {
         start = b.current;
         a = getNextToken(&b, &line, lexeme);
 
-        if (a.term_type == ERROR) {
+        if (a.symbol_type == ERROR) {
             reportError(stderr, a.error, a);
             memset(lexeme, '\0', 100);
             continue;
-        } else if (a.term_type == EOI) {
+        } else if (a.symbol_type == EOI) {
             break;
         }
 
-        printf("LINE %d --> `%s` : %s\n", a.line_no, a.lexeme, final_states[a.term_type]);
+        printf("LINE %d --> `%s` : %s\n", a.line_no, a.lexeme, final_states[a.symbol_type]);
         memset(lexeme, '\0', 100);
     }
 

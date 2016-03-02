@@ -10,7 +10,7 @@
 int findMatchingSet(grammarRule *rules, int NT, int count) {
     int i;
     for(i = 0; i < count; ++i) {
-        if (rules[i].lhs.NonT == NT) {
+        if (rules[i].lhs == NT) {
             return i;
         }
     }
@@ -34,29 +34,13 @@ grammarRule* readFileForRules(FILE *file, int *count){
         while ((read = getline(&line, &len, file)) != -1) {
             char* str = strdup(line);
             char* token = strsep(&str, "-");
-            rules[i].lhs.NonT = atoi(token);
-            rules[i].lhs.isTerminal = 0;
+            rules[i].lhs = atoi(token);
 
             token = strsep(&str, "-");
             char *right = strdup(token);
             int j = 0;
             while((token = strsep(&right, " "))) {
-                if (atoi(token) < START_NON_TERMINAL) {
-                    rules[i].rhs[j].Term = atoi(token);
-                    rules[i].rhs[j].isTerminal = 1;
-                } else {
-                    rules[i].rhs[j].NonT = atoi(token);
-                    rules[i].rhs[j].isTerminal = 0;
-                }
-
-                if (rules[i].rhs[j].NonT == EPS) {
-                    rules[i].is_eps = 1;
-                }
-                if (rules[i].rhs[j].NonT == DOLLAR) {
-                    rules[i].is_dollar = 1;
-                    rules[i].rhs[j].Term = DOLLAR;
-                    rules[i].rhs[j].NonT = -1;
-                }
+                rules[i].rhs[j] = atoi(token);
                 ++j;
                 rules[i].size_rhs = j;
             }
@@ -76,10 +60,10 @@ void printGrammar(grammarRule* G, int count){
     // Routine to Print the grammar G
     int i;
     for (i = 0; i < count; ++i){
-        printf("%d ->", G[i].lhs.NonT);
+        printf("%d ->", G[i].lhs);
         int j;
         for(j = 0; j < G[i].size_rhs;++j){
-            printf("%d ", G[i].rhs[j].Term);
+            printf("%d ", G[i].rhs[j]);
         }
         printf("\n");
     }
@@ -115,37 +99,35 @@ parseTable** createParseTable(
     for (i = 0; i < rule_count; ++i) {
         // for each rule in grammar
         int grammarRuleNumber = i;
-        NonTerminal x = G[i].lhs.NonT;
+        Symbol x = G[i].lhs;
         int t;
 
         int k = 0;
         int eps_found = 0;
         int index;
         while (k < G[i].size_rhs) {
-            if (G[i].rhs[k].NonT == EPS) {
+            if (G[i].rhs[k] == EPS) {
                 ++k;
                 eps_found = 1;
                 break;
             }
 
-            if ((G[i].rhs[k].isTerminal
-                && G[i].rhs[k].Term < START_NON_TERMINAL)
-            ) {
-                T[G[i].lhs.NonT - START_NON_TERMINAL][G[i].rhs[k].Term - START_TERMINAL]
+            if (G[i].rhs[k]< START_NON_TERMINAL) {
+                T[G[i].lhs - START_NON_TERMINAL][G[i].rhs[k] - START_TERMINAL]
                     = grammarRuleNumber;
                 break;
-            } else if (G[i].rhs[k].NonT == DOLLAR) {
-                T[G[i].lhs.NonT - START_NON_TERMINAL][DOLLAR_STORE]
+            } else if (G[i].rhs[k] == DOLLAR) {
+                T[G[i].lhs - START_NON_TERMINAL][DOLLAR_STORE]
                     = grammarRuleNumber;
                 break;
             } else {
-                index = findMatchingSet(firstset, G[i].rhs[k].NonT, first_count);
+                index = findMatchingSet(firstset, G[i].rhs[k], first_count);
                 int j;
                 for (j = 0; index >= 0 && j < firstset[index].size_rhs; ++j) {
-                    if (firstset[index].rhs[j].NonT == EPS) {
+                    if (firstset[index].rhs[j] == EPS) {
                         eps_found = 1;
                     } else{
-                        T[G[i].lhs.NonT - START_NON_TERMINAL][firstset[index].rhs[j].Term - START_TERMINAL]
+                        T[G[i].lhs - START_NON_TERMINAL][firstset[index].rhs[j] - START_TERMINAL]
                             = grammarRuleNumber;
                     }
                 }
@@ -159,10 +141,10 @@ parseTable** createParseTable(
         }
 
         if (eps_found == 1 && G[i].size_rhs == k) {
-            int fl_index = findMatchingSet(followset, G[i].lhs.NonT, follow_count);
+            int fl_index = findMatchingSet(followset, G[i].lhs, follow_count);
             int p;
             for (p = 0; p  < followset[fl_index].size_rhs; ++p) {
-                T[G[i].lhs.NonT - START_NON_TERMINAL][followset[fl_index].rhs[p].Term - START_TERMINAL]
+                T[G[i].lhs - START_NON_TERMINAL][followset[fl_index].rhs[p] - START_TERMINAL]
                     = grammarRuleNumber;
             }
         }
@@ -188,32 +170,28 @@ void printParseTable(FILE *fp, parseTable **T) {
     }
 }
 
-termNonTerm getTermNonTerm(symbolType st, int error) {
-	termNonTerm t;
-    t.symbol_type.NonT = -1;
-    t.symbol_type.Term = -1;
-	t.isTerminal = st.isTerminal;
+// termNonTerm getTermNonTerm(Symbol st, int error) {
+	
 
-	if (st.isTerminal) {
-		t.symbol_type.Term = st.Term;
-        t.symbol_type.isTerminal = 1;
-	} else {
-		t.symbol_type.NonT = st.NonT;
-        t.symbol_type.isTerminal = 0;
-	}
+// 	if (st.isTerminal) {
+// 		t.symbol_type.Term = st.Term;
+//         t.symbol_type.isTerminal = 1;
+// 	} else {
+// 		t.symbol_type.NonT = st.NonT;
+//         t.symbol_type.isTerminal = 0;
+// 	}
 
-	t.error = error;
+// 	t.error = error;
 
-	return t;
-}
+// 	return t;
+// }
 
 treeNode* getTreeNode(
-	int isTerminal,
-	treeNode *parent, symbolType st
+	treeNode *parent, stackElem st
 ) {
 	treeNode* new_node = (treeNode*)malloc(sizeof(treeNode));
 	new_node->parent = parent;
-	new_node->t = getTermNonTerm(st, 0);
+	new_node->symbol_type = st.symbol_type;
 	new_node->curr_children = 0;
     new_node->processed_children = 0;
 
@@ -222,7 +200,7 @@ treeNode* getTreeNode(
 
 void setTokenInfo(treeNode *t_node, tokenInfo tk_info) {
 	t_node->tk_info = tk_info;
-    t_node->parent->processed_children++;
+    t_node->processed_children++;
 }
 
 parseTree* createParseTree(parseTree *new_tree) {
@@ -238,15 +216,22 @@ treeNode* applyRuleToTreeNode(treeNode *curr, grammarRule *rule) {
     curr->processed_children = 0;
 
     int k = 0;
+    printf("Apply rule of size : %d\n", rule->size_rhs);
     for (k = 0; k < rule->size_rhs; k++) {
         curr->children[k] = (treeNode *)malloc(sizeof(treeNode));
         curr->children[k]->parent = curr;
         curr->children[k]->curr_children = 0;
 
-        curr->children[k]->t = getTermNonTerm(
-            rule->rhs[k],
-            0
+        curr->children[k]->symbol_type = rule->rhs[k];
+        printf("\nAssigning %d's parent as %d \n\n",
+            curr->children[k]->symbol_type,
+            curr->symbol_type
         );
+    }
+
+    // Special case for EPS
+    if (curr->curr_children == 1 && rule->rhs[0] == EPS) {
+        curr->processed_children = 1;
     }
 
     return curr;
@@ -255,20 +240,59 @@ treeNode* applyRuleToTreeNode(treeNode *curr, grammarRule *rule) {
 treeNode* moveToNextNode(treeNode *current_tree_node) {
     int next_child = 0;
 
+    printf("Moving from %d child %d out of %d\n",
+        current_tree_node->symbol_type,
+        current_tree_node->processed_children,
+        current_tree_node->curr_children
+    );
+
     while (current_tree_node
         && current_tree_node->curr_children <= current_tree_node->processed_children
     ) {
+        // if (current_tree_node->parent) current_tree_node->parent->processed_children++;
         current_tree_node = current_tree_node->parent;
-        next_child = current_tree_node->processed_children;
+        printf("Here C : %d, parent : %d\n",
+            current_tree_node->symbol_type,
+            current_tree_node->parent->symbol_type);
+        if (current_tree_node) {
+            current_tree_node->processed_children++;
+            next_child = current_tree_node->processed_children;
+        }
     }
+
+    printf("Moving to %d child %d out of %d\n",
+        current_tree_node->symbol_type, next_child,
+        current_tree_node->curr_children
+    );
 
     return current_tree_node->children[next_child];
 }
 
 
-// void printParseTree(parseTree *) {
+void printParseTreeHelper(treeNode *current_tree_node) {
 
-// }
+    if (current_tree_node->parent) {
+        printf("Token : %d\tP : %d\tLexeme : `%s`\n",
+            current_tree_node->symbol_type,
+            current_tree_node->parent->symbol_type,
+            current_tree_node->tk_info.lexeme
+        );
+    } else {
+        printf("Token : %d\tP : 0/0 \tLexeme : `%s`\n",
+            current_tree_node->symbol_type,
+            current_tree_node->tk_info.lexeme
+        );
+    }
+
+    int k = 0;
+    for(k = 0; k < current_tree_node->curr_children; k++) {
+        printParseTreeHelper(current_tree_node->children[k]);
+    }
+}
+
+void printParseTree(parseTree *new_tree) {
+    printParseTreeHelper(new_tree->root);
+}
 
 parseTree* parseInputSourceCode(char *testcaseFile) {
 
@@ -279,13 +303,11 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
 
     // read the grammar from file
     int rule_count = COUNT_RULE;
-    FILE *grammar_file = fopen("./grammar_converted_2.txt", "r");
+    FILE *grammar_file = fopen("./grammar_converted.txt", "r");
     grammarRule *G = readFileForRules(grammar_file, &rule_count);
 
-    // FILE *first_file = fopen("./../Downloads/first_set_conv_saahil.txt", "r");
-    FILE *follow_file = fopen("./follow_set_conv_3.txt", "r");
-    FILE *first_file = fopen("./first_converted_final.txt", "r");
-    // FILE *follow_file = fopen("follow_set_conv_3.txt", "r");
+    FILE *follow_file = fopen("./follow_set_converted.txt", "r");
+    FILE *first_file = fopen("./first_set_converted.txt", "r");
 
     parseTable **T;
 
@@ -298,24 +320,24 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
 	parseTree *new_tree;
 	new_tree = createParseTree(new_tree);
 
-	// // initialize the new stack
+	// initialize the new stack
 	Stack *s;
 	s = createStack(s, 100);
 
 	// push the EOS
-	symbolType st;
-    st.isTerminal = 1; st.Term = EOS;
-	termNonTerm bottom = getTermNonTerm(st, 0);
-	push(bottom, s);
+	stackElem st;
+    st.symbol_type = EOS;
+	push(st, s);
 
-	// push the start symbol
-	st.isTerminal = 0; st.NonT = program;
-	termNonTerm start_sym = getTermNonTerm(st, 0);
-	push(start_sym, s);
+    st.symbol_type = program;
 
-	// create the Root Tree node with Start symbol
-    treeNode* current_tree_node = getTreeNode(0, NULL, st);
+    // create the Root Tree node with Start symbol
+    treeNode* current_tree_node = getTreeNode(NULL, st);
     new_tree->root = current_tree_node;
+
+    // push the start symbol
+    st.t_node = current_tree_node;
+    push(st, s);
 
     int error = 0;
     int line = 1;
@@ -328,81 +350,88 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
 
         if (moveAhead) {
             next_token = getNextToken(&b, &line, lexeme);
-            printf("READ TOKEN : %d -> `%s`\n", next_token.term_type, next_token.lexeme);
+            printf("READ TOKEN : %d -> `%s`\n", next_token.symbol_type, next_token.lexeme);
         }
 
-        if (next_token.term_type == TK_COMMENT) {
+        if (next_token.symbol_type == TK_COMMENT) {
             continue;
         } else if (next_token.error == 100) {
             printf("End of File\n");
             break;
         }
 
-        termNonTerm top = pop(s);
-        printf("POP : %d : %d\n", top.symbol_type.NonT, top.symbol_type.Term);
+        stackElem top = pop(s);
+        current_tree_node = top.t_node;
+
+        printf("POP : %d\n", top.symbol_type);
 
         moveAhead = 0;
-        if (top.isTerminal
-            || top.symbol_type.Term == EOS
+        if (top.symbol_type < START_NON_TERMINAL
+            || top.symbol_type == EOS
         ) {
             // both are terminals
-            if (top.symbol_type.Term == next_token.term_type) {
+            if (top.symbol_type == next_token.symbol_type) {
                 moveAhead = 1;
-                printf("Matched %d and Moved ahead\n", next_token.term_type);
 
                 // match Leaf and put in tree
                 setTokenInfo(current_tree_node, next_token);
-                current_tree_node = moveToNextNode(current_tree_node);
-            } else if (top.symbol_type.Term == EOS) {
+                printf("Matched %d and Moved ahead\n", next_token.symbol_type);
+            } else if (top.symbol_type == EOS) {
                 printf("End of Stack! ERROR!\n");
                 break;
             } else {
-                printf("End of File\n");
+                printf("End of File: Expected : %d, Got %d -> `%s`\n", top.symbol_type, next_token.symbol_type, next_token.lexeme);
                 break;
             }
         } else {
-            if (top.symbol_type.Term == EOS) {
+            if (top.symbol_type == EOS) {
                 printf("Error! Aborting\n");
                 break;
             }
-            int rule_no = T[top.symbol_type.NonT - START_NON_TERMINAL][next_token.term_type - START_TERMINAL];
+            int rule_no = T[top.symbol_type - START_NON_TERMINAL][next_token.symbol_type - START_TERMINAL];
             if (rule_no == -1) {
-                printf("Error! Aborting since NO RULE FOUND for %d/%d -> %d (lexeme : `%s`)\n", top.symbol_type.NonT,
-                    top.symbol_type.Term - START_NON_TERMINAL, next_token.term_type, next_token.lexeme);
+                printf("Error! Aborting since NO RULE FOUND for %d -> %d (lexeme : `%s`)\n", top.symbol_type,
+                    next_token.symbol_type, next_token.lexeme);
                 break;
             }
-            printf("%d -> %d\n", top.symbol_type.NonT - START_NON_TERMINAL, next_token.term_type);
+
             grammarRule rule_to_apply = G[rule_no];
             int k = 0;
 
-            if (rule_to_apply.lhs.NonT != top.symbol_type.NonT) {
-                printf("Error! Rule %d does not match %d : %d!\n", rule_no, rule_to_apply.lhs.NonT, top.symbol_type.NonT);
+            if (rule_to_apply.lhs != top.symbol_type) {
+                printf("Error! Rule %d does not match %d : %d!\n", rule_no, rule_to_apply.lhs, top.symbol_type);
                 break;
             }
+
+            current_tree_node->curr_children = rule_to_apply.size_rhs;
+            current_tree_node->children = (treeNode**)malloc(sizeof(treeNode*) * rule_to_apply.size_rhs);
+            current_tree_node->processed_children = 0;
+
             printf("Putting in rule : %d\n", rule_no + 1);
             for (k = rule_to_apply.size_rhs - 1; k >= 0; k--) {
-                termNonTerm curr;
-                curr = getTermNonTerm(
-                    rule_to_apply.rhs[k],
-                    0
-                );
+                stackElem curr;
+                curr.symbol_type = rule_to_apply.rhs[k];
+                current_tree_node->children[k]
+                    = (treeNode*) malloc(sizeof(treeNode));
+                current_tree_node->children[k]->parent
+                    = current_tree_node;
+                current_tree_node->children[k]->symbol_type
+                    = curr.symbol_type;
 
-                if (curr.symbol_type.NonT == EPS) {
+                if (curr.symbol_type == EPS) {
                     continue;
                 }
 
-                printf("Pushing to stack %d : %d\n", curr.symbol_type.NonT, curr.symbol_type.Term);
+                curr.t_node = current_tree_node->children[k];
+
+                printf("Pushing to stack %d\n", curr.symbol_type);
                 push(curr, s);
             }
-
-            current_tree_node = applyRuleToTreeNode(
-                current_tree_node, &rule_to_apply
-            );
-            current_tree_node = moveToNextNode(current_tree_node);
         }
     }
 
 
+    printParseTree(new_tree);
 
 	// ALGO on pg. 227
 	// OR

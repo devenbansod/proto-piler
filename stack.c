@@ -5,21 +5,21 @@ Stack* createStack(Stack *s, int size) {
     s = (Stack *)malloc(sizeof(Stack));
     s->top = -1;
     s->size = size;
-    s->arr = (termNonTerm*)malloc(sizeof(termNonTerm) * size);
+    s->arr = (stackElem*)malloc(sizeof(stackElem) * size);
     return s;
 }
 
-void push(termNonTerm t, Stack *s) {
+void push(stackElem t, Stack *s) {
     if (s->size > s->top + 1) {
         s->top++;
         s->arr[s->top] = t;
     } else {
-        s->arr = (termNonTerm*)realloc(s->arr, sizeof(termNonTerm) * s->size * 2);
+        s->arr = (stackElem*)realloc(s->arr, sizeof(stackElem) * s->size * 2);
     }
 }
 
-termNonTerm pop(Stack *s) {
-    termNonTerm ret;
+stackElem pop(Stack *s) {
+    stackElem ret;
 
     if (s->size == 0) {
         ret.error = -1;
