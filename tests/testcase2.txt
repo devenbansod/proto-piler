@@ -12,7 +12,7 @@ output parameter list [ record #marks b3c45];
 	read(b3c45.chemistry);
 	return [b3c45];
 end
-% Notice here that  your compiler recognizes the type definition of marks even before it is
+% Notice here that  your compiler recognizes the type definition of marks even before it is 
 % declared. This will be handled at the semantic analyzer phase.
 
 
@@ -43,7 +43,7 @@ _main
 		b5c6 <--- b5c6 + d4; 
 		% above displays the sum of records
 		b5 <--- b5 +1;
-	endwhile
+	endwhile;
 	d4 <--- b5c6 / d5cb34567;
 	write(d4.maths);
 	write(d4.physics);

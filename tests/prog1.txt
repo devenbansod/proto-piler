@@ -1,7 +1,0 @@
-% Program1.txt
-_statistics
-c3 <--- 3;
-% Program1.txt
-d2 <--- (c2dbc + d7 + b2d567)/c3;
-c3bcd <--- d2*3.23;
-end

@@ -882,8 +882,9 @@ parseTree* createParseTree(parseTree *new_tree) {
 }
 
 
-void printParseTreeHelper(treeNode *current_tree_node) {
+void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
     char par[100], cur[100];
+    int i = 0;
 
     if (current_tree_node->symbol_type >= START_NON_TERMINAL) {
         memset(par, '\0', 100);
@@ -892,49 +893,97 @@ void printParseTreeHelper(treeNode *current_tree_node) {
             cur, current_tree_node->symbol_type
         );
 
-        // printf("--- \t--- \t%s \t", cur);
-        printf("--- \t--- \t%d \t", current_tree_node->symbol_type);
+        fprintf(out_file, "---   \t\tNO");
+        for (i = 0; i < 7; i++) {
+            fprintf(out_file," ");
+        }
+        fprintf(out_file, "---");
+
+        for (i = 0; i < 16; i++) {
+            fprintf(out_file," ");
+        }
+        fprintf(out_file, "%s", cur);
+
+        for (i = strlen(cur); i < 25; i++) {
+            fprintf(out_file," ");
+        }
+
         if (current_tree_node->parent) {
             getStringForSymbolEnum(
                 par, current_tree_node->parent->symbol_type
             );
-            // printf("%s \t", par);
-            printf("%d \t", current_tree_node->parent->symbol_type);
+            fprintf(out_file, "%s", par);
+            for (i = strlen(par); i < 25; i++) {
+                fprintf(out_file," ");
+            }
         } else {
-            printf("ROOT \t");
+            fprintf(out_file, "ROOT");
+            for (i = 0; i < 21; i++) {
+                fprintf(out_file," ");
+            }
         }
-        printf("NO \t----\n");
+        fprintf(out_file, "----\n");
     } else {
+        memset(par, '\0', 100);
+        memset(cur, '\0', 100);
+
         getStringForSymbolEnum(
             cur, current_tree_node->symbol_type
         );
-        // printf("%d \t%s \t--- \t", current_tree_node->tk_info.line_no,
-        //     cur
-        // );
-        printf("%d \t%d \t--- \t", current_tree_node->tk_info.line_no,
-            current_tree_node->symbol_type
-        );
+
+        fprintf(out_file, "%d", current_tree_node->tk_info.line_no);
+        char line[10];
+        sprintf(line, "%d", current_tree_node->tk_info.line_no);
+
+        for (i = strlen(line); i < 12; i++) {
+            fprintf(out_file," ");
+        }
+
+        fprintf(out_file, "YES     %s", cur);
+        for (i = strlen(cur); i < 25; i++) {
+            fprintf(out_file," ");
+        }
+
+        fprintf(out_file, "---");
+        for (i = 0; i < 17; i++) {
+            fprintf(out_file," ");
+        }
+
         if (current_tree_node->parent) {
             getStringForSymbolEnum(
                 par, current_tree_node->parent->symbol_type
             );
-            // printf("%s \t", par);
-            printf("%d \t", current_tree_node->parent->symbol_type);
+            fprintf(out_file, "%s", par);
+            for (i = strlen(par); i < 25; i++) {
+                fprintf(out_file," ");
+            }
         } else {
-            printf("ROOT \t");
+            fprintf(out_file, "ROOT");
+            for (i = 0; i < 21; i++) {
+                fprintf(out_file," ");
+            }
         }
-        printf("YES \t%s \n", current_tree_node->tk_info.lexeme);
+
+        fprintf(out_file, "%s\n", current_tree_node->tk_info.lexeme);
     }
 
     int k = 0;
     for(k = 0; k < current_tree_node->curr_children; k++) {
-        printParseTreeHelper(current_tree_node->children[k]);
+        printParseTreeHelper(current_tree_node->children[k], out_file);
     }
 }
 
-void printParseTree(parseTree *new_tree) {
-    printf("Line \tToken \tNodeSymbol \tParentNodeSymbol \tisLeafNode \tLexeme\n");
-    printParseTreeHelper(new_tree->root);
+void printParseTree(parseTree *new_tree, char* filename) {
+    FILE *out_file = fopen(filename, "w");
+
+    // print the Header line
+    fprintf(out_file, "\t\t\t\t\t\t************** PARSE TREE ***************\n");
+    fprintf(out_file,
+        "Line \tisLeafNode \tToken \t\t\t\tNodeSymbol \t\t\t\tParentNodeSymbol \t\tLexeme\n"
+    );
+
+    // print the whole tree
+    printParseTreeHelper(new_tree->root, out_file);
 }
 
 int checkIfInFollow(grammarRule *rules, int f_count,
@@ -951,7 +1000,7 @@ int checkIfInFollow(grammarRule *rules, int f_count,
     return 0;
 }
 
-parseTree* parseInputSourceCode(char *testcaseFile) {
+parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
 
     FileBuffer b;
 
@@ -970,8 +1019,6 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
 
     // create the parseTable from First and follow info
     T = createParseTable(G, rule_count, first_file, follow_file, T);
-
-    // printParseTable(stdout, T);
 
 	// initialize new parse tree
 	parseTree *new_tree = NULL;
@@ -996,13 +1043,13 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
     st.t_node = current_tree_node;
     push(st, s);
 
-    int error = 0;
+    *error = 1;
     int line = 1;
     int moveAhead = 1;
 
     int errorRecovery = 0;
 
-    while (! isEmpty(s) && error == 0) {
+    while (! isEmpty(s)) {
         char lexeme[101];
         tokenInfo next_token; next_token.error = -1;
         memset(lexeme, '\0', 100);
@@ -1011,108 +1058,147 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
             next_token = getNextToken(&b, &line, lexeme);
         }
 
+
+        // If lexer has reported error, ask for the next error-free token
         if (next_token.symbol_type == ERROR) {
             reportError(stderr, next_token.error, next_token);
             memset(lexeme, '\0', 100);
+            continue;
         } else if (next_token.symbol_type == TK_COMMENT) {
             continue;
-        } else if (next_token.error == 100) {
-            printf("End of File\n");
-            break;
         } else if (next_token.error == 1) {
+            // but if it's only the Long Identifier error,
+            // cut it short and accept it as valid token
+
             if (! errorRecovery) {
-                printf("I cut short your Identifier on line %d\n", next_token.line_no);
+                reportError(stderr, next_token.error, next_token);
+                fprintf(stderr, "I cut short your Identifier on line %d\n", next_token.line_no);
             }
         }
 
         stackElem top = pop(s);
         current_tree_node = top.t_node;
 
-        moveAhead = 0;
-        if (top.symbol_type < START_NON_TERMINAL
-            || top.symbol_type == EOS
+        if (top.symbol_type == EOS &&
+            next_token.symbol_type == EOI
         ) {
-            // both are terminals
+            // End of Input, input accepted
+            *error = 0;
+            break;
+        } else if (next_token.error == 100
+            || next_token.symbol_type == EOI
+        ) {
+            // input ended, but stack not empty
+
+            char str[40];
+            memset(str, '\0', 40);
+            getNameForSymbolEnum(str, top.symbol_type);
+            fprintf(stderr, "*** ERROR 4: Input is consumed "
+                "while it is expected to have token <%s> at line number <%d>\n",
+                str, next_token.line_no
+            );
+            break;
+        } else if (top.symbol_type == EOS) {
+            fprintf(stderr, "End of Stack! ERROR!\n");
+            break;
+        }
+
+        moveAhead = 0;
+
+        if (top.symbol_type == EPS) {
+            moveAhead = 0;
+            continue;
+        }
+
+
+        // If the top is a Terminal
+        if (top.symbol_type < START_NON_TERMINAL) {
+
+            // both are terminals and match
             if (top.symbol_type == next_token.symbol_type) {
                 moveAhead = 1;
 
                 // match Leaf and put in tree
                 setTokenInfo(current_tree_node, next_token);
-            } else if (top.symbol_type == EOS) {
-                printf("End of Stack! ERROR!\n");
-                break;
             } else {
+                // Both are terminals but NOT matching
+
                 if (! errorRecovery) {
                     char err_str[100], err_str2[100];
                     memset(err_str, '\0', 100);
                     memset(err_str2, '\0', 100);
                     getNameForSymbolEnum(err_str, top.symbol_type);
-                    getNameForSymbolEnum(err_str2, next_token.symbol_type);
+                    getStringForSymbolEnum(err_str2, next_token.symbol_type);
 
-                    printf("Expected : <%s>, Got <%s> -> <%s> at line <%d> ! Moved ahead!\n",
-                        err_str, err_str2, next_token.lexeme,
-                        next_token.line_no
+                    fprintf(stderr, "*** ERROR 5 : The token <%s> for lexeme <%s>"
+                        " at line <%d>. Expected is <%s>\n",
+                        err_str2, next_token.lexeme, next_token.line_no, err_str
                     );
                     errorRecovery = 1;
                 }
+
+                // Put the expected one back, in hopes
+                // that this was just a stray token in input file
                 push(top, s);
                 moveAhead = 1;
                 continue;
             }
         } else {
-            if (top.symbol_type == EOS) {
-                printf("Error! Aborting\n");
-                break;
-            }
             int rule_no = T[top.symbol_type - START_NON_TERMINAL][next_token.symbol_type - START_TERMINAL];
+
+            // table entry is empty
             if (rule_no == -1) {
-                if (! errorRecovery) {
                     char err_str[100], err_str2[100];
                     memset(err_str, '\0', 100);
                     memset(err_str2, '\0', 100);
                     getNameForSymbolEnum(err_str, top.symbol_type);
                     getNameForSymbolEnum(err_str2, next_token.symbol_type);
 
-                    printf("Error! NO RULE FOUND for <%s> -> <%s> (lexeme : <%s>) at line : <%d>\n",
+                if (! errorRecovery) {
+                    fprintf(stderr, "*** ERROR 6 : NO RULE FOUND for <%s>"
+                        " -> <%s> (lexeme : <%s>) at line : <%d>\n",
                         err_str, err_str2,
                         next_token.lexeme, next_token.line_no
                     );
-                    printf("Skipping the token <%s> !\n", err_str2);
+                    fprintf(stderr, "Skipping the token <%s> !\n", err_str2);
                     errorRecovery = 1;
                 }
 
+                push(top, s);
+                moveAhead = 1;
                 continue;
             }
 
             grammarRule rule_to_apply = G[rule_no];
             int k = 0;
 
+            // Never taken in action
             if (rule_to_apply.lhs != top.symbol_type) {
                 if (! errorRecovery) {
-                    printf("Rule's NT does not match! Expected %d : Got %d!\n", rule_to_apply.lhs, top.symbol_type);
-                    printf("Moving ahead till valid Expected token\n");
+                    fprintf(stderr, "Rule's NT does not match! Expected %d : Got %d!\n",
+                        rule_to_apply.lhs, top.symbol_type
+                    );
+                    fprintf(stderr, "Moving ahead till valid Expected token\n");
                     errorRecovery = 1;
                 }
             }
 
             current_tree_node->curr_children = rule_to_apply.size_rhs;
-            current_tree_node->children = (treeNode**)malloc(sizeof(treeNode*) * rule_to_apply.size_rhs);
+            current_tree_node->children
+                = (treeNode**)malloc(sizeof(treeNode*) * rule_to_apply.size_rhs);
             current_tree_node->processed_children = 0;
 
-            // printf("Putting in rule : %d\n", rule_no + 1);
+            // add the pointer to the TreeNode to the stackElem
             for (k = rule_to_apply.size_rhs - 1; k >= 0; k--) {
                 stackElem curr;
                 curr.symbol_type = rule_to_apply.rhs[k];
+
                 current_tree_node->children[k]
                     = (treeNode*) malloc(sizeof(treeNode));
                 current_tree_node->children[k]->parent
                     = current_tree_node;
                 current_tree_node->children[k]->symbol_type
                     = curr.symbol_type;
-
-                if (curr.symbol_type == EPS) {
-                    continue;
-                }
 
                 curr.t_node = current_tree_node->children[k];
 
@@ -1121,12 +1207,27 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
         }
     }
 
-
-    printParseTree(new_tree);
-
 	// ALGO on pg. 227
 	// OR
 	// https://courses.cs.washington.edu/courses/cse401/04sp/slides/03b-LL1-example.pdf
+
+    if (*error == 0
+        && errorRecovery == 0
+    ) {
+        fprintf(stderr, "\nCompiled Successfully: "
+            "Input source code is syntactically correct!!\n"
+        );
+    } else if (*error == 0 && errorRecovery == 1) {
+        fprintf(stderr, "\nCompiled Successfully: "
+        );
+        fprintf(stderr, "\nCompiled with PANIC MODE. Some tokens might have been skipped"
+            " and some errors might have been present! Panic parse tree is returned! \n"
+        );
+    } else {
+        fprintf(stderr, "\nCompilation failed: "
+            "Input source code is syntactically NOT correct!!\n"
+        );
+    }
 
     fclose(first_file);
     fclose(follow_file);
@@ -1135,6 +1236,3 @@ parseTree* parseInputSourceCode(char *testcaseFile) {
     return new_tree;
 
 }
-
-
-int parser();

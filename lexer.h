@@ -13,6 +13,8 @@ tokenInfo getNextToken(
     char *lexeme
 );
 
+void printCommentFreeSource(char *filename);
+
 void lexicalAnalysis(FILE *fp, int k);
 
 void reportError (FILE *fp, int error_code, tokenInfo err_tok);

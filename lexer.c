@@ -177,9 +177,6 @@ void reportError (FILE *fp, int error_code, tokenInfo err_tok) {
             );
             break;
         case 2  :
-            // fprintf(stderr, "*** ERROR 2: Unknown symbol `%s` at line %d\n",
-            //     err_tok.lexeme, err_tok.line_no
-            // );
             break;
         case 3  :
             fprintf(stderr, "*** ERROR 3: Unknown pattern <%s> at line <%d>\n",
@@ -402,7 +399,7 @@ tokenInfo getNextToken(
         }
 
         if (checkIfInLanguage(next_char) == -1) {
-            printf("*** ERROR 2 : Unrecognised symbol <%c> at line <%d>\n", next_char, *line);
+            fprintf(stderr, "*** ERROR 2: Unrecognised symbol <%c> at line <%d>\n", next_char, *line);
         }
 
 
@@ -410,6 +407,7 @@ tokenInfo getNextToken(
             // START DFA_state
             case 0:
                 switch (next_char) {
+                    case '\r':
                     case '\t':
                     case ' ' :
                         concatChar = 0;
@@ -497,7 +495,6 @@ tokenInfo getNextToken(
                         break;
 
                     // SIMPLE THINGS FINISH
-                    // case '\r':
                     case '\n':
                         (*line)++;
                         moveAhead = 1;
@@ -1093,11 +1090,11 @@ tokenInfo getNextToken(
     if ((curr.state_id == 31
         && cur_len > MAX_ID_LEN)
         || (curr.state_id == 45
-        && cur_len > MAX_ID_LEN)
+        && cur_len > MAX_FUNID_LEN)
         || (curr.state_id == 49
         && cur_len > MAX_ID_LEN)
         || (curr.state_id == 51
-        && cur_len > MAX_FUNID_LEN)
+        && cur_len > MAX_ID_LEN)
     ) {
         int i;
         for(i = 20; i < cur_len; i++) {
@@ -1141,16 +1138,69 @@ void lexicalAnalysis(FILE *fp, int k) {
     while (1) {
         a = getNextToken(&b, &line, lexeme);
 
-        if (a.symbol_type == ERROR) {
+        if (a.error == 1) {
+            reportError(stderr, a.error, a);
+            fprintf(stderr, "I cut short your Identifier on line %d\n", a.line_no);
+            memset(lexeme, '\0', 100);
+        } else if (a.symbol_type == ERROR) {
             reportError(stderr, a.error, a);
             memset(lexeme, '\0', 100);
             continue;
         } else if (a.symbol_type == EOI) {
             break;
+        } else if (a.symbol_type == TK_COMMENT) {
+            memset(lexeme, '\0', 100);
+            continue;
         }
 
-        printf("LINE <%d> --> <%s> : %s\n", a.line_no, a.lexeme, final_states[a.symbol_type]);
+        int i = 0;
+        char line_no_str[10];
+        sprintf(line_no_str, "%d", a.line_no);
+
+        printf("LINE <%d> ", a.line_no);
+        for (i = strlen(line_no_str); i < 5; i++) {
+            printf(" ");
+        }
+
+        printf("<%s>", final_states[a.symbol_type]);
+
+        for (i = strlen(final_states[a.symbol_type]); i < 15; i++) {
+            printf(" ");
+        }
+
+        printf(" : %s\n", a.lexeme);
         memset(lexeme, '\0', 100);
     }
 
+    free(final_states);
+
+}
+
+
+void printCommentFreeSource(char *filename) {
+    FILE *fp = fopen(filename, "r");
+
+    char *line = NULL;
+    size_t line_len = 0;
+    ssize_t read_len;
+
+    while ((read_len = getline(&line, &line_len, fp)) != -1) {
+        int i = 0;
+        while (i < read_len
+            && (line[i] == ' '
+            || line[i] == '\n'
+            || line[i] == '\t'
+            || line[i] == '\r'
+            )
+        ) {
+            i++;
+        }
+
+        if (i < read_len && line[i] != '%') {
+            printf("%s", line);
+        }
+    }
+
+    free(line);
+    fclose(fp);
 }

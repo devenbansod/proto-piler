@@ -17,10 +17,10 @@ parser.o: parser.c
 	gcc  -Wall -c -g parser.c
 
 all: fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o
-	gcc -Wall fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o driver.c -o compiler.out
+	gcc  -Wall       fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o driver.c -o compiler.out
 
 debug: fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o
-	gcc -Wall fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o driver.c -g -o compiler.out
+	gcc  -Wall       fileBuffer.o lexer.o stack.o keywordTrie.o symbolTable.o parser.o driver.c -g -o compiler.out
 
 clean:
 	rm -rf *.gch
