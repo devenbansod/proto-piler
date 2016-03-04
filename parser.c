@@ -1,3 +1,11 @@
+/*
+ * BATCH 74
+ * ========
+ * Deven Bansod    2012B3A7316P
+ * Nirant Kasliwal 2012C6PS694P
+ *
+ */
+
 #include "common.h"
 #include "parserDef.h"
 #include "lexer.h"
@@ -350,351 +358,9 @@ int getStringForSymbolEnum(char *ret, int st) {
     return strlen(ret);
 }
 
-int getNameForSymbolEnum(char *ret, int st) {
-    switch(st) {
-        case 1:
-            strcpy(ret, "[");
-            break;
-        case 2:
-            strcpy(ret, "]");
-            break;
-        case 3:
-            strcpy(ret, ";");
-            break;
-        case 4:
-            strcpy(ret, ":");
-            break;
-        case 5:
-            strcpy(ret, ".");
-            break;
-        case 6:
-            strcpy(ret, "(");
-            break;
-        case 7:
-            strcpy(ret, ")");
-            break;
-        case 8:
-            strcpy(ret, "+");
-            break;
-        case 9:
-            strcpy(ret, "-");
-            break;
-        case 10:
-            strcpy(ret, "*");
-            break;
-        case 11:
-            strcpy(ret, "/");
-            break;
-        case 12:
-            strcpy(ret, "~");
-            break;
-        case 13:
-            strcpy(ret, "!=");
-            break;
-        case 14:
-            strcpy(ret, "==");
-            break;
-        case 15:
-            strcpy(ret, ">=");
-            break;
-        case 16:
-            strcpy(ret, ">");
-            break;
-        case 17:
-            strcpy(ret, "<=");
-            break;
-        case 18:
-            strcpy(ret, "<---");
-            break;
-        case 19:
-            strcpy(ret, "<");
-            break;
-        case 20:
-            strcpy(ret, "&&&");
-            break;
-        case 21:
-            strcpy(ret, "TK_RECORDID");
-            break;
-        case 22:
-            strcpy(ret, "@@@");
-            break;
-        case 23:
-            strcpy(ret, "TK_COMMENT");
-            break;
-        case 24:
-            strcpy(ret, "TK_RNUM");
-            break;
-        case 25:
-            strcpy(ret, "TK_NUM");
-            break;
-        case 26:
-            strcpy(ret, "TK_FUNID");
-            break;
-        case 27:
-            strcpy(ret, "TK_ID");
-            break;
-        case 28:
-            strcpy(ret, "TK_FIELDID");
-            break;
-        case 29:
-            strcpy(ret, "TK_COMMA");
-            break;
-        case 30:
-            strcpy(ret, "TK_WITH");
-            break;
-        case 31:
-            strcpy(ret, "TK_PARAMETERS");
-            break;
-        case 32:
-            strcpy(ret, "TK_END");
-            break;
-        case 33:
-            strcpy(ret, "TK_WHILE");
-            break;
-        case 34:
-            strcpy(ret, "TK_INT");
-            break;
-        case 35:
-            strcpy(ret, "TK_REAL");
-            break;
-        case 36:
-            strcpy(ret, "TK_TYPE");
-            break;
-        case 37:
-            strcpy(ret, "TK_MAIN");
-            break;
-        case 38:
-            strcpy(ret, "TK_GLOBAL");
-            break;
-        case 39:
-            strcpy(ret, "TK_PARAMETER");
-            break;
-        case 40:
-            strcpy(ret, "TK_LIST");
-            break;
-        case 41:
-            strcpy(ret, "TK_INPUT");
-            break;
-        case 42:
-            strcpy(ret, "TK_OUTPUT");
-            break;
-        case 43:
-            strcpy(ret, "TK_ENDWHILE");
-            break;
-        case 44:
-            strcpy(ret, "TK_IF");
-            break;
-        case 45:
-            strcpy(ret, "TK_THEN");
-            break;
-        case 46:
-            strcpy(ret, "TK_ENDIF");
-            break;
-        case 47:
-            strcpy(ret, "TK_READ");
-            break;
-        case 48:
-            strcpy(ret, "TK_WRITE");
-            break;
-        case 49:
-            strcpy(ret, "TK_RETURN");
-            break;
-        case 50:
-            strcpy(ret, "TK_RECORD");
-            break;
-        case 51:
-            strcpy(ret, "TK_ENDRECORD");
-            break;
-        case 52:
-            strcpy(ret, "TK_ELSE");
-            break;
-        case 53:
-            strcpy(ret, "TK_CALL");
-            break;
-        case 1000:
-            strcpy(ret, "DOLLAR");
-            break;
-        case -1:
-            strcpy(ret, "ERROR");
-            break;
-        case 100:
-            strcpy(ret, "EOI");
-            break;
-        case 500:
-            strcpy(ret, "EPS");
-            break;
-        case 201:
-            strcpy(ret, "program");
-            break;
-        case 202:
-            strcpy(ret, "mainFunction");
-            break;
-        case 203:
-            strcpy(ret, "otherFunctions");
-            break;
-        case 204:
-            strcpy(ret, "function");
-            break;
-        case 205:
-            strcpy(ret, "input_par");
-            break;
-        case 206:
-            strcpy(ret, "output_par");
-            break;
-        case 207:
-            strcpy(ret, "parameter_list");
-            break;
-        case 208:
-            strcpy(ret, "dataType");
-            break;
-        case 209:
-            strcpy(ret, "primitiveDatatype");
-            break;
-        case 210:
-            strcpy(ret, "constructedDatatype");
-            break;
-        case 211:
-            strcpy(ret, "remaining_list");
-            break;
-        case 212:
-            strcpy(ret, "stmts");
-            break;
-        case 213:
-            strcpy(ret, "typeDefinitions");
-            break;
-        case 214:
-            strcpy(ret, "typeDefinition");
-            break;
-        case 215:
-            strcpy(ret, "fieldDefinitions");
-            break;
-        case 216:
-            strcpy(ret, "fieldDefinition");
-            break;
-        case 217:
-            strcpy(ret, "moreFields");
-            break;
-        case 218:
-            strcpy(ret, "declarations");
-            break;
-        case 219:
-            strcpy(ret, "declaration");
-            break;
-        case 220:
-            strcpy(ret, "global_or_not");
-            break;
-        case 221:
-            strcpy(ret, "otherStmts");
-            break;
-        case 222:
-            strcpy(ret, "stmt");
-            break;
-        case 223:
-            strcpy(ret, "assignmentStmt");
-            break;
-        case 224:
-            strcpy(ret, "singleOrRecId");
-            break;
-        case 225:
-            strcpy(ret, "new_24");
-            break;
-        case 226:
-            strcpy(ret, "funCallStmt");
-            break;
-        case 227:
-            strcpy(ret, "outputParameters");
-            break;
-        case 228:
-            strcpy(ret, "inputParameters");
-            break;
-        case 229:
-            strcpy(ret, "iterativeStmt");
-            break;
-        case 230:
-            strcpy(ret, "conditionalStmt");
-            break;
-        case 231:
-            strcpy(ret, "elsePart");
-            break;
-        case 232:
-            strcpy(ret, "ioStmt");
-            break;
-        case 233:
-            strcpy(ret, "allVar");
-            break;
-        case 234:
-            strcpy(ret, "arithmeticExpression");
-            break;
-        case 235:
-            strcpy(ret, "expPrime");
-            break;
-        case 236:
-            strcpy(ret, "term");
-            break;
-        case 237:
-            strcpy(ret, "termPrime");
-            break;
-        case 238:
-            strcpy(ret, "factor");
-            break;
-        case 239:
-            strcpy(ret, "highPrecedenceOperator");
-            break;
-        case 240:
-            strcpy(ret, "lowPrecedenceOperators");
-            break;
-        case 241:
-            strcpy(ret, "all");
-            break;
-        case 242:
-            strcpy(ret, "temp");
-            break;
-        case 243:
-            strcpy(ret, "operator");
-            break;
-        case 244:
-            strcpy(ret, "booleanExpression");
-            break;
-        case 245:
-            strcpy(ret, "var");
-            break;
-        case 246:
-            strcpy(ret, "logicalOp");
-            break;
-        case 247:
-            strcpy(ret, "relationalOp");
-            break;
-        case 248:
-            strcpy(ret, "returnStmt");
-            break;
-        case 249:
-            strcpy(ret, "optionalReturn");
-            break;
-        case 250:
-            strcpy(ret, "idList");
-            break;
-        case 251:
-            strcpy(ret, "more_ids");
-            break;
-        case 252:
-            strcpy(ret, "some_types");
-            break;
-        case 253:
-            strcpy(ret, "other_types");
-            break;
-        case 254:
-            strcpy(ret, "for_ll1");
-            break;
-        default:
-            strcpy(ret, "No Matching symbol");
-            break;
-    }
-
-    return strlen(ret);
-}
-
 /*
- * Find the matching set for a given terminal/non-terminal
+ * Find the index for matching set
+ * for a given terminal/non-terminal
  *
  */
 int findMatchingSet(grammarRule *rules, int NT, int count) {
@@ -745,6 +411,14 @@ grammarRule* readFileForRules(FILE *file, int *count){
     return rules; //number of rules read
 }
 
+
+/*
+ * Used for printing the grammar, first or follow set
+ * read from file
+ *
+ * - Used for debug purpose only
+ *
+ */
 void printGrammar(grammarRule* G, int count){
     // Routine to Print the grammar G
     int i;
@@ -758,6 +432,10 @@ void printGrammar(grammarRule* G, int count){
     }
 }
 
+/*
+ * Create parse table from Grammar, First set and follow set
+ *
+ */
 parseTable** createParseTable(
     grammarRule* G, int rule_count, FILE *first_file, FILE* follow_file, parseTable **T
 ) {
@@ -841,6 +519,12 @@ parseTable** createParseTable(
 
 }
 
+/*
+ * Used for printing the parse table
+ *
+ * - Used for debug purpose only
+ *
+ */
 void printParseTable(FILE *fp, parseTable **T) {
     // routine to print the damn table
     int j;
@@ -857,6 +541,10 @@ void printParseTable(FILE *fp, parseTable **T) {
     }
 }
 
+/*
+ * Create and return a tree node with given symbol type
+ *
+ */
 treeNode* getTreeNode(
 	treeNode *parent, stackElem st
 ) {
@@ -869,11 +557,20 @@ treeNode* getTreeNode(
 	return new_node;
 }
 
+/*
+ * Set tokenInfo for a leaf node (same as match terminal from token
+ * to terminal on top of stack)
+ *
+ */
 void setTokenInfo(treeNode *t_node, tokenInfo tk_info) {
 	t_node->tk_info = tk_info;
     t_node->processed_children++;
 }
 
+/*
+ * Create and return a parse tree
+ *
+ */
 parseTree* createParseTree(parseTree *new_tree) {
 	new_tree = (parseTree*)malloc(sizeof(parseTree));
 	new_tree->root = NULL;
@@ -882,6 +579,11 @@ parseTree* createParseTree(parseTree *new_tree) {
 }
 
 
+/*
+ * Helper function to recurse over child nodes
+ * while printing the parse tree
+ *
+ */
 void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
     char par[100], cur[100];
     int i = 0;
@@ -899,7 +601,7 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
         }
         fprintf(out_file, "---");
 
-        for (i = 0; i < 16; i++) {
+        for (i = 0; i < 12; i++) {
             fprintf(out_file," ");
         }
         fprintf(out_file, "%s", cur);
@@ -940,7 +642,7 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
         }
 
         fprintf(out_file, "YES     %s", cur);
-        for (i = strlen(cur); i < 25; i++) {
+        for (i = strlen(cur); i < 21; i++) {
             fprintf(out_file," ");
         }
 
@@ -973,19 +675,28 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
     }
 }
 
+/*
+ * Print the parse Tree in file named char* filename
+ *
+ */
 void printParseTree(parseTree *new_tree, char* filename) {
     FILE *out_file = fopen(filename, "w");
 
     // print the Header line
     fprintf(out_file, "\t\t\t\t\t\t************** PARSE TREE ***************\n");
     fprintf(out_file,
-        "Line \tisLeafNode \tToken \t\t\t\tNodeSymbol \t\t\t\tParentNodeSymbol \t\tLexeme\n"
+        "Line \tisLeafNode \tToken \t\t\tNodeSymbol \t\t\t\t ParentNodeSymbol \t\t  Lexeme\n"
     );
 
     // print the whole tree
     printParseTreeHelper(new_tree->root, out_file);
 }
 
+/*
+ * Checks if the terminal exists in Follow set of given NT
+ *
+ * Un-used
+ */
 int checkIfInFollow(grammarRule *rules, int f_count,
     int NT_symbol_type, int TK_symbol_type
 ) {
@@ -1000,6 +711,10 @@ int checkIfInFollow(grammarRule *rules, int f_count,
     return 0;
 }
 
+/*
+ * Main parse function
+ *
+ */
 parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
 
     FileBuffer b;
@@ -1092,7 +807,7 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
 
             char str[40];
             memset(str, '\0', 40);
-            getNameForSymbolEnum(str, top.symbol_type);
+            getStringForSymbolEnum(str, top.symbol_type);
             fprintf(stderr, "*** ERROR 4: Input is consumed "
                 "while it is expected to have token <%s> at line number <%d>\n",
                 str, next_token.line_no
@@ -1127,7 +842,7 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
                     char err_str[100], err_str2[100];
                     memset(err_str, '\0', 100);
                     memset(err_str2, '\0', 100);
-                    getNameForSymbolEnum(err_str, top.symbol_type);
+                    getStringForSymbolEnum(err_str, top.symbol_type);
                     getStringForSymbolEnum(err_str2, next_token.symbol_type);
 
                     fprintf(stderr, "*** ERROR 5 : The token <%s> for lexeme <%s>"
@@ -1151,8 +866,8 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
                     char err_str[100], err_str2[100];
                     memset(err_str, '\0', 100);
                     memset(err_str2, '\0', 100);
-                    getNameForSymbolEnum(err_str, top.symbol_type);
-                    getNameForSymbolEnum(err_str2, next_token.symbol_type);
+                    getStringForSymbolEnum(err_str, top.symbol_type);
+                    getStringForSymbolEnum(err_str2, next_token.symbol_type);
 
                 if (! errorRecovery) {
                     fprintf(stderr, "*** ERROR 6 : NO RULE FOUND for <%s>"
@@ -1220,8 +935,8 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
     } else if (*error == 0 && errorRecovery == 1) {
         fprintf(stderr, "\nCompiled Successfully: "
         );
-        fprintf(stderr, "\nCompiled with PANIC MODE. Some tokens might have been skipped"
-            " and some errors might have been present! Panic parse tree is returned! \n"
+        fprintf(stderr, "\nCompiled with PANIC MODE. \nSome tokens might have been skipped"
+            " \nand some errors might have been present! \nPANIC MODE parse tree is returned! \n"
         );
     } else {
         fprintf(stderr, "\nCompilation failed: "

@@ -1,3 +1,20 @@
+/*
+ * BATCH 74
+ * ========
+ * Deven Bansod    2012B3A7316P
+ * Nirant Kasliwal 2012C6PS694P
+ *
+ */
+
+/*
+ * Common header file with
+ * all standard libraries included
+ * and the enum 'Symbol' defined at one place.
+ *
+ * The file is included insdie every file in the project
+ *
+ */
+
 #ifndef COMMON_HEADER
 #define COMMON_HEADER
 
@@ -6,6 +23,11 @@
 #include "string.h"
 #include "ctype.h"
 
+
+/*
+ * 'Symbol' enum for TK_* and the Non-terminals
+ *
+ */
 typedef enum {
 	TK_SQL = 1,
 	TK_SQR,

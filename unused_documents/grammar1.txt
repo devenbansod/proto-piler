@@ -1,8 +1,0 @@
-E-T E'
-E'-+ T E'
-E'-eps
-T-F T'
-T'-* F T'
-T'-eps
-F-( E )
-F-id
