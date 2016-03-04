@@ -454,8 +454,8 @@ parseTable** createParseTable(
     int first_count = COUNT_NON_TERMINAL + 1;
     // grammarRule *firstset = readFileForRules(first_file, &first_count);
     grammarRule *firstset = (grammarRule*)malloc(sizeof(grammarRule) * first_count);
-    createFirstSet(G, firstset, first_count - 1, rule_count);
-
+    createFirstSet(G, firstset, &first_count, rule_count);
+    // grammarRule *firstset = readFileForRules(first_file, &first_count);
     int follow_count = COUNT_NON_TERMINAL + 1;
     grammarRule *followset = readFileForRules(follow_file, &follow_count);
 
