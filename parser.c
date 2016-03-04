@@ -452,7 +452,7 @@ parseTable** createParseTable(
     }
     // Routine to read in the first and follow sets
     int first_count = COUNT_NON_TERMINAL + 1;
-    // grammarRule *firstset = readFileForRules(first_file, &first_count);
+
     grammarRule *firstset = (grammarRule*)malloc(sizeof(grammarRule) * first_count);
     createFirstSet(G, firstset, &first_count, rule_count);
     // grammarRule *firstset = readFileForRules(first_file, &first_count);
@@ -676,7 +676,11 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
             }
         }
 
-        fprintf(out_file, "%s\n", current_tree_node->tk_info.lexeme);
+        if (current_tree_node->symbol_type != EPS) {
+            fprintf(out_file, "%s\n", current_tree_node->tk_info.lexeme);
+        } else {
+            fprintf(out_file, "----\n");
+        }
     }
 
     int k = 0;

@@ -53,18 +53,16 @@ void createFirstSet(grammarRule* G, grammarRule* firstset, int *first_count, int
             fcount++;
         }
     }
-    *first_count = fcount;    
+    *first_count = fcount;
     for(i = 0; i < count; ++i){
         int eps_found = 0;
         int k = 0;
         while (k < G[i].size_rhs) {
             if (isTerminal(G[i].rhs[k])) {
                 int p = findIndex(firstset, G[i].lhs, fcount);
-                // if(p!=-1){
                     firstset[p].rhs[firstset[p].size_rhs] = G[i].rhs[k];
                     firstset[p].size_rhs++;
                     break;
-				// }
             } else if (! isTerminal(G[i].rhs[k])) {
                 int t = findIndex(firstset, G[i].lhs, fcount);
                 int p = findIndex(firstset, G[i].rhs[k], fcount);
@@ -85,7 +83,6 @@ void createFirstSet(grammarRule* G, grammarRule* firstset, int *first_count, int
             ++k;
         }
     }
-    // return fcount;
 }
 
 int followIsCalculated(grammarRule *G) {
@@ -103,6 +100,7 @@ int followIsCalculated(grammarRule *G) {
 
     return 1;
 }
+
 /*
  * Calculate Follow sets - NOT implemented completely
  *
