@@ -1,14 +1,13 @@
+/*
+ * BATCH 74
+ * ========
+ * Deven Bansod    2012B3A7316P
+ * Nirant Kasliwal 2012C6PS694P
+ *
+ */
+
 #ifndef PARSER_DEF
 #define PARSER_DEF
-
-/* ONLY FOR TESTS */
-// #define START_TERMINAL 27
-// #define START_NON_TERMINAL 41
-// #define COUNT_TERMINAL 7
-// #define COUNT_NON_TERMINAL 5
-// #define COUNT_RULE 8
-// #define EPS 33
-// #define DOLLAR 32
 
 #define START_TERMINAL 1
 #define START_NON_TERMINAL 201
@@ -23,6 +22,9 @@
 #include "stackDef.h"
 #include "symbolTableDef.h"
 
+/*
+ * Structure for Grammar rule in memory
+ */
 struct grammarRule
 {
     Symbol lhs;

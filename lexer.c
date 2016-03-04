@@ -1,3 +1,11 @@
+/*
+ * BATCH 74
+ * ========
+ * Deven Bansod    2012B3A7316P
+ * Nirant Kasliwal 2012C6PS694P
+ *
+ */
+
 #include "common.h"
 #include "keywordTrie.h"
 #include "lexerDef.h"
@@ -375,6 +383,11 @@ FILE* getStream(FILE *fp, FileBuffer *b, int k) {
 }
 
 
+/*
+ * Main Lexer function
+ *  - returns the next token's tokenInfo
+ *
+ */
 tokenInfo getNextToken(
     FileBuffer *buf,
     int *line,
@@ -1123,6 +1136,12 @@ tokenInfo getNextToken(
 }
 
 
+/*
+ * Print the list of tokens with appropriate info
+ *
+ *  - Also, print the errors while lexical analysis
+ *  - Do NOT print the comments in source code
+ */
 void lexicalAnalysis(FILE *fp, int k) {
 
     initStateNames(final_states);
@@ -1140,7 +1159,7 @@ void lexicalAnalysis(FILE *fp, int k) {
 
         if (a.error == 1) {
             reportError(stderr, a.error, a);
-            fprintf(stderr, "I cut short your Identifier on line %d\n", a.line_no);
+            fprintf(stderr, "*** INFO: I cut short your Identifier on line %d\n", a.line_no);
             memset(lexeme, '\0', 100);
         } else if (a.symbol_type == ERROR) {
             reportError(stderr, a.error, a);
@@ -1176,31 +1195,46 @@ void lexicalAnalysis(FILE *fp, int k) {
 
 }
 
-
+/*
+ * Print the tokens separated by spaces
+ *
+ *  - Do NOT print the comments in source code
+ *  - Do NOT print the error in lexical analysis
+ */
 void printCommentFreeSource(char *filename) {
     FILE *fp = fopen(filename, "r");
+    initStateNames(final_states);
 
-    char *line = NULL;
-    size_t line_len = 0;
-    ssize_t read_len;
+    FileBuffer b;
+    fp = getStream(fp, &b, 4096);
 
-    while ((read_len = getline(&line, &line_len, fp)) != -1) {
-        int i = 0;
-        while (i < read_len
-            && (line[i] == ' '
-            || line[i] == '\n'
-            || line[i] == '\t'
-            || line[i] == '\r'
-            )
-        ) {
-            i++;
+    int line = 1;
+    tokenInfo a; a.error = -1;
+    char lexeme[101];
+
+    int prev_line = 0;
+
+    // read tokens and print them
+    while (1) {
+        a = getNextToken(&b, &line, lexeme);
+
+        if (a.symbol_type == EOI) {
+            break;
+        } else if (a.symbol_type == TK_COMMENT) {
+            memset(lexeme, '\0', 100);
+            continue;
         }
 
-        if (i < read_len && line[i] != '%') {
-            printf("%s", line);
+        if (prev_line != a.line_no) {
+            printf("\n");
         }
+
+        printf("%s ", a.lexeme);
+        prev_line = a.line_no;
+        memset(lexeme, '\0', 100);
     }
 
-    free(line);
-    fclose(fp);
+    printf("\n\n");
+
+    free(final_states);
 }

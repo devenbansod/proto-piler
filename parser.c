@@ -437,8 +437,10 @@ void printGrammar(grammarRule* G, int count){
  *
  */
 parseTable** createParseTable(
-    grammarRule* G, int rule_count, FILE *first_file, FILE* follow_file, parseTable **T
+    grammarRule* G, int rule_count, parseTable **T
 ) {
+    FILE *follow_file = fopen("./follow_set_converted.txt", "r");
+    FILE *first_file = fopen("./first_set_converted.txt", "r");
 
     // Declaring the able inside the function as a temporary hack
     int i;
@@ -514,6 +516,9 @@ parseTable** createParseTable(
             }
         }
     }
+
+    fclose(first_file);
+    fclose(follow_file);
 
     return T;
 
@@ -715,7 +720,9 @@ int checkIfInFollow(grammarRule *rules, int f_count,
  * Main parse function
  *
  */
-parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
+parseTree* parseInputSourceCode(
+    char *testcaseFile, int *error
+) {
 
     FileBuffer b;
 
@@ -727,13 +734,10 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
     FILE *grammar_file = fopen("./grammar_converted.txt", "r");
     grammarRule *G = readFileForRules(grammar_file, &rule_count);
 
-    FILE *follow_file = fopen("./follow_set_converted.txt", "r");
-    FILE *first_file = fopen("./first_set_converted.txt", "r");
-
     parseTable **T = NULL;
 
     // create the parseTable from First and follow info
-    T = createParseTable(G, rule_count, first_file, follow_file, T);
+    T = createParseTable(G, rule_count, T);
 
 	// initialize new parse tree
 	parseTree *new_tree = NULL;
@@ -845,7 +849,7 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
                     getStringForSymbolEnum(err_str, top.symbol_type);
                     getStringForSymbolEnum(err_str2, next_token.symbol_type);
 
-                    fprintf(stderr, "*** ERROR 5 : The token <%s> for lexeme <%s>"
+                    fprintf(stderr, "*** ERROR 5: The token <%s> for lexeme <%s>"
                         " at line <%d>. Expected is <%s>\n",
                         err_str2, next_token.lexeme, next_token.line_no, err_str
                     );
@@ -875,7 +879,7 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
                         err_str, err_str2,
                         next_token.lexeme, next_token.line_no
                     );
-                    fprintf(stderr, "Skipping the token <%s> !\n", err_str2);
+                    fprintf(stderr, "Trying PANIC MODE! Skipping the token <%s> !\n", err_str2);
                     errorRecovery = 1;
                 }
 
@@ -929,23 +933,21 @@ parseTree* parseInputSourceCode(char *testcaseFile, int *error) {
     if (*error == 0
         && errorRecovery == 0
     ) {
-        fprintf(stderr, "\nCompiled Successfully: "
+        fprintf(stderr, "\nCompiled Successfully: \n"
             "Input source code is syntactically correct!!\n"
         );
     } else if (*error == 0 && errorRecovery == 1) {
-        fprintf(stderr, "\nCompiled Successfully: "
+        fprintf(stderr, "\nCompiled Successfully: \n"
         );
         fprintf(stderr, "\nCompiled with PANIC MODE. \nSome tokens might have been skipped"
             " \nand some errors might have been present! \nPANIC MODE parse tree is returned! \n"
         );
     } else {
         fprintf(stderr, "\nCompilation failed: "
-            "Input source code is syntactically NOT correct!!\n"
+            "Input source code is syntactically NOT correct!!\n\n"
         );
     }
 
-    fclose(first_file);
-    fclose(follow_file);
     fclose(grammar_file);
 
     return new_tree;

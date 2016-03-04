@@ -1,3 +1,11 @@
+/*
+ * BATCH 74
+ * ========
+ * Deven Bansod    2012B3A7316P
+ * Nirant Kasliwal 2012C6PS694P
+ *
+ */
+
 #include "common.h"
 struct grammarRule
 {
@@ -9,12 +17,8 @@ struct grammarRule
 };
 typedef struct grammarRule grammarRule;
 int start_non_terminal = 201;
-// int start_non_terminal = 41;
 int start_terminal = 1;
-// int start_terminal = 27;
-// int eps = 500;
 int EPS = 500;
-// int eps = 33;
 
 typedef int table;
 char **final_states;
@@ -33,7 +37,7 @@ int readFile(char* filename, grammarRule *rule){
             token = strsep(&str, "-");
             char *right = strdup(token);
             int j = 0;
-            while((token = strsep(&right, " "))) {            
+            while((token = strsep(&right, " "))) {
                 rule[i].rhs[j] = atoi(token);
                 ++j;
                 rule[i].size_rhs = j;
@@ -49,18 +53,18 @@ int readFile(char* filename, grammarRule *rule){
     return i; //number of grammar rules
 }
 
-void printGrammar(grammarRule* G, int count){
-    // Routine to Print the grammar G
-    int i;
-    for (i = 0; i < count; ++i){
-        printf("%d -> ", G[i].lhs);
-        int j;
-        for(j = 0; j < G[i].size_rhs;++j){
-            printf("%d ", G[i].rhs[j]);
-        }
-        printf("\n");
-    }
-}
+// void printGrammar(grammarRule* G, int count){
+//     // Routine to Print the grammar G
+//     int i;
+//     for (i = 0; i < count; ++i){
+//         printf("%d -> ", G[i].lhs);
+//         int j;
+//         for(j = 0; j < G[i].size_rhs;++j){
+//             printf("%d ", G[i].rhs[j]);
+//         }
+//         printf("\n");
+//     }
+// }
 
 int isTerminal(int x){
   if ((x < start_non_terminal || x == EPS) && x > 0){
@@ -115,12 +119,12 @@ void createFirstSet(grammarRule* G, grammarRule* firstset, int fcount, int count
                 }
                 if(eps_found == 0){
                     break;
-                }                
+                }
             }
             ++k;
         }
     }
-    // printGrammar(firstset, fcount);    
+    // printGrammar(firstset, fcount);
 }
 
 int exists(int x, grammarRule* firstset, int count){
@@ -215,36 +219,36 @@ void createFollowSet(grammarRule* G, int count, grammarRule* firstset, int first
         }
     }
 }
-int main(int argc, char const *argv[]){
-    int i;
-    int count = 100; //number of lines in the grammar, can be made read from file
+// int main(int argc, char const *argv[]){
+//     int i;
+//     int count = 100; //number of lines in the grammar, can be made read from file
 
-    grammarRule rules[count];
-    char *filename = "grammar2.txt";
-    count = readFile(filename, rules);
-    grammarRule firstset[count];
-    int fcount = 0; 
-    for(i = 0; i < count; ++i){
-        if(!exists(rules[i].lhs, firstset, count)){
-            int j;
-            firstset[fcount].lhs = rules[i].lhs;
-            firstset[fcount].size_rhs = 0;
-            fcount++;
-        }
-    }
-    grammarRule followset[count];
-    int follow_count = 0;
-    for(i = 0; i < count; ++i){
-        if(!exists(rules[i].lhs, followset, count)){
-            int j;
-            followset[follow_count].lhs = rules[i].lhs;
-            followset[follow_count].size_rhs = 0;
-            follow_count++;
-        }
-    }
-    createFirstSet(rules, firstset, fcount, count);
-    createFollowSet(rules, count, firstset, fcount, followset,  follow_count);
-    // printGrammar(firstset, fcount);
-    printf("\n");
-    return 0;
-}
+//     grammarRule rules[count];
+//     char *filename = "grammar2.txt";
+//     count = readFile(filename, rules);
+//     grammarRule firstset[count];
+//     int fcount = 0; 
+//     for(i = 0; i < count; ++i){
+//         if(!exists(rules[i].lhs, firstset, count)){
+//             int j;
+//             firstset[fcount].lhs = rules[i].lhs;
+//             firstset[fcount].size_rhs = 0;
+//             fcount++;
+//         }
+//     }
+//     grammarRule followset[count];
+//     int follow_count = 0;
+//     for(i = 0; i < count; ++i){
+//         if(!exists(rules[i].lhs, followset, count)){
+//             int j;
+//             followset[follow_count].lhs = rules[i].lhs;
+//             followset[follow_count].size_rhs = 0;
+//             follow_count++;
+//         }
+//     }
+//     createFirstSet(rules, firstset, fcount, count);
+//     createFollowSet(rules, count, firstset, fcount, followset,  follow_count);
+//     // printGrammar(firstset, fcount);
+//     printf("\n");
+//     return 0;
+// }

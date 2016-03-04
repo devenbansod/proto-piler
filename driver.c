@@ -1,3 +1,11 @@
+/*
+ * BATCH 74
+ * ========
+ * Deven Bansod    2012B3A7316P
+ * Nirant Kasliwal 2012C6PS694P
+ *
+ */
+
 #include "common.h"
 #include "lexerDef.h"
 #include "lexer.h"
@@ -10,8 +18,6 @@
 #include "treeDef.h"
 
 #include "parser.h"
-
-extern Trie *t;
 
 int main(int argc, char *argv[]) {
 
@@ -72,6 +78,8 @@ int main(int argc, char *argv[]) {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
 
                 error = 0;
+
+                free(tree);
                 break;
 
             default:
