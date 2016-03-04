@@ -10,6 +10,7 @@
 #include "parserDef.h"
 #include "lexer.h"
 #include "stack.h"
+#include "first_follow.h"
 
 /*
  * Print the appropriate string for the ENUM of symbolType
@@ -451,7 +452,9 @@ parseTable** createParseTable(
     }
     // Routine to read in the first and follow sets
     int first_count = COUNT_NON_TERMINAL + 1;
-    grammarRule *firstset = readFileForRules(first_file, &first_count);
+    // grammarRule *firstset = readFileForRules(first_file, &first_count);
+    grammarRule *firstset = (grammarRule*)malloc(sizeof(grammarRule) * first_count);
+    createFirstSet(G, firstset, first_count - 1, rule_count);
 
     int follow_count = COUNT_NON_TERMINAL + 1;
     grammarRule *followset = readFileForRules(follow_file, &follow_count);
@@ -593,7 +596,9 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
     char par[100], cur[100];
     int i = 0;
 
-    if (current_tree_node->symbol_type >= START_NON_TERMINAL) {
+    if (current_tree_node->symbol_type >= START_NON_TERMINAL
+        && current_tree_node->symbol_type != EPS
+    ) {
         memset(par, '\0', 100);
         memset(cur, '\0', 100);
         getStringForSymbolEnum(
@@ -731,7 +736,7 @@ parseTree* parseInputSourceCode(
 
     // read the grammar from file
     int rule_count = COUNT_RULE;
-    FILE *grammar_file = fopen("./grammar_converted.txt", "r");
+    FILE *grammar_file = fopen("./grammar_converted_reversed.txt", "r");
     grammarRule *G = readFileForRules(grammar_file, &rule_count);
 
     parseTable **T = NULL;

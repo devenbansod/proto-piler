@@ -37,6 +37,17 @@ int main(int argc, char *argv[]) {
     initKeywordTrie();
 
 
+    fprintf(stderr, "\n*** INFORMATION ***");
+    fprintf(stderr, "\n\t1. FIRST SET automated");
+    fprintf(stderr, "\n\t2. FOLLOW SET NOT automated");
+    fprintf(stderr, "\n\t3. Lexer  module implemented");
+    fprintf(stderr, "\n\t4. Parser module implemented");
+    fprintf(stderr, "\n\t5. Appropriate parse tree created, whenever possible");
+    fprintf(stderr, "\n\t6. Meaningful error reports generated");
+    fprintf(stderr, "\n\t7. Panic mode recovery from errors implemented");
+    fprintf(stderr, "\n\n");
+
+
     while (input != -1) {
         printf("Select an option :\n");
         printf("\t1. Print Comment-free source code\n");
@@ -82,7 +93,12 @@ int main(int argc, char *argv[]) {
                 free(tree);
                 break;
 
+            case -1:
+                fprintf(stderr, "Exiting ... \n");
+                break;
+
             default:
+                fprintf(stderr, "*** Incorrect input. Please enter correct input\n");
                 break;
         }
     }
