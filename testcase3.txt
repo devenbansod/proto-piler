@@ -10,7 +10,7 @@ output parameter list [real c6];
 	c6 <--- 5000.79;
 	d4cbcd5677<--- ((c3 + 2*c4)-(c5-5))/ 4;
 	c4bbb <--- ((d4cbcd5677- 2.35)*(2345-234*8))+5*c3;
-	if((~c4bbb == 0) &&& (c4bbb > 78.56)) 
+	if((~(c4bbb == 0)) &&& (c4bbb > 78.56)) 
 	then
 		c6<--- d4cbcd5677/c4bbb;
 	else
