@@ -28,6 +28,12 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    FILE *check_in_file = fopen(argv[1], "r");
+    if (check_in_file == NULL) {
+        fprintf(stderr, "*** ERROR : The input file : %s does not exist!\n", argv[1]);
+        return -1;
+    }
+
     int input = 0;
     FILE *fp = NULL;
     parseTree *tree = NULL;
