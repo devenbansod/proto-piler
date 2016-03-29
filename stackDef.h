@@ -9,7 +9,6 @@
 #ifndef STACK_DEF
 #define STACK_DEF
 #include "treeDef.h"
-#include "symbolTableDef.h"
 #include "parserDef.h"
 
 

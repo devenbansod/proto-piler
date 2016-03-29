@@ -9,7 +9,6 @@
 #ifndef LEXER_INTERFACE
 #define LEXER_INTERFACE
 #include "fileBufferDef.h"
-#include "keywordTrieDef.h"
 
 void initStateNames();
 
@@ -26,5 +25,19 @@ void printCommentFreeSource(char *filename);
 void lexicalAnalysis(FILE *fp, int k);
 
 void reportError (FILE *fp, int error_code, tokenInfo err_tok);
+
+
+/*
+ * Interface to keyword_trie
+ *
+ */
+
+// if present returns state_id, else returns -1
+int checkIfKeyword(Trie* t, char *str, int len);
+
+// For initiliasation from file I/O
+void insertKeyword(Trie* t, char *str, int len, int value);
+
+void initKeywordTrie();
 
 #endif

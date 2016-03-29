@@ -7,7 +7,6 @@
  */
 
 #include "common.h"
-#include "keywordTrie.h"
 #include "lexerDef.h"
 #include "fileBuffer.h"
 
@@ -17,8 +16,104 @@
 
 #define STR_CPY_STATE_NAME(X) strcpy(final_states[X], #X)
 
-extern Trie *t;
 char** final_states;
+Trie *t;
+char keyStr[24][15];
+
+
+void insertKeyword(Trie* t, char *str, int len, int value) {
+    int i = 0, j, k;
+    trieNode* curr = t->root;
+
+    for(i = 0; i < len; i++) {
+        j = CHAR_TO_INDEX(str[i]);
+        if (curr->children[j] == NULL) {
+            // add a new node and initialise its children
+            curr->children[j] = (trieNode*)malloc(sizeof(trieNode));
+            for(k = 0; k < 26; k++) {
+                curr->children[j]->children[k] = NULL;
+            }
+        }
+        curr = curr->children[j];
+    }
+
+    curr->state_id = value;
+
+    t->size++;
+    return;
+}
+
+
+/*
+ * Initialise the keywords in Trie
+ *
+ * - used for lookup to check if given TK_FUNID or TK_ID
+ *   is a keyword or not
+ */
+void initKeywordTrie() {
+    t = (Trie*)malloc(sizeof(Trie));
+    t->root = (trieNode*)malloc(sizeof(trieNode));
+    int i = 0;
+    for(i = 0; i < 26; i++) {
+        t->root->children[i] = NULL;
+    }
+    t->size = 1;
+
+    strcpy(keyStr[0], "with");
+    strcpy(keyStr[1], "parameters");
+    strcpy(keyStr[2], "end");
+    strcpy(keyStr[3], "while");
+    strcpy(keyStr[4], "int");
+    strcpy(keyStr[5], "real");
+    strcpy(keyStr[6], "type");
+    strcpy(keyStr[7], "_main");
+    strcpy(keyStr[8], "global");
+    strcpy(keyStr[9], "parameter");
+    strcpy(keyStr[10], "list");
+    strcpy(keyStr[11], "input");
+    strcpy(keyStr[12], "output");
+    strcpy(keyStr[13], "endwhile");
+    strcpy(keyStr[14], "if");
+    strcpy(keyStr[15], "then");
+    strcpy(keyStr[16], "endif");
+    strcpy(keyStr[17], "read");
+    strcpy(keyStr[18], "write");
+    strcpy(keyStr[19], "return");
+    strcpy(keyStr[20], "record");
+    strcpy(keyStr[21], "endrecord");
+    strcpy(keyStr[22], "else");
+    strcpy(keyStr[23], "call");
+
+    for (i = 0; i < 24; i++) {
+        insertKeyword(t, keyStr[i], strlen(keyStr[i]), i + 61);
+    }
+}
+
+// if present returns state_id, else returns -1
+int checkIfKeyword(Trie* t, char *str, int len) {
+    int i = 0, j;
+    trieNode* curr = t->root;
+
+    for(i = 0; i < len; i++) {
+        if (! (str[i] == '_' && i == 0) && ! isalpha(str[i])) {
+            return -1;
+        }
+
+        j = CHAR_TO_INDEX(str[i]);
+
+        if (curr->children[j] == NULL) {
+            return -1;
+        }
+
+        curr = curr->children[j];
+    }
+
+    if (curr == NULL) return -1;
+    else {
+        return curr->state_id;
+    }
+}
+
 
 /*
  * Initialise the names of keywords
@@ -401,18 +496,19 @@ tokenInfo getNextToken(
     // or a lexical error has occured
 
     tokenInfo ret_tok;
+    char next_char;
 
     while (curr.final == 0 && curr.error == -1 && curr.state_id != ERROR) {
-        char next_char = readChar(buf);
+        next_char = readChar(buf);
 
-        if (next_char == '\0') {
-            if (checkEndOfFile(buf))
+        if (next_char == EOF) {
+            // if (checkEndOfFile(buf))
                 curr.error = 100;
             continue;
         }
 
         if (checkIfInLanguage(next_char) == -1) {
-            fprintf(stderr, "*** ERROR 2: Unrecognised symbol <%c> at line <%d>\n", next_char, *line);
+            fprintf(stderr, "*** ERROR 2: Unrecognised symbol <%d> at line <%d>\n", next_char, *line);
         }
 
 
@@ -516,6 +612,7 @@ tokenInfo getNextToken(
                     case EOF:
                         curr.state_id = 100;
                         curr.final = 1;
+                        curr.error = 100;
                         concatChar = 0;
                         break;
 
@@ -614,6 +711,12 @@ tokenInfo getNextToken(
                         lexeme[cur_len++] = next_char;
                         next_char = readChar(buf);
 
+                        if (next_char == EOF) {
+                            // if (checkEndOfFile(buf))
+                                curr.error = 100;
+                            continue;
+                        }
+
                         switch (next_char) {
                             case '-':
                                 curr.state_id = 23;
@@ -621,6 +724,12 @@ tokenInfo getNextToken(
                                 moveForward(buf);
 
                                 next_char = readChar(buf);
+
+                                if (next_char == EOF) {
+                                    // if (checkEndOfFile(buf))
+                                        curr.error = 100;
+                                    continue;
+                                }
                                 switch (next_char) {
                                     case '-':
                                         curr.state_id = 24;
@@ -669,6 +778,12 @@ tokenInfo getNextToken(
                         moveForward(buf);
 
                         next_char = readChar(buf);
+
+                        if (next_char == EOF) {
+                            // if (checkEndOfFile(buf))
+                                curr.error = 100;
+                            continue;
+                        }
 
                         switch (next_char) {
                             case '&':
@@ -1060,7 +1175,7 @@ tokenInfo getNextToken(
         moveAhead = 1;
         concatChar = 1;
 
-        if (next_char == '$') {
+        if (next_char == EOF) {
             if (curr.state_id == 17
                 || curr.state_id == 20
                 || curr.state_id == 30
@@ -1085,6 +1200,32 @@ tokenInfo getNextToken(
 
                 return ret_tok;
             }
+        }
+    }
+
+    if (next_char == EOF) {
+        if (curr.state_id == 17
+            || curr.state_id == 20
+            || curr.state_id == 30
+            || curr.state_id == 35
+            || curr.state_id == 37
+            || curr.state_id == 43
+            || curr.state_id == 44
+            || curr.state_id == 47
+            || curr.state_id == 48
+            || curr.state_id == 51
+            || curr.state_id == 0
+        ) {
+            curr.final = 1;
+        } else {
+            printf("curr %d\n", curr.state_id);
+            curr.error = 100;
+
+            strcpy(ret_tok.lexeme, lexeme);
+            ret_tok.line_no = *line;
+            ret_tok.error = curr.error;
+
+            return ret_tok;
         }
     }
 

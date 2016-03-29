@@ -20,7 +20,6 @@
 #define EOS 1000
 
 #include "stackDef.h"
-#include "symbolTableDef.h"
 
 /*
  * Structure for Grammar rule in memory

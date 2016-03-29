@@ -17,16 +17,16 @@ void reloadBuffer(FileBuffer *b, int buf_num) {
         } else if (len == b->size_of_buffer - 1) {
             b->buf1[++len] ='\0';
         } else {
-            b->buf1[len] = '\0';
+            b->buf1[len] = EOF;
         }
     } else {
         int len = fread(b->buf2, 1, b->size_of_buffer - 1, b->fp);
         if (len == 0) {
-            b->buf2[0] ='$';
+            b->buf2[0] ='\0';
         } else if (len == b->size_of_buffer - 1) {
             b->buf2[++len] ='\0';
         } else {
-            b->buf2[len] = '\0';
+            b->buf2[len] = EOF;
         }
     }
 }
@@ -54,6 +54,7 @@ char readChar(FileBuffer *b) {
     // move to appropriate new buffer
     if (ret_char == '\0') {
         moveForward(b);
+        ret_char = *(b->current);
     }
 
     return ret_char;
@@ -61,5 +62,9 @@ char readChar(FileBuffer *b) {
 
 
 int checkEndOfFile(FileBuffer *b) {
-    return b->current != ((b->buf1) + b->size_of_buffer);
+    return
+    (
+        (b->curBuf == 1 && b->current != ((b->buf1) + b->size_of_buffer))
+        || (b->curBuf == 2 && b->current != ((b->buf2) + b->size_of_buffer))
+    );
 }

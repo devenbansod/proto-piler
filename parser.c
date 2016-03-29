@@ -10,7 +10,86 @@
 #include "parserDef.h"
 #include "lexer.h"
 #include "stack.h"
-#include "first_follow.h"
+
+/*
+ * FUNCTIONS RELATED TO FIRST FOLLOW SET
+ *
+ */
+int isTerminal(int x){
+  if ((x < START_NON_TERMINAL || x == EPS) && x > 0){
+    return 1;
+  }
+  else{
+    return 0;
+  }
+}
+int exists(int x, grammarRule* firstset, int count) {
+    int i;
+    for (i = 0; i < count; ++i) {
+        if (x == firstset[i].lhs) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
+int findIndex(grammarRule  *firstset, int x, int fcount){
+    int i;
+    for(i = 0; i < fcount; ++i){
+        if(firstset[i].lhs == x){
+            return i;
+        }
+    }
+    return -1;
+}
+
+/*
+ * Calculate First sets
+ *
+ */
+void createFirstSet(grammarRule* G, grammarRule* firstset, int *first_count, int count){
+    int i;
+    int fcount = 0;
+    for(i = 0; i < count; ++i){
+        if(!exists(G[i].lhs, firstset, count)){
+            firstset[fcount].lhs = G[i].lhs;
+            firstset[fcount].size_rhs = 0;
+            fcount++;
+        }
+    }
+    *first_count = fcount;
+    for(i = 0; i < count; ++i){
+        int eps_found = 0;
+        int k = 0;
+        while (k < G[i].size_rhs) {
+            if (isTerminal(G[i].rhs[k])) {
+                int p = findIndex(firstset, G[i].lhs, fcount);
+                    firstset[p].rhs[firstset[p].size_rhs] = G[i].rhs[k];
+                    firstset[p].size_rhs++;
+                    break;
+            } else if (! isTerminal(G[i].rhs[k])) {
+                int t = findIndex(firstset, G[i].lhs, fcount);
+                int p = findIndex(firstset, G[i].rhs[k], fcount);
+
+                int q;
+                for (q = 0; q < firstset[p].size_rhs; ++q) {
+                    if(firstset[p].rhs[q] == EPS) {
+                        eps_found = 1;
+                    } else {
+                        firstset[t].rhs[firstset[t].size_rhs] = firstset[p].rhs[q];
+                        firstset[t].size_rhs++;
+                    }
+                }
+                if (eps_found == 0) {
+                    break;
+                }
+            }
+            ++k;
+        }
+    }
+}
+
 
 /*
  * Print the appropriate string for the ENUM of symbolType
@@ -440,8 +519,7 @@ void printGrammar(grammarRule* G, int count){
 parseTable** createParseTable(
     grammarRule* G, int rule_count, parseTable **T
 ) {
-    FILE *follow_file = fopen("./follow_set_converted.txt", "r");
-    FILE *first_file = fopen("./first_set_converted.txt", "r");
+    FILE *follow_file = fopen("./follow_set.txt", "r");
 
     // Declaring the able inside the function as a temporary hack
     int i;
@@ -520,7 +598,6 @@ parseTable** createParseTable(
         }
     }
 
-    fclose(first_file);
     fclose(follow_file);
 
     return T;
@@ -604,37 +681,54 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
         getStringForSymbolEnum(
             cur, current_tree_node->symbol_type
         );
+        int i = 0;
 
-        fprintf(out_file, "---   \t\tNO");
-        for (i = 0; i < 7; i++) {
-            fprintf(out_file," ");
-        }
-        fprintf(out_file, "---");
-
-        for (i = 0; i < 12; i++) {
-            fprintf(out_file," ");
-        }
-        fprintf(out_file, "%s", cur);
-
-        for (i = strlen(cur); i < 25; i++) {
-            fprintf(out_file," ");
+        // lexeme and padding
+        fprintf(out_file, "----");
+        for (i = 4; i < 24; i++) {
+            fprintf(out_file, " ");
         }
 
+        // line number and padding
+        fprintf(out_file, "----");
+        for (i = 4; i < 8; i++) {
+            fprintf(out_file," ");
+        }
+
+        // token and padding
+        fprintf(out_file, "----");
+        for (i = 4; i < 16; i++) {
+            fprintf(out_file," ");
+        }
+
+        // valueIfNum and padding
+        fprintf(out_file, "----");
+        for (i = 4; i < 12; i++) {
+            fprintf(out_file," ");
+        }
+
+        // parent node and padding
         if (current_tree_node->parent) {
             getStringForSymbolEnum(
                 par, current_tree_node->parent->symbol_type
             );
             fprintf(out_file, "%s", par);
-            for (i = strlen(par); i < 25; i++) {
+            for (i = strlen(par); i < 26; i++) {
                 fprintf(out_file," ");
             }
         } else {
             fprintf(out_file, "ROOT");
-            for (i = 0; i < 21; i++) {
+            for (i = 0; i < 22; i++) {
                 fprintf(out_file," ");
             }
         }
-        fprintf(out_file, "----\n");
+
+        fprintf(out_file, "NO");
+        for (i = 2; i < 14; i++) {
+            fprintf(out_file," ");
+        }
+
+        fprintf(out_file, "%s\n", cur);
     } else {
         memset(par, '\0', 100);
         memset(cur, '\0', 100);
@@ -643,44 +737,65 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
             cur, current_tree_node->symbol_type
         );
 
+        // lexeme and padding
+        fprintf(out_file, "%s", current_tree_node->tk_info.lexeme);
+        for (i = strlen(current_tree_node->tk_info.lexeme); i < 24; i++) {
+            fprintf(out_file, " ");
+        }
+
+        // line number and padding
         fprintf(out_file, "%d", current_tree_node->tk_info.line_no);
         char line[10];
         sprintf(line, "%d", current_tree_node->tk_info.line_no);
 
-        for (i = strlen(line); i < 12; i++) {
+        for (i = strlen(line); i < 8; i++) {
             fprintf(out_file," ");
         }
 
-        fprintf(out_file, "YES     %s", cur);
-        for (i = strlen(cur); i < 21; i++) {
+        // token and padding
+        fprintf(out_file, "%s", cur);
+        for (i = strlen(cur); i < 16; i++) {
             fprintf(out_file," ");
         }
 
-        fprintf(out_file, "---");
-        for (i = 0; i < 17; i++) {
-            fprintf(out_file," ");
+        // valueIfNum and padding
+        if (current_tree_node->tk_info.symbol_type == TK_NUM
+            || current_tree_node->tk_info.symbol_type == TK_RNUM
+        ) {
+            fprintf(out_file, "%s", current_tree_node->tk_info.lexeme);
+            for (i = strlen(current_tree_node->tk_info.lexeme); i < 12; i++) {
+                fprintf(out_file," ");
+            }
+        } else {
+            fprintf(out_file, "----");
+            for (i = 4; i < 12; i++) {
+                fprintf(out_file," ");
+            }
         }
 
+        // parent node and padding
         if (current_tree_node->parent) {
             getStringForSymbolEnum(
                 par, current_tree_node->parent->symbol_type
             );
             fprintf(out_file, "%s", par);
-            for (i = strlen(par); i < 25; i++) {
+            for (i = strlen(par); i < 26; i++) {
                 fprintf(out_file," ");
             }
         } else {
             fprintf(out_file, "ROOT");
-            for (i = 0; i < 21; i++) {
+            for (i = 0; i < 22; i++) {
                 fprintf(out_file," ");
             }
         }
 
-        if (current_tree_node->symbol_type != EPS) {
-            fprintf(out_file, "%s\n", current_tree_node->tk_info.lexeme);
-        } else {
-            fprintf(out_file, "----\n");
+        fprintf(out_file, "YES");
+        for (i = 3; i < 14; i++) {
+            fprintf(out_file," ");
         }
+
+        fprintf(out_file, "----\n");
+
     }
 
     int k = 0;
@@ -697,9 +812,9 @@ void printParseTree(parseTree *new_tree, char* filename) {
     FILE *out_file = fopen(filename, "w");
 
     // print the Header line
-    fprintf(out_file, "\t\t\t\t\t\t************** PARSE TREE ***************\n");
+    fprintf(out_file, "\t\t\t\t\t\t\t\t\t************** PARSE TREE ***************\n");
     fprintf(out_file,
-        "Line \tisLeafNode \tToken \t\t\tNodeSymbol \t\t\t\t ParentNodeSymbol \t\t  Lexeme\n"
+        "LexemeCurrentNode \t\tLineNo \tToken  \t\t\tValueIfNum \tParentNodeSymbol \t\tisLeafNode  \tNodeSymbol\n"
     );
 
     // print the whole tree
@@ -740,7 +855,7 @@ parseTree* parseInputSourceCode(
 
     // read the grammar from file
     int rule_count = COUNT_RULE;
-    FILE *grammar_file = fopen("./grammar_converted_reversed.txt", "r");
+    FILE *grammar_file = fopen("./grammar.txt", "r");
     grammarRule *G = readFileForRules(grammar_file, &rule_count);
 
     parseTable **T = NULL;
@@ -790,6 +905,8 @@ parseTree* parseInputSourceCode(
         // If lexer has reported error, ask for the next error-free token
         if (next_token.symbol_type == ERROR) {
             reportError(stderr, next_token.error, next_token);
+            errorRecovery = 1;
+
             memset(lexeme, '\0', 100);
             continue;
         } else if (next_token.symbol_type == TK_COMMENT) {

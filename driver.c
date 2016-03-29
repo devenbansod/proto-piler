@@ -10,9 +10,6 @@
 #include "lexerDef.h"
 #include "lexer.h"
 
-#include "keywordTrieDef.h"
-#include "keywordTrie.h"
-
 #include "stackDef.h"
 #include "stack.h"
 #include "treeDef.h"
@@ -44,13 +41,14 @@ int main(int argc, char *argv[]) {
 
 
     fprintf(stderr, "\n*** INFORMATION ***");
-    fprintf(stderr, "\n\t1. FIRST SET automated");
-    fprintf(stderr, "\n\t2. FOLLOW SET NOT automated");
-    fprintf(stderr, "\n\t3. Lexer  module implemented");
-    fprintf(stderr, "\n\t4. Parser module implemented");
-    fprintf(stderr, "\n\t5. Appropriate parse tree created, whenever possible");
-    fprintf(stderr, "\n\t6. Meaningful error reports generated");
-    fprintf(stderr, "\n\t7. Panic mode recovery from errors implemented");
+    fprintf(stderr, "\n\t* FIRST SET automated");
+    fprintf(stderr, "\n\t* FOLLOW SET NOT automated");
+    fprintf(stderr, "\n\t* Lexer  module implemented");
+    fprintf(stderr, "\n\t* Parser module implemented");
+    fprintf(stderr, "\n\t* Appropriate parse tree created, whenever possible");
+    fprintf(stderr, "\n\t* Meaningful error reports generated");
+    fprintf(stderr, "\n\t* Panic mode recovery from errors implemented");
+    fprintf(stderr, "\n\t* No segmentation faults");
     fprintf(stderr, "\n\n");
 
 
