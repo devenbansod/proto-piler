@@ -2,11 +2,11 @@
 # Deven  Bansod   2012B3A7316P
 # Nirant Kasliwal 2012C6PS694P
 
-all: fileBuffer.o lexer.o stack.o parser.o
-	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o driver.c -o stage1exe
+all: fileBuffer.o lexer.o stack.o parser.o AST.o
+	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o driver.c -o stage1exe
 
-debug: fileBuffer.o lexer.o stack.o parser.o
-	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o driver.c -g -o stage1exe
+debug: fileBuffer.o lexer.o stack.o parser.o AST.o
+	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o driver.c -g -o stage1exe
 
 clean:
 	rm -rf *.gch
@@ -25,3 +25,6 @@ stack.o: stack.c
 
 parser.o: parser.c
 	gcc  -Wall -c -g parser.c
+
+AST.o: AST.c
+	gcc  -Wall -c -g AST.c

@@ -10,6 +10,7 @@
 #include "parserDef.h"
 #include "lexer.h"
 #include "stack.h"
+#include "AST.h"
 
 /*
  * FUNCTIONS RELATED TO FIRST FOLLOW SET
@@ -432,6 +433,7 @@ int getStringForSymbolEnum(char *ret, int st) {
             break;
         default:
             strcpy(ret, "No Matching symbol");
+            printf("%d\n", st);
             break;
     }
 
@@ -673,7 +675,8 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
     char par[100], cur[100];
     int i = 0;
 
-    if (current_tree_node->symbol_type >= START_NON_TERMINAL
+    if (current_tree_node
+        && current_tree_node->symbol_type >= START_NON_TERMINAL
         && current_tree_node->symbol_type != EPS
     ) {
         memset(par, '\0', 100);
@@ -729,7 +732,7 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
         }
 
         fprintf(out_file, "%s\n", cur);
-    } else {
+    } else if (current_tree_node) {
         memset(par, '\0', 100);
         memset(cur, '\0', 100);
 
@@ -799,7 +802,7 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
     }
 
     int k = 0;
-    for(k = 0; k < current_tree_node->curr_children; k++) {
+    for(k = 0; current_tree_node && k < current_tree_node->curr_children; k++) {
         printParseTreeHelper(current_tree_node->children[k], out_file);
     }
 }
@@ -1052,16 +1055,17 @@ parseTree* parseInputSourceCode(
         }
     }
 
-	// ALGO on pg. 227
-	// OR
-	// https://courses.cs.washington.edu/courses/cse401/04sp/slides/03b-LL1-example.pdf
-
+	/* ALGO on pg. 227
+	 * OR
+	 * https://courses.cs.washington.edu/courses/cse401/04sp/slides/03b-LL1-example.pdf
+     */
     if (*error == 0
         && errorRecovery == 0
     ) {
         fprintf(stderr, "\nCompiled Successfully: \n"
             "Input source code is syntactically correct!!\n"
         );
+        new_tree->root = createAST(new_tree->root);
     } else if (*error == 0 && errorRecovery == 1) {
         fprintf(stderr, "\nCompiled Successfully: \n"
         );

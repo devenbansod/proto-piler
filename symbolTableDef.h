@@ -16,7 +16,8 @@
 
 // Might be required later
 struct sym_value {
-    int temp;
+    int offset;
+    Type sym_type;
 };
 
 /*
@@ -25,9 +26,9 @@ struct sym_value {
 struct symbolTableElem {
     char *id;
     int id_len;
-    Symbol symbol_name;
-    int unique_id;
-    int isTerminal;
+    Symbol symbol_name; // ?
+    int unique_id; // ?
+    int isTerminal; // ?
     struct sym_value v;
     struct symbolTableElem* next;
 };

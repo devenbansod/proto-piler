@@ -19,7 +19,7 @@ _main
 	type real :c4bd56;
 	b3 <--- 7;
 	[c4bd56]<--- call _sumN with parameters [b3];
-	write(c4bd56);
+	write(c4bd56.value);
 	return;
 end
 

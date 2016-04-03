@@ -11,12 +11,12 @@
 
 #include "lexerDef.h"
 
-
 /*
  * Structure for Parse Tree Node
  */
 struct treeNode {
 	struct treeNode* parent;
+	struct treeNode* next;
 	struct treeNode **children;
 	Symbol symbol_type;
 	tokenInfo tk_info;
