@@ -433,7 +433,6 @@ int getStringForSymbolEnum(char *ret, int st) {
             break;
         default:
             strcpy(ret, "No Matching symbol");
-            printf("%d\n", st);
             break;
     }
 

@@ -10,6 +10,7 @@
 #define TREE_DEF
 
 #include "lexerDef.h"
+#include "symbolTableDef.h"
 
 /*
  * Structure for Parse Tree Node
@@ -22,10 +23,13 @@ struct treeNode {
 	tokenInfo tk_info;
 	int processed_children;
 	int curr_children;
+
+	// Points to its correct symbol table
+	// tk_info.lexeme is used to index
+	SymbolTable* st;
 };
 
 typedef struct treeNode treeNode;
-
 
 /*
  * Structure for Parse Tree
@@ -33,6 +37,8 @@ typedef struct treeNode treeNode;
 struct parseTree {
 	treeNode *root;
 	int size;
+
+	TypeTable *typeTbl;
 };
 
 typedef struct parseTree parseTree;

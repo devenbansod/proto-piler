@@ -14,22 +14,37 @@
 #define MAX_BUCKETS 337
 #define MAX_CHAIN_LENGTH 10
 
-// Might be required later
-struct sym_value {
-    int offset;
-    Type sym_type;
+/*
+ * Structure for Type table elem
+ */
+struct typeTableElem {
+    char type_name[25];
+    int type_len;
+
+    int fields_count; // no. of fields in record defn, 0 for INT or REAL
+    int* width; // array for storing widths of fields
+    int* offset; // array for storing offsets of fields
+    struct typeTableElem* next;
 };
+
+typedef struct typeTableElem typeTableElem;
+
+// hash table with separate chaining
+struct typeTable {
+    typeTableElem **typeArray;
+    int size;
+    int curr_size;
+};
+
+typedef struct typeTable TypeTable;
 
 /*
  * Structure for Symbol table elem
  */
 struct symbolTableElem {
-    char *id;
-    int id_len;
-    Symbol symbol_name; // ?
-    int unique_id; // ?
-    int isTerminal; // ?
-    struct sym_value v;
+    char *lexeme;
+    int lex_len;
+    char type[25]; // acts as a key for type-table
     struct symbolTableElem* next;
 };
 

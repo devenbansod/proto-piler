@@ -9,6 +9,12 @@
 #ifndef SYMBOL_TABLE_INTERFACE
 #define SYMBOL_TABLE_INTERFACE
 
+#include "symbolTableDef.h"
+
+/*
+ * SYMBOL TABLE
+ */
+
 /*
  * Creates and returns a new symbol table
  */
@@ -22,11 +28,38 @@ void destroySymbolTable(SymbolTable *st);
 /*
  * Insert element into the Symbol table
  */
-void insertSymbol(SymbolTable* st, char *id, int id_len, struct sym_value v);
+int insertSymbol(SymbolTable* st, char *id, int id_len, char* type);
 
 /*
  * Lookup for a particular key
  */
-SymbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len);
+symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len);
+
+
+/*
+ * TYPE TABLE
+ */
+
+/*
+ * Creates and returns a new table table
+ */
+TypeTable* createTypeTable(int size);
+
+/*
+ * Destroy and free a symbol table
+ */
+void destroyTypeTable(TypeTable *typeTbl);
+
+/*
+ * Insert element into the Symbol table
+ */
+int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offset, int fields_count);
+
+/*
+ * Lookup for a particular key
+ */
+typeTableElem* lookupType(TypeTable* typeTbl, char *id, int id_len);
+
+
 
 #endif

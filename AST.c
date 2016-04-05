@@ -9,7 +9,11 @@
 #include "common.h"
 #include "treeDef.h"
 #include "AST.h"
+#include "symbolTable.h"
 
+/*
+ * Main Function call
+ */
 treeNode* createAST(treeNode *parseTreeRoot) {
 	if (parseTreeRoot == NULL
 		&& parseTreeRoot->symbol_type == eps
@@ -20,6 +24,19 @@ treeNode* createAST(treeNode *parseTreeRoot) {
 	}
 }
 
+/*
+ * Helper function
+ */
+void copySymbolTableToChildren(treeNode* orig) {
+	if (orig == NULL) {
+		return;
+	} else {
+		int i;
+		for (i = 0; i < orig->curr_children; i++) {
+			orig->children[i]->st = orig->st;
+		}
+	}
+}
 
 treeNode* reduceProgram(treeNode* root) {
 
@@ -39,6 +56,8 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	treeNode* mainFuncNode_backup = mainFuncNode;
 	mainFuncNode = reduceStmtsNode(mainFuncNode->children[1]);
 
+	mainFuncNode->st = createSymbolTable(20);
+
 	free(mainFuncNode_backup->children[0]);
 	free(mainFuncNode_backup->children[2]);
 	free(mainFuncNode_backup);
@@ -50,8 +69,8 @@ treeNode* reduceOtherFunctions(treeNode* orig) {
 
 	// Might reduce to EPS, so check
 	if (orig->children[0]->symbol_type == eps) {
-		// free(orig->children[0]);
-		// free(orig);
+		free(orig->children[0]);
+		free(orig);
 		return NULL;
 	} else {
 		int i = 1;
@@ -90,6 +109,7 @@ treeNode* reduceOtherFunctions(treeNode* orig) {
 treeNode* reduceFunction(treeNode* funcNode) {
 	funcNode->symbol_type = funcNode->children[0]->symbol_type;
 	funcNode->tk_info = funcNode->children[0]->tk_info;
+	funcNode->st = createSymbolTable(20);
 
 	// now make the first child as input paramenter list
 	funcNode->children[0] = reduceInputPar(funcNode->children[1]);
@@ -689,13 +709,10 @@ treeNode* reduceSingleOrRecId(treeNode* orig) {
 
 treeNode* reduceAllVar(treeNode* orig) {
 	treeNode* backup = orig;
-	printf("%d\n", backup->parent->symbol_type);
 
 	if (orig->children[0]->symbol_type == some_types) {
 		orig = orig->children[0]->children[0];
 		orig->parent = backup->parent;
-		// free(backup);
-		// free(backup->children[0]);
 	} else {
 		// other_types
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
@@ -704,7 +721,6 @@ treeNode* reduceAllVar(treeNode* orig) {
 			orig->children[0] = orig->children[0]->children[0];
 			orig->children[0]->parent = orig;
 			orig->curr_children = 1;
-			// free(backup);
 		} else {
 			orig->children[1] = backup->children[0]->children[1]->children[1];
 			orig->children[0] = orig->children[0]->children[0];
