@@ -43,7 +43,9 @@ treeNode* reduceProgram(treeNode* root) {
 	root->children[0] = reduceOtherFunctions(root->children[0]);
 	root->children[1] = reduceMainFunction(root->children[1]);
 
-	root->children[0]->parent = root;
+	if (root->children[0])
+		root->children[0]->parent = root;
+
 	root->children[1]->parent = root;
 	root->curr_children = 2;
 
@@ -224,7 +226,14 @@ treeNode* reduceParameterList(treeNode* paramListNode) {
 
 treeNode* reduceDatatype(treeNode* datatypeNode) {
 	treeNode* datatypeNode_backup = datatypeNode;
-	datatypeNode = datatypeNode->children[0]->children[0];
+
+	printf("%d\n", datatypeNode->children[0]->symbol_type);
+	if (datatypeNode->children[0]->symbol_type == primitiveDatatype)
+		datatypeNode = datatypeNode->children[0]->children[0];
+	else
+		datatypeNode = datatypeNode->children[0]->children[1];
+
+	datatypeNode->parent = datatypeNode_backup->parent;
 	datatypeNode->curr_children = 0;
 
 	// free(datatypeNode_backup->children[0]);
