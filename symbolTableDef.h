@@ -13,15 +13,18 @@
 
 #define MAX_BUCKETS 337
 #define MAX_CHAIN_LENGTH 10
-
+#define INT_WIDTH 4
+#define REAL_WIDTH 8
 /*
  * Structure for Type table elem
  */
 struct typeTableElem {
     char type_name[25];
     int type_len;
-
+    
     int fields_count; // no. of fields in record defn, 0 for INT or REAL
+    char **field_names; //array for storing names of fields
+    char **field_types; //array for storing types of fields 
     int* width; // array for storing widths of fields
     int* offset; // array for storing offsets of fields
     struct typeTableElem* next;

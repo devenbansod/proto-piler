@@ -24,6 +24,7 @@ treeNode* createAST(treeNode *parseTreeRoot) {
 	}
 }
 
+TypeTable *globalTT;
 /*
  * Helper function
  */
@@ -39,6 +40,12 @@ void copySymbolTableToChildren(treeNode* orig) {
 }
 
 treeNode* reduceProgram(treeNode* root) {
+	globalTT = createTypeTable(10);
+	int real = REAL_WIDTH;
+	int integer = INT_WIDTH;
+	
+	insertType(globalTT, "int", 3, &integer, 0, NULL, NULL,  0);
+	insertType(globalTT, "real", 4, &real, 0, NULL, NULL, 0);
 
 	root->children[0] = reduceOtherFunctions(root->children[0]);
 	root->children[1] = reduceMainFunction(root->children[1]);
@@ -48,7 +55,7 @@ treeNode* reduceProgram(treeNode* root) {
 
 	root->children[1]->parent = root;
 	root->curr_children = 2;
-
+	
 	return root;
 }
 
@@ -326,15 +333,48 @@ treeNode* reduceTypeDefn(treeNode* orig) {
 treeNode* reduceFieldDefns(treeNode* orig) {
 
 	copySymbolTableToChildren(orig);
+	char **field_names = (char**)malloc(10* sizeof(char*));
+	char **field_types = (char**)malloc(10* sizeof(char*));
+	int *width = (int*)malloc(10* sizeof(int));
+	int *offset = (int*)malloc(10* sizeof(int));
+
 	orig->children[0] = reduceFieldDefn(orig->children[0]);
 	orig->children[1] = reduceFieldDefn(orig->children[1]);
+	
+	field_names[0] = (char*) malloc(25*sizeof(char));
+    memset(field_names[0], '\0', 25);
+    field_types[0] = (char*) malloc(25*sizeof(char));
+    memset(field_types[0], '\0', 25);
+	strcpy(field_names[0], orig->children[0]->children[0]->tk_info.lexeme);
+	strcpy(field_types[0], orig->children[0]->children[1]->tk_info.lexeme);
+	
+	if(orig->children[0]->children[0]->symbol_type==TK_REAL){
+		width[0] = REAL_WIDTH;
+	}else{
+		width[0] = INT_WIDTH;
+	}	
+	offset[0] = 0;
 
+	field_names[1] = (char*) malloc(25*sizeof(char));
+    memset(field_names[1], '\0', 25);
+    field_types[1] = (char*) malloc(25*sizeof(char));
+    memset(field_types[1], '\0', 25);
+	strcpy(field_names[1], orig->children[1]->children[0]->tk_info.lexeme);
+	strcpy(field_types[1], orig->children[1]->children[1]->tk_info.lexeme);
+
+	if(orig->children[1]->children[0]->symbol_type==TK_REAL){
+		width[1] = REAL_WIDTH;
+	}else{
+		width[1] = INT_WIDTH;
+	}	
+	offset[1] = offset[0] + width[0];
+	
 	treeNode* defns = orig->children[2];
 	orig->children = (treeNode**)realloc(orig->children, 10 * sizeof(treeNode*));
 	int size = 10;
-
 	int i = 2;
 	treeNode* defns_backup;
+
 	while(defns->symbol_type != eps
 		&& defns->children[0]->symbol_type != eps
 	) {
@@ -344,15 +384,48 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 			orig->children = (treeNode**)realloc(
 				orig->children, size * sizeof(treeNode*)
 			);
+			field_names = (char**) realloc(field_names, size*sizeof(char*));
+			field_types = (char**) realloc(field_types, size*sizeof(char*));
+			width = (int*) realloc(width, size*sizeof(int));
+			offset = (int*) realloc(offset, size*sizeof(int));
 		}
-
 		copySymbolTableToChildren(defns);
-		orig->children[i++] = reduceFieldDefn(defns->children[0]);
+
+		orig->children[i] = reduceFieldDefn(defns->children[0]);
+		field_names[i] = (char* )malloc(25*sizeof(char));
+        memset(field_names[i], '\0', 25);
+		strcpy(field_names[i], orig->children[i]->children[0]->tk_info.lexeme);
+
+		field_types[i] = (char* )malloc(25*sizeof(char));
+        memset(field_types[i], '\0', 25);
+		strcpy(field_types[i], orig->children[i]->children[1]->tk_info.lexeme);
+
+		if(orig->children[i]->children[0]->symbol_type==TK_REAL){
+			width[i] = REAL_WIDTH; 
+		}else{
+			width[i] = INT_WIDTH;
+		}
+		offset[i] = offset[i-1] + width[i-1];
+
 		defns = defns->children[1];
 		// free(defns_backup);
+		i++;
 	}
-
 	orig->curr_children = i;
+	char* type = (char*) malloc(25*sizeof(char));
+	strcpy(type, orig->parent->children[0]->tk_info.lexeme);
+	// printf("type: %s, %d\n", type, orig->curr_children);
+	// int k;
+	// for ( k = 0; k < orig->curr_children; ++k)
+	// {
+	// 	printf("%d | %d | %s | %s \n", width[k], offset[k], field_names[k], field_types[k]);
+	// }
+	insertType(globalTT, type, strlen(type), width, offset, field_names, field_types, orig->curr_children);
+	free(type);
+	free(width);
+	free(offset);
+	free(field_names);
+	printTypeTable(globalTT);
 	return orig;
 }
 

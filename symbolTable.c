@@ -14,14 +14,14 @@
  * HASH FUNCTION
  *
  */
-int hash(char* str, int len) {
+int hash(char* str, int len, int size) {
     int i = 0, sum = 0;
 
     for (i = 0; i < len; i++) {
         sum += str[i];
     }
 
-    return sum % MAX_BUCKETS;
+    return sum % size;
 }
 
 
@@ -99,7 +99,7 @@ SymbolTable* rehash_symbol_table(SymbolTable *st, int new_size) {
  */
 int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
 
-    int h_index = hash(id, id_len);
+    int h_index = hash(id, id_len, st->size);
     symbolTableElem* curr = st->symbolArray[h_index];
 
     int i = 0;
@@ -136,7 +136,7 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
  *
  */
 symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len) {
-    int h_index = hash(id, id_len);
+    int h_index = hash(id, id_len, st->size);
     symbolTableElem* curr = st->symbolArray[h_index];
 
     while (curr != NULL) {
@@ -211,9 +211,9 @@ TypeTable* rehash_type_table(TypeTable *typeTbl, int new_size) {
 
     for (i = 0; i < typeTbl->size; i++) {
         if (typeTbl->typeArray[i]) {
-            for (curr = typeTbl->typeArray[i]; curr != NULL; curr = curr->next){
-                insertType(newst, curr->type_name, curr->type_len, curr->width, curr->offset, curr->fields_count);
-            }
+            // for (curr = typeTbl->typeArray[i]; curr != NULL; curr = curr->next){
+                // insertType(newst, curr->type_name, curr->type_len, curr->width, curr->offset, curr->fields_count);
+            // }
         }
     }
 
@@ -228,9 +228,30 @@ TypeTable* rehash_type_table(TypeTable *typeTbl, int new_size) {
  *  - Else, return -1 to indicate duplicate key error
  *
  */
-int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offset, int fields_count) {
+void printTypeTable(TypeTable *typeTbl){
+    printf("h_index, type, width, offset, field_names, fields_count\n");
+    int i;
+    for(i = 0; i < typeTbl->size; ++i){
+        if(typeTbl->typeArray[i]!=NULL){
+            typeTableElem* curr = typeTbl->typeArray[i];
+            while(curr!=NULL){
+                printf("%d, %s, %d\n", i, curr->type_name, curr->fields_count);
+                // printf("%s\n", );
+                int i;
+                for(i = 0; i < curr->fields_count; ++i){
+                    printf("width: %d | offset: %d | field_names: %s | field_types: %s\n", 
+                        curr->width[i], curr->offset[i], curr->field_names[i], curr->field_types[i]);
+                }
+                curr = curr->next;
+            }
+        }
+    }   
+}
 
-    int h_index = hash(type, id_len);
+int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offset, 
+    char** field_names, char** field_types, int fields_count) {
+
+    int h_index = hash(type, id_len, typeTbl->size);
     typeTableElem* curr = typeTbl->typeArray[h_index];
 
     int i = 0;
@@ -243,21 +264,43 @@ int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offs
         i++;
     }
     curr = (typeTableElem *)malloc(sizeof(typeTableElem));
-
+    // curr->type_name = (char*)malloc(sizeof(char) * (id_len+5));
+    memset(curr->type_name, '\0', 25);
     strcpy(curr->type_name, type);
     curr->type_len = id_len;
 
     curr->width = (int*)malloc(sizeof(int) * fields_count);
     curr->offset = (int*)malloc(sizeof(int) * fields_count);
-
+    curr->field_names = (char**)malloc(sizeof(char*) * fields_count);
+    curr->field_types = (char**)malloc(sizeof(char*) * fields_count);
     for(i = 0; i < fields_count; i++) {
-        curr->width[fields_count] = width[i];
-        curr->offset[fields_count] = offset[i];
+        curr->width[i] = width[i];
+        curr->offset[i] = offset[i];
+
+        curr->field_names[i] = (char*)malloc(sizeof(char) * 25);
+        memset(curr->field_names[i], '\0', 25);
+        strcpy(curr->field_names[i], field_names[i]);
+
+        curr->field_types[i] = (char*)malloc(sizeof(char) * 25);
+        memset(curr->field_types[i], '\0', 25);
+        strcpy(curr->field_types[i], field_types[i]);
     }
     curr->next = NULL;
     curr->fields_count = fields_count;
 
     typeTbl->curr_size++;
+
+    if(typeTbl->typeArray[h_index]==NULL){
+        typeTbl->typeArray[h_index] = curr;
+    }else{
+        curr->next = typeTbl->typeArray[h_index];
+        typeTbl->typeArray[h_index] = curr;
+    }
+
+    // printf("-----%d,  %s\n", h_index, typeTbl->typeArray[h_index]->type_name);
+    
+    // printf("%s\n", curr->type_name);
+
     // If too much chaining spotted,
     // double the size
     if (i >= MAX_CHAIN_LENGTH) {
@@ -274,7 +317,7 @@ int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offs
  *
  */
 typeTableElem* lookupType(TypeTable* typeTbl, char *id, int id_len) {
-    int h_index = hash(id, id_len);
+    int h_index = hash(id, id_len, typeTbl->size);
     typeTableElem* curr = typeTbl->typeArray[h_index];
 
     while (curr != NULL) {

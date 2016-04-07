@@ -53,13 +53,14 @@ void destroyTypeTable(TypeTable *typeTbl);
 /*
  * Insert element into the Symbol table
  */
-int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offset, int fields_count);
+int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offset, 
+	char** field_names, char **field_types, int fields_count);
 
 /*
  * Lookup for a particular key
  */
 typeTableElem* lookupType(TypeTable* typeTbl, char *id, int id_len);
 
-
+void printTypeTable(TypeTable *typeTbl);
 
 #endif
