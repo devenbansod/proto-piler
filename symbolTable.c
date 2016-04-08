@@ -102,6 +102,11 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
     int h_index = hash(id, id_len, st->size);
     symbolTableElem* curr = st->symbolArray[h_index];
 
+    if(lookupSymbol(st, id, id_len)!=NULL){
+        fprintf(stderr, "%s already exists in the table\n", id);
+    }
+
+
     int i = 0;
     while (curr) {
         if (strcmp(curr->lexeme, id) == 0) {

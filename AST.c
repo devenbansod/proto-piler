@@ -507,13 +507,23 @@ treeNode* reduceDeclarations(treeNode* orig) {
 		else{
 			// insert in local
 			// printf("local: %s |  %s\n", declarationNode->children[0]->tk_info.lexeme, declarationNode->children[1]->tk_info.lexeme);
-			int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
-			char *type = (char*)malloc(type_len * sizeof(char));
-			strcpy(type, declarationNode->children[0]->tk_info.lexeme);
+			
 			// check if exists in global
-			insertSymbol(orig->st, declarationNode->children[1]->tk_info.lexeme, 
-				strlen(declarationNode->children[1]->tk_info.lexeme), type);
-			free(type);
+			int id_len = strlen(declarationNode->children[1]->tk_info.lexeme);
+			char *id = (char*) malloc(id_len * sizeof(char));
+			strcpy(id, declarationNode->children[1]->tk_info.lexeme);
+			if(lookupSymbol(globalST, id, id_len)==NULL){
+				int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
+				char *type = (char*)malloc(type_len * sizeof(char));
+				strcpy(type, declarationNode->children[0]->tk_info.lexeme);
+				insertSymbol(orig->st, id, id_len, type);
+				free(type);				
+			}
+			else{
+				fprintf(stderr, "%s exists in global symbol table\n", id);
+				exit(1);
+			}
+			free(id);
 		}
 	}
 
