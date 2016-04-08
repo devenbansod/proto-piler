@@ -25,6 +25,7 @@ treeNode* createAST(treeNode *parseTreeRoot) {
 }
 
 TypeTable *globalTT;
+SymbolTable *globalST;
 /*
  * Helper function
  */
@@ -46,6 +47,8 @@ treeNode* reduceProgram(treeNode* root) {
 	
 	insertType(globalTT, "int", 3, &integer, 0, NULL, NULL,  0);
 	insertType(globalTT, "real", 4, &real, 0, NULL, NULL, 0);
+
+	globalST = createSymbolTable(10);
 
 	root->children[0] = reduceOtherFunctions(root->children[0]);
 	root->children[1] = reduceMainFunction(root->children[1]);
@@ -425,7 +428,7 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 	free(width);
 	free(offset);
 	free(field_names);
-	printTypeTable(globalTT);
+	// printTypeTable(globalTT);
 	return orig;
 }
 
@@ -487,6 +490,35 @@ treeNode* reduceDeclarations(treeNode* orig) {
 	}
 
 	orig->curr_children = i;
+	orig->st = createSymbolTable(10);
+	int k;
+	for (k = 0; k < i; ++k){
+		treeNode* declarationNode = orig->children[k];
+		if(declarationNode->curr_children > 2){
+			// insert in global
+			// printf("global: %s | %s\n", declarationNode->children[0]->tk_info.lexeme, declarationNode->children[1]->tk_info.lexeme);
+			int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
+			char *type = (char*)malloc(type_len * sizeof(char));
+			strcpy(type, declarationNode->children[0]->tk_info.lexeme);
+			insertSymbol(globalST, declarationNode->children[1]->tk_info.lexeme, 
+				strlen(declarationNode->children[1]->tk_info.lexeme), type);
+			free(type);
+		}
+		else{
+			// insert in local
+			// printf("local: %s |  %s\n", declarationNode->children[0]->tk_info.lexeme, declarationNode->children[1]->tk_info.lexeme);
+			int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
+			char *type = (char*)malloc(type_len * sizeof(char));
+			strcpy(type, declarationNode->children[0]->tk_info.lexeme);
+			// check if exists in global
+			insertSymbol(orig->st, declarationNode->children[1]->tk_info.lexeme, 
+				strlen(declarationNode->children[1]->tk_info.lexeme), type);
+			free(type);
+		}
+	}
+
+	printf("Local SymbolTable:\n"); printSymbolTable(orig->st);
+	printf("Global SymbolTable:\n"); printSymbolTable(globalST);
 	return orig;
 }
 
@@ -508,8 +540,9 @@ treeNode* reduceDeclaration(treeNode* orig) {
 		// free(orig->children[4]->children[0]);
 		// free(orig->children[4]);
 	} else {
-		orig->children[2] = orig->children[4]->children[0];
+		orig->children[2] = orig->children[4]->children[1];
 		orig->children[2]->parent = orig;
+		// printf("Deven: %d \n", orig->children[2]->symbol_type);
 		orig->curr_children = 3;
 	}
 
@@ -1016,7 +1049,7 @@ treeNode* reduceFactor(treeNode* orig) {
 
 treeNode* reduceAll(treeNode* orig) {
 	treeNode* backup = orig;
-
+	copySymbolTableToChildren(orig);
 	if (orig->children[0]->symbol_type == TK_ID) {
 		if (orig->children[1]->children[0]->symbol_type == eps) {
 			// free(orig->children[1]->children[0]);
@@ -1042,7 +1075,7 @@ treeNode* reduceAll(treeNode* orig) {
 
 treeNode* reduceBooleanExpr(treeNode* orig) {
 	treeNode* backup = orig;
-
+	copySymbolTableToChildren(orig);
 	if (orig->children[0]->symbol_type == TK_OP) {
 		orig = orig->children[3];
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));

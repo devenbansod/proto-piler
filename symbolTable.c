@@ -112,13 +112,23 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
         i++;
     }
     curr = (symbolTableElem *)malloc(sizeof(symbolTableElem));
-
+    curr->lexeme = (char*)malloc(id_len+1 * sizeof(char));
+    memset(curr->lexeme, '\0', id_len+1);
     strcpy(curr->lexeme, id);
     curr->lex_len = id_len;
+    curr->type = (char*)malloc((strlen(type)+1) * sizeof(char));
+    memset(curr->type, '\0', strlen(type)+1);
     strcpy(curr->type, type);
     curr->next = NULL;
 
     st->curr_size++;
+
+    if(st->symbolArray[h_index]==NULL){
+        st->symbolArray[h_index] = curr;
+    }else{
+        curr->next = st->symbolArray[h_index];
+        st->symbolArray[h_index] = curr;
+    }
 
     // If too much chaining spotted,
     // double the size
@@ -150,6 +160,21 @@ symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len) {
 }
 
 
+void printSymbolTable(SymbolTable* st){
+    int i;
+    printf("h_index\t| lexeme\t| type\t|\n");        
+    for(i = 0; i < st->size; ++i){
+        // printf("%d ", i);
+        if(st->symbolArray[i]!=NULL){
+            symbolTableElem* curr = st->symbolArray[i];
+            while(curr!=NULL){
+                // printf("lexeme: %s ; type: %s\n", curr->lexeme, curr->type);
+                printf("%d\t| %s\t| %s\t|\n", i, curr->lexeme, curr->type);
+                curr = curr->next;
+            }
+        }
+    }
+}
 
 /*
  * TYPE TABLE Functions

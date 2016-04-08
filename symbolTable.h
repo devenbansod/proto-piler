@@ -35,6 +35,11 @@ int insertSymbol(SymbolTable* st, char *id, int id_len, char* type);
  */
 symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len);
 
+/*
+ * print the symbol table
+ */
+
+void printSymbolTable(SymbolTable* st);
 
 /*
  * TYPE TABLE

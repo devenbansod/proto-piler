@@ -47,7 +47,7 @@ typedef struct typeTable TypeTable;
 struct symbolTableElem {
     char *lexeme;
     int lex_len;
-    char type[25]; // acts as a key for type-table
+    char *type; // acts as a key for type-table
     struct symbolTableElem* next;
 };
 
