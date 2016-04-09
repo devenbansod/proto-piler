@@ -104,8 +104,8 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
 
     if (lookupSymbol(st, id, id_len) != NULL) {
         fprintf(stderr, "%s already exists in the table\n", id);
+        return -1;
     }
-
 
     int i = 0;
     while (curr) {
@@ -289,14 +289,8 @@ int insertType(TypeTable* typeTbl, char* type, int id_len,
     int h_index = hash(type, id_len, typeTbl->size);
     typeTableElem* curr = typeTbl->typeArray[h_index];
 
-    int i = 0;
-    while (curr) {
-        if (strcmp(curr->type_name, type) == 0) {
-            return -1;
-            break;
-        }
-        curr = curr->next;
-        i++;
+    if(lookupType(typeTbl, type, id_len)!=NULL){
+        return -1;
     }
     curr = (typeTableElem *)malloc(sizeof(typeTableElem));
     memset(curr->type_name, '\0', 25);
@@ -307,6 +301,7 @@ int insertType(TypeTable* typeTbl, char* type, int id_len,
     curr->offset = (int*)malloc(sizeof(int) * fields_count);
     curr->field_names = (char**)malloc(sizeof(char*) * fields_count);
     curr->field_types = (char**)malloc(sizeof(char*) * fields_count);
+    int i = 0;
     for(i = 0; i < fields_count; i++) {
         curr->width[i] = width[i];
         curr->offset[i] = offset[i];
@@ -360,3 +355,184 @@ typeTableElem* lookupType(TypeTable* typeTbl, char *id, int id_len) {
     return NULL;
 }
 
+/*
+ * FUNCTION TABLE Functions
+ * =====================
+ */
+
+/*
+ * Create a new function table
+ *
+ */
+FunctionTable* createFunctionTable(int size) {
+    FunctionTable* fxTable = (FunctionTable*)malloc(sizeof(FunctionTable));
+
+    int i = 0;
+
+    fxTable->functionArray = (functionTableElem**)malloc(sizeof(functionTableElem*) * size);
+    for(i = 0; i < size; i++) {
+        fxTable->functionArray[i] = NULL;
+    }
+
+    fxTable->size = size;
+    fxTable->curr_size = 0;
+
+    return fxTable;
+}
+
+/*
+ * Destroy a type table completely
+ *
+ */
+void destroyFunctionTable(FunctionTable *fxTable) {
+    int i = 0;
+    functionTableElem *curr, *prev;
+
+    for(i = 0; i < fxTable->size; i++) {
+        prev = fxTable->functionArray[i];
+
+        while (prev != NULL) {
+            curr = prev->next;
+            free(prev);
+            prev = curr;
+        }
+    }
+
+    free(fxTable);
+}
+
+/*
+ * Create a new hashtable with double size
+ * Rehash all the elements of original table
+ * and insert into the new one
+ * and return the new one
+ *
+ */
+FunctionTable* rehash_function_table(FunctionTable *fxTable, int new_size) {
+    FunctionTable *newst = createFunctionTable(new_size);
+    int i;
+    functionTableElem* curr;
+
+    for (i = 0; i < fxTable->size; i++) {
+        if (fxTable->functionArray[i]) {
+            // for (curr = fxTable->functionArray[i]; curr != NULL; curr = curr->next){
+                // insertType(newst, curr->type_name, curr->type_len, curr->width, curr->offset, curr->fields_count);
+            // }
+        }
+    }
+
+    destroyFunctionTable(fxTable);
+
+    return newst;
+}
+
+/*
+ * Insert a type into type table
+ *  - If not present, add it to the end of chain
+ *  - Else, return -1 to indicate duplicate key error
+ *
+ */
+void printFunctionTable(FunctionTable *fxTable){
+    printf("FUNCTION TABLE\n");
+    int i;
+    for(i = 0; i < fxTable->size; ++i){
+        if(fxTable->functionArray[i]!=NULL){
+            functionTableElem* curr = fxTable->functionArray[i];
+            while(curr!=NULL){
+                // print table elements here
+                printf("id: %s, id_len: %d, input_len: %d, output_len: %d\n", 
+                    curr->id, curr->id_len, curr->input_len, curr->output_len);
+                int i = 0;
+                for (; i < curr->input_len; ++i){
+                    printf("input_types[%d]=%s \n", i, curr->input_types[i]);                    
+                    printf("input_ids[%d]=%s \n", i, curr->input_ids[i]);                    
+                }
+                for (; i < curr->output_len; ++i){
+                    printf("output_types[%d]=%s \n", i, curr->output_types[i]);                    
+                    printf("output_ids[%d]=%s \n", i, curr->output_ids[i]);                    
+                }
+                curr = curr->next;
+            }
+        }
+    }   
+}
+
+int insertFunction(FunctionTable *fxTable, char *id, int id_len, 
+    char **input_types, char **output_types, char **input_ids, char **output_ids, int input_len, int output_len) {
+
+    int h_index = hash(id, id_len, fxTable->size);
+    functionTableElem* curr = fxTable->functionArray[h_index];
+
+    int i = 0;
+    if(lookupFunction(fxTable, id, id_len)!=NULL){
+        fprintf(stderr, "function %s already declared\n", id);
+        return -1;
+        // exit(-1);
+    }
+    curr = (functionTableElem *)malloc(sizeof(functionTableElem));
+    curr->id = (char*)malloc(sizeof(char) * (id_len+1));
+    memset(curr->id, '\0', id_len+1);
+    strcpy(curr->id, id);
+    curr->id_len = id_len;
+    curr->input_len = input_len;
+    curr->output_len = output_len;
+
+    curr->input_ids = (char**)malloc(sizeof(char*) * input_len);
+    curr->input_types = (char**)malloc(sizeof(char*) * input_len);
+    curr->output_types = (char**)malloc(sizeof(char*) * output_len);
+    curr->output_ids = (char**)malloc(sizeof(char*) * output_len);
+    for(i = 0; i < input_len; i++) {
+        curr->input_types[i] = (char*) malloc(sizeof(char)*25);
+        memset(curr->input_types[i], '\0', 25);
+        strcpy(curr->input_types[i], input_types[i]);
+
+        curr->input_ids[i] = (char*) malloc(sizeof(char)*25);
+        memset(curr->input_ids[i], '\0', 25);
+        strcpy(curr->input_ids[i], input_ids[i]); 
+    }
+
+    for(i = 0; i< output_len; i++){
+        curr->output_types[i] = (char*) malloc(sizeof(char)*25);
+        memset(curr->output_types[i], '\0', 25);
+        strcpy(curr->output_types[i], output_types[i]);
+
+        curr->output_ids[i] = (char*) malloc(sizeof(char)*25);
+        memset(curr->output_ids[i], '\0', 25);
+        strcpy(curr->output_ids[i], output_ids[i]); 
+    }
+
+    curr->next = NULL;
+    fxTable->curr_size++;
+
+    if(fxTable->functionArray[h_index]==NULL){
+        fxTable->functionArray[h_index] = curr;
+    }else{
+        curr->next = fxTable->functionArray[h_index];
+        fxTable->functionArray[h_index] = curr;
+    }
+    // If too much chaining spotted,
+    // double the size
+    if (i >= MAX_CHAIN_LENGTH) {
+        fxTable = rehash_function_table(fxTable, fxTable->size * 2);
+    }
+    return 0;
+}
+
+/*
+ * Find a type in the type table
+ *  - if present, a pointer to type is returned
+ *  - else, NULL is returned
+ *
+ */
+functionTableElem* lookupFunction(FunctionTable* fxTable, char *id, int id_len) {
+    int h_index = hash(id, id_len, fxTable->size);
+    functionTableElem* curr = fxTable->functionArray[h_index];
+    while (curr != NULL) {
+        if (strcmp(curr->id, id) == 0) {
+            return curr;
+        }
+        curr = curr->next;
+    }
+
+    return NULL;
+}
