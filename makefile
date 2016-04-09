@@ -2,11 +2,11 @@
 # Deven  Bansod   2012B3A7316P
 # Nirant Kasliwal 2012C6PS694P
 
-all: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o
-	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o driver.c -o stage1exe
+all: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o
+	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o driver.c -o stage1exe
 
-debug: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o
-	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o driver.c -g -o stage1exe
+debug: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o
+	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o driver.c -g -o stage1exe
 
 clean:
 	rm -rf *.gch
@@ -31,3 +31,6 @@ AST.o: AST.c
 
 symbolTable.o: symbolTable.c
 	gcc  -Wall -c -g symbolTable.c
+
+typeChecker.o: typeChecker.c
+	gcc  -Wall -c -g typeChecker.c

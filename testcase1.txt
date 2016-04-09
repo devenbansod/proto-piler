@@ -4,7 +4,7 @@
 _sumN  input parameter list [int d5cc34, real b3]  
 output parameter list[real d3, int d5cc];
 	type int : b5b567;
-	type real : b5b567;
+	%type real : b5b567;
 	b5b567 <--- 1;
 	d3 <--- 0.00;
 	while ( b5b567 <= d5cc34)

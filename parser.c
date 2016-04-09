@@ -11,6 +11,7 @@
 #include "lexer.h"
 #include "stack.h"
 #include "AST.h"
+ #include "typeChecker.h"
 
 /*
  * FUNCTIONS RELATED TO FIRST FOLLOW SET
@@ -1065,6 +1066,8 @@ parseTree* parseInputSourceCode(
             "Input source code is syntactically correct!!\n"
         );
         new_tree->root = createAST(new_tree->root);
+        performTypeChecking(new_tree->root);
+
     } else if (*error == 0 && errorRecovery == 1) {
         fprintf(stderr, "\nCompiled Successfully: \n"
         );

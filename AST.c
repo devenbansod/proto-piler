@@ -522,10 +522,11 @@ treeNode* reduceDeclarations(treeNode* orig) {
 				char *type = (char*)malloc(type_len * sizeof(char));
 
 				strcpy(type, declarationNode->children[0]->tk_info.lexeme);
+
 				insertSymbol(orig->st, id, id_len, type);
 				free(type);
 			}
-			else{
+			else {
 				fprintf(stderr, "%s exists in global symbol table\n", id);
 				exit(1);
 			}
