@@ -461,7 +461,9 @@ int insertFunction(FunctionTable *fxTable, char *id, int id_len,
 
     int i = 0;
     if(lookupFunction(fxTable, id, id_len)!=NULL){
+        fprintf(stderr, "function %s already declared\n", id);
         return -1;
+        // exit(-1);
     }
     curr = (functionTableElem *)malloc(sizeof(functionTableElem));
     curr->id = (char*)malloc(sizeof(char) * (id_len+1));

@@ -76,7 +76,8 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	free(mainFuncNode_backup->children[0]);
 	free(mainFuncNode_backup->children[2]);
 	free(mainFuncNode_backup);
-
+	insertFunction(globalFT, "main", 4, NULL, NULL, NULL, NULL, 0, 0);
+	// printFunctionTable(globalFT);
 	return mainFuncNode;
 }
 
@@ -181,7 +182,7 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		}
 	}
 	insertFunction(globalFT, id, id_len, input_types, output_types, input_ids, output_ids, input_len/2, output_len/2);
-	printFunctionTable(globalFT);
+	// printFunctionTable(globalFT);
 	// printf("=================================\n");
 	funcNode->children[0]->parent = funcNode;
 	funcNode->children[1]->parent = funcNode;
@@ -577,8 +578,8 @@ treeNode* reduceDeclarations(treeNode* orig) {
 		}
 	}
 
-	printf("Local SymbolTable:\n"); printSymbolTable(orig->st);
-	printf("Global SymbolTable:\n"); printSymbolTable(globalST);
+	// printf("Local SymbolTable:\n"); printSymbolTable(orig->st);
+	// printf("Global SymbolTable:\n"); printSymbolTable(globalST);
 
 	return orig;
 }
