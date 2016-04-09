@@ -26,6 +26,7 @@ treeNode* createAST(treeNode *parseTreeRoot) {
 
 TypeTable *globalTT;
 SymbolTable *globalST;
+FunctionTable *globalFT;
 /*
  * Helper function
  */
@@ -50,6 +51,7 @@ treeNode* reduceProgram(treeNode* root) {
 
 	globalST = createSymbolTable(10);
 
+	globalFT = createFunctionTable(10);
 	root->children[0] = reduceOtherFunctions(root->children[0]);
 	root->children[1] = reduceMainFunction(root->children[1]);
 
@@ -128,14 +130,59 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	// now make the first child as input paramenter list
 	funcNode->children[0] = reduceInputPar(funcNode->children[1]);
 
-	// insert() into Function Table OPTIONAL for now
-
 	// now make the 2nd child as output paramenter list
 	funcNode->children[1] = reduceOutputPar(funcNode->children[2]);
 
 	// now make the 3nd child as stmts list
 	funcNode->children[2] = reduceStmtsNode(funcNode->children[4]);
 
+	// printf("========AST PRINTS==============\n");
+	// insert() into Function Table
+	int id_len = strlen(funcNode->tk_info.lexeme);
+	char *id = (char*)malloc(id_len*sizeof(char));
+	strcpy(id, funcNode->tk_info.lexeme);
+	// printf("id:%s, ", id);
+	int input_len = funcNode->children[0]->curr_children;
+	int output_len = funcNode->children[1]->curr_children;
+	// printf("input_len: %d. output_len: %d \n", input_len, output_len);
+	char **input_types = (char**)malloc(input_len*sizeof(char*));
+	char **output_types = (char**)malloc(output_len*sizeof(char*));
+	char **input_ids = (char**)malloc(input_len*sizeof(char*));
+	char **output_ids = (char**)malloc(output_len*sizeof(char*));
+	int i = 0;
+	for (;i < input_len; ++i){
+		int len = strlen(funcNode->children[0]->children[i]->tk_info.lexeme);
+		if(i%2 == 0){
+			input_types[i/2] = (char*)malloc((len+1)*sizeof(char));
+			memset(input_types[i/2], '\0', len+1);
+			strcpy(input_types[i/2], funcNode->children[0]->children[i]->tk_info.lexeme);
+			// printf("input_types[%d] = %s\n", i/2, input_types[i/2]);
+		}
+		else{
+			input_ids[i/2] = (char*)malloc(sizeof(char)*(len+1));
+			memset(input_ids[i/2], '\0', len+1);
+			strcpy(input_ids[i/2], funcNode->children[0]->children[i]->tk_info.lexeme);
+			// printf("input_ids[%d] = %s\n", i/2, input_ids[i/2]);
+		}
+	}
+	for (i=0;i < output_len; ++i){
+		int len = strlen(funcNode->children[1]->children[i]->tk_info.lexeme);
+		if(i%2 == 0){
+			output_types[i/2] = (char*)malloc((len+1)*sizeof(char));
+			memset(output_types[i/2], '\0', len+1);
+			strcpy(output_types[i/2], funcNode->children[1]->children[i]->tk_info.lexeme);
+			// printf("output_types[%d] = %s\n", i/2, output_types[i/2]);
+		}
+		else{
+			output_ids[i/2] = (char*)malloc(sizeof(char)*(len+1));
+			memset(output_ids[i/2], '\0', len+1);
+			strcpy(output_ids[i/2], funcNode->children[1]->children[i]->tk_info.lexeme);
+			// printf("output_ids[%d] = %s\n", i/2, output_ids[i/2]);
+		}
+	}
+	insertFunction(globalFT, id, id_len, input_types, output_types, input_ids, output_ids, input_len/2, output_len/2);
+	printFunctionTable(globalFT);
+	// printf("=================================\n");
 	funcNode->children[0]->parent = funcNode;
 	funcNode->children[1]->parent = funcNode;
 
@@ -237,7 +284,7 @@ treeNode* reduceParameterList(treeNode* paramListNode) {
 treeNode* reduceDatatype(treeNode* datatypeNode) {
 	treeNode* datatypeNode_backup = datatypeNode;
 
-	printf("%d\n", datatypeNode->children[0]->symbol_type);
+	// printf("%d\n", datatypeNode->children[0]->symbol_type);
 	if (datatypeNode->children[0]->symbol_type == primitiveDatatype)
 		datatypeNode = datatypeNode->children[0]->children[0];
 	else
@@ -507,7 +554,6 @@ treeNode* reduceDeclarations(treeNode* orig) {
 		else{
 			// insert in local
 			// printf("local: %s |  %s\n", declarationNode->children[0]->tk_info.lexeme, declarationNode->children[1]->tk_info.lexeme);
-			
 			// check if exists in global
 			int id_len = strlen(declarationNode->children[1]->tk_info.lexeme);
 			char *id = (char*) malloc(id_len * sizeof(char));

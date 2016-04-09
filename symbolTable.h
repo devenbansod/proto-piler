@@ -46,17 +46,17 @@ void printSymbolTable(SymbolTable* st);
  */
 
 /*
- * Creates and returns a new table table
+ * Creates and returns a new type table
  */
 TypeTable* createTypeTable(int size);
 
 /*
- * Destroy and free a symbol table
+ * Destroy and free memory for a type table
  */
 void destroyTypeTable(TypeTable *typeTbl);
 
 /*
- * Insert element into the Symbol table
+ * Insert element into the type table
  */
 int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offset, 
 	char** field_names, char **field_types, int fields_count);
@@ -66,6 +66,39 @@ int insertType(TypeTable* typeTbl, char* type, int id_len, int* width, int* offs
  */
 typeTableElem* lookupType(TypeTable* typeTbl, char *id, int id_len);
 
+/*
+ * Print type table on terminal
+ */
 void printTypeTable(TypeTable *typeTbl);
+
+/*
+ * FUNCTION TABLE
+ */
+
+/*
+ * Creates and returns a new functions table
+ */
+FunctionTable* createFunctionTable(int size);
+
+/*
+ * Destroy and free a function table
+ */
+void destroyFunctionTable(FunctionTable *fxTable);
+
+/*
+ * Insert element into the function table
+ */
+int insertFunction(FunctionTable *fxTable, char *id, int id_len, 
+    char **input_types, char **output_types, char **input_ids, char **output_ids, int input_len, int output_len);
+
+/*
+ * Lookup for a particular key
+ */
+functionTableElem* lookupFunction(FunctionTable* fxTable, char *id, int id_len);
+
+/*
+ * Print function table on terminal
+ */
+void printFunctionTable(FunctionTable *fxTable);
 
 #endif

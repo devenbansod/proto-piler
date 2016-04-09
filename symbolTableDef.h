@@ -62,4 +62,31 @@ struct symbolTable {
 
 typedef struct symbolTable SymbolTable;
 
+/*
+ * Structure for function table elem
+ */
+struct functionTableElem {
+    char *id;
+    int id_len;
+    char **input_types;
+    char **output_types;
+    char **input_ids;
+    char **output_ids; // array of
+    int input_len;
+    int output_len; 
+    struct functionTableElem* next;
+};
+
+typedef struct functionTableElem functionTableElem;
+
+// hash table with separate chaining
+struct functionTable {
+    functionTableElem **functionArray;
+    int size;
+    int curr_size;
+};
+
+typedef struct functionTable FunctionTable;
+
+
 #endif
