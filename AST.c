@@ -43,9 +43,9 @@ void copySymbolTableToChildren(treeNode* orig) {
 
 treeNode* reduceProgram(treeNode* root) {
 	globalTT = createTypeTable(10);
+
 	int real = REAL_WIDTH;
 	int integer = INT_WIDTH;
-	
 	insertType(globalTT, "int", 3, &integer, 0, NULL, NULL,  0);
 	insertType(globalTT, "real", 4, &real, 0, NULL, NULL, 0);
 
@@ -60,7 +60,7 @@ treeNode* reduceProgram(treeNode* root) {
 
 	root->children[1]->parent = root;
 	root->curr_children = 2;
-	
+
 	return root;
 }
 
@@ -283,7 +283,6 @@ treeNode* reduceParameterList(treeNode* paramListNode) {
 
 treeNode* reduceDatatype(treeNode* datatypeNode) {
 	treeNode* datatypeNode_backup = datatypeNode;
-
 	// printf("%d\n", datatypeNode->children[0]->symbol_type);
 	if (datatypeNode->children[0]->symbol_type == primitiveDatatype)
 		datatypeNode = datatypeNode->children[0]->children[0];
@@ -381,8 +380,8 @@ treeNode* reduceTypeDefn(treeNode* orig) {
 }
 
 treeNode* reduceFieldDefns(treeNode* orig) {
-
 	copySymbolTableToChildren(orig);
+
 	char **field_names = (char**)malloc(10* sizeof(char*));
 	char **field_types = (char**)malloc(10* sizeof(char*));
 	int *width = (int*)malloc(10* sizeof(int));
@@ -390,35 +389,39 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 
 	orig->children[0] = reduceFieldDefn(orig->children[0]);
 	orig->children[1] = reduceFieldDefn(orig->children[1]);
-	
+
 	field_names[0] = (char*) malloc(25*sizeof(char));
     memset(field_names[0], '\0', 25);
+
     field_types[0] = (char*) malloc(25*sizeof(char));
     memset(field_types[0], '\0', 25);
+
 	strcpy(field_names[0], orig->children[0]->children[0]->tk_info.lexeme);
 	strcpy(field_types[0], orig->children[0]->children[1]->tk_info.lexeme);
-	
-	if(orig->children[0]->children[0]->symbol_type==TK_REAL){
+
+	if (orig->children[0]->children[0]->symbol_type==TK_REAL){
 		width[0] = REAL_WIDTH;
-	}else{
+	} else {
 		width[0] = INT_WIDTH;
-	}	
+	}
 	offset[0] = 0;
 
 	field_names[1] = (char*) malloc(25*sizeof(char));
     memset(field_names[1], '\0', 25);
+
     field_types[1] = (char*) malloc(25*sizeof(char));
     memset(field_types[1], '\0', 25);
+
 	strcpy(field_names[1], orig->children[1]->children[0]->tk_info.lexeme);
 	strcpy(field_types[1], orig->children[1]->children[1]->tk_info.lexeme);
 
-	if(orig->children[1]->children[0]->symbol_type==TK_REAL){
+	if (orig->children[1]->children[0]->symbol_type == TK_REAL) {
 		width[1] = REAL_WIDTH;
-	}else{
+	} else{
 		width[1] = INT_WIDTH;
-	}	
+	}
 	offset[1] = offset[0] + width[0];
-	
+
 	treeNode* defns = orig->children[2];
 	orig->children = (treeNode**)realloc(orig->children, 10 * sizeof(treeNode*));
 	int size = 10;
@@ -450,9 +453,9 @@ treeNode* reduceFieldDefns(treeNode* orig) {
         memset(field_types[i], '\0', 25);
 		strcpy(field_types[i], orig->children[i]->children[1]->tk_info.lexeme);
 
-		if(orig->children[i]->children[0]->symbol_type==TK_REAL){
-			width[i] = REAL_WIDTH; 
-		}else{
+		if (orig->children[i]->children[0]->symbol_type == TK_REAL) {
+			width[i] = REAL_WIDTH;
+		} else{
 			width[i] = INT_WIDTH;
 		}
 		offset[i] = offset[i-1] + width[i-1];
@@ -464,18 +467,16 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 	orig->curr_children = i;
 	char* type = (char*) malloc(25*sizeof(char));
 	strcpy(type, orig->parent->children[0]->tk_info.lexeme);
-	// printf("type: %s, %d\n", type, orig->curr_children);
-	// int k;
-	// for ( k = 0; k < orig->curr_children; ++k)
-	// {
-	// 	printf("%d | %d | %s | %s \n", width[k], offset[k], field_names[k], field_types[k]);
-	// }
-	insertType(globalTT, type, strlen(type), width, offset, field_names, field_types, orig->curr_children);
+
+	insertType(
+		globalTT, type, strlen(type), width, offset, field_names,
+		field_types, orig->curr_children
+	);
 	free(type);
 	free(width);
 	free(offset);
 	free(field_names);
-	// printTypeTable(globalTT);
+
 	return orig;
 }
 
@@ -543,27 +544,30 @@ treeNode* reduceDeclarations(treeNode* orig) {
 		treeNode* declarationNode = orig->children[k];
 		if(declarationNode->curr_children > 2){
 			// insert in global
-			// printf("global: %s | %s\n", declarationNode->children[0]->tk_info.lexeme, declarationNode->children[1]->tk_info.lexeme);
+
 			int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
 			char *type = (char*)malloc(type_len * sizeof(char));
+
 			strcpy(type, declarationNode->children[0]->tk_info.lexeme);
-			insertSymbol(globalST, declarationNode->children[1]->tk_info.lexeme, 
-				strlen(declarationNode->children[1]->tk_info.lexeme), type);
+			insertSymbol(globalST, declarationNode->children[1]->tk_info.lexeme,
+				strlen(declarationNode->children[1]->tk_info.lexeme), type
+			);
+
 			free(type);
 		}
 		else{
-			// insert in local
-			// printf("local: %s |  %s\n", declarationNode->children[0]->tk_info.lexeme, declarationNode->children[1]->tk_info.lexeme);
-			// check if exists in global
 			int id_len = strlen(declarationNode->children[1]->tk_info.lexeme);
 			char *id = (char*) malloc(id_len * sizeof(char));
+
 			strcpy(id, declarationNode->children[1]->tk_info.lexeme);
-			if(lookupSymbol(globalST, id, id_len)==NULL){
+			// check if exists in global
+			if (lookupSymbol(globalST, id, id_len) == NULL) {
 				int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
 				char *type = (char*)malloc(type_len * sizeof(char));
+
 				strcpy(type, declarationNode->children[0]->tk_info.lexeme);
 				insertSymbol(orig->st, id, id_len, type);
-				free(type);				
+				free(type);
 			}
 			else{
 				fprintf(stderr, "%s exists in global symbol table\n", id);
@@ -575,6 +579,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 
 	printf("Local SymbolTable:\n"); printSymbolTable(orig->st);
 	printf("Global SymbolTable:\n"); printSymbolTable(globalST);
+
 	return orig;
 }
 
@@ -598,7 +603,6 @@ treeNode* reduceDeclaration(treeNode* orig) {
 	} else {
 		orig->children[2] = orig->children[4]->children[1];
 		orig->children[2]->parent = orig;
-		// printf("Deven: %d \n", orig->children[2]->symbol_type);
 		orig->curr_children = 3;
 	}
 
