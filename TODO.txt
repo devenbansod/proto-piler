@@ -28,6 +28,8 @@ Semantic Analyzer: This module verifies the semantics of the code.
 		- Done while creating AST
 
 	10. The function cannot be invoked recursively.
+		- Automatically done, since Function is added to the table only afer
+		processing all its statement nodes
 
 	11. An identifier used beyond its scope must be viewed as undefined
 		- Done

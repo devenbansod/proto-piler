@@ -13,6 +13,8 @@ output parameter list[real d3, int d5cc];
 		d3 <--- d3 + c3bd;
 		b5b567 <--- b5b567 + 1 * 2 / (b5b567);
 	endwhile
+
+	[d3, d5cc]<--- call _sumN with parameters [d5cc34];
 	return [d3c, d5cc];
 end
 
