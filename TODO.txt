@@ -1,0 +1,44 @@
+Semantic Analyzer: This module verifies the semantics of the code.
+	1. An identifier cannot be declared multiple times in the same scope.
+		- done, checked while Populating STs
+
+	2. An identifier must be declared before its use.
+		- Done, while traversing AST for type checking
+
+	3. An identifier declared globally cannot be declared anywhere else in function
+	definitions.
+		- done partially while Populating STs, but explicitly done later in checkForDuplicates
+
+	4. The types and the number of parameters returned by a function must be the same as
+	that of the parameters used in invoking the function.
+
+	5. The parameters being returned by a function must be assigned a value. If a parameter
+	does not get a value assigned within the function definition, it should be reported as
+	an error.
+
+	6. The function that does not return any value, must be invoked appropriately.
+
+	7. Function input parameters passed while invoking it should be of the same type as
+	those used in the function definition. Number of input parameters must be same as
+	that of those used in the function definition.
+
+	8. An if statement must have the expression of boolean type.
+
+	9. Function overloading is not allowed.
+		- Done while creating AST
+
+	10. The function cannot be invoked recursively.
+
+	11. An identifier used beyond its scope must be viewed as undefined
+		- Done
+
+	12. A record type definition is visible anywhere in the program.
+		- Done
+
+	13. The right hand side expression of an assignment statement must be of the same type
+	as that of the left hand side identifier.
+		- Done
+
+	14. A function definition for a function being used (say F1) by another (say F2) must
+	precede the definition of the function using it(i.e. F2).
+		- Done

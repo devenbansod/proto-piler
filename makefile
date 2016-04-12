@@ -6,7 +6,7 @@ all: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o
 	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o driver.c -o stage1exe
 
 debug: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o
-	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o driver.c -g -o stage1exe
+	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o driver.c -g -Wall -o stage1exe
 
 clean:
 	rm -rf *.gch

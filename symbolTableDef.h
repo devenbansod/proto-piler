@@ -68,12 +68,13 @@ typedef struct symbolTable SymbolTable;
 struct functionTableElem {
     char *id;
     int id_len;
+
+    int input_len;
+    int output_len;
     char **input_types;
     char **output_types;
     char **input_ids;
     char **output_ids; // array of
-    int input_len;
-    int output_len; 
     struct functionTableElem* next;
 };
 

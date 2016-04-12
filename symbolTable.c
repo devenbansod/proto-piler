@@ -118,12 +118,16 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
     }
 
     curr = (symbolTableElem *)malloc(sizeof(symbolTableElem));
-    curr->lexeme = (char*)malloc(id_len+1 * sizeof(char));
+
+    curr->lexeme = (char*)malloc((id_len+1) * sizeof(char));
     memset(curr->lexeme, '\0', id_len+1);
+
     strcpy(curr->lexeme, id);
     curr->lex_len = id_len;
+
     curr->type = (char*)malloc((strlen(type)+1) * sizeof(char));
     memset(curr->type, '\0', strlen(type)+1);
+
     strcpy(curr->type, type);
     curr->next = NULL;
 
@@ -153,9 +157,11 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
  */
 symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len) {
     int h_index = hash(id, id_len, st->size);
+
     symbolTableElem* curr = st->symbolArray[h_index];
 
     while (curr != NULL) {
+
         if (strcmp(curr->lexeme, id) == 0) {
             return curr;
         }
@@ -440,25 +446,28 @@ void printFunctionTable(FunctionTable *fxTable){
             functionTableElem* curr = fxTable->functionArray[i];
             while(curr!=NULL){
                 // print table elements here
-                printf("id: %s, id_len: %d, input_len: %d, output_len: %d\n", 
-                    curr->id, curr->id_len, curr->input_len, curr->output_len);
+                printf("id: %s, id_len: %d, input_len: %d, output_len: %d\n",
+                    curr->id, curr->id_len, curr->input_len, curr->output_len
+                );
                 int i = 0;
                 for (; i < curr->input_len; ++i){
-                    printf("input_types[%d]=%s \n", i, curr->input_types[i]);                    
-                    printf("input_ids[%d]=%s \n", i, curr->input_ids[i]);                    
+                    printf("input_types[%d]=%s \n", i, curr->input_types[i]);
+                    printf("input_ids[%d]=%s \n", i, curr->input_ids[i]);
                 }
                 for (; i < curr->output_len; ++i){
-                    printf("output_types[%d]=%s \n", i, curr->output_types[i]);                    
-                    printf("output_ids[%d]=%s \n", i, curr->output_ids[i]);                    
+                    printf("output_types[%d]=%s \n", i, curr->output_types[i]);
+                    printf("output_ids[%d]=%s \n", i, curr->output_ids[i]);
                 }
                 curr = curr->next;
             }
         }
-    }   
+    }
 }
 
-int insertFunction(FunctionTable *fxTable, char *id, int id_len, 
-    char **input_types, char **output_types, char **input_ids, char **output_ids, int input_len, int output_len) {
+int insertFunction(FunctionTable *fxTable, char *id, int id_len,
+    char **input_types, char **output_types, char **input_ids,
+    char **output_ids, int input_len, int output_len
+) {
 
     int h_index = hash(id, id_len, fxTable->size);
     functionTableElem* curr = fxTable->functionArray[h_index];
@@ -481,6 +490,7 @@ int insertFunction(FunctionTable *fxTable, char *id, int id_len,
     curr->input_types = (char**)malloc(sizeof(char*) * input_len);
     curr->output_types = (char**)malloc(sizeof(char*) * output_len);
     curr->output_ids = (char**)malloc(sizeof(char*) * output_len);
+
     for(i = 0; i < input_len; i++) {
         curr->input_types[i] = (char*) malloc(sizeof(char)*25);
         memset(curr->input_types[i], '\0', 25);

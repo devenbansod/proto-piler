@@ -11,6 +11,10 @@
 
 #include "treeDef.h"
 
+extern TypeTable *globalTT;
+extern SymbolTable *globalST;
+extern FunctionTable *globalFT;
+
 treeNode* createAST(treeNode *parseTreeRoot);
 
 treeNode* reduceProgram(treeNode* orig);

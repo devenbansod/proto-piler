@@ -27,6 +27,11 @@ treeNode* createAST(treeNode *parseTreeRoot) {
 TypeTable *globalTT;
 SymbolTable *globalST;
 FunctionTable *globalFT;
+
+SymbolTable **allST;
+int curr_number = 0;
+int curr_max = 9;
+
 /*
  * Helper function
  */
@@ -49,9 +54,10 @@ treeNode* reduceProgram(treeNode* root) {
 	insertType(globalTT, "int", 3, &integer, 0, NULL, NULL,  0);
 	insertType(globalTT, "real", 4, &real, 0, NULL, NULL, 0);
 
+	allST = (SymbolTable**)malloc(sizeof(SymbolTable*) * (curr_max+1));
 	globalST = createSymbolTable(10);
-
 	globalFT = createFunctionTable(10);
+
 	root->children[0] = reduceOtherFunctions(root->children[0]);
 	root->children[1] = reduceMainFunction(root->children[1]);
 
@@ -61,6 +67,9 @@ treeNode* reduceProgram(treeNode* root) {
 	root->children[1]->parent = root;
 	root->curr_children = 2;
 
+	checkForDuplicates();
+	curr_number = 0;
+
 	return root;
 }
 
@@ -69,6 +78,15 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	// No error checking as Main function always present
 	treeNode* mainFuncNode_backup = mainFuncNode;
 	mainFuncNode->st = createSymbolTable(20);
+
+	if (curr_number < curr_max) {
+		allST[curr_number++] = mainFuncNode->st;
+	} else {
+		curr_max *= 2;
+		allST = (SymbolTable**)realloc(allST, sizeof(SymbolTable) * curr_max);
+		allST[curr_number++] = mainFuncNode->st;
+	}
+
 	copySymbolTableToChildren(mainFuncNode);
 
 	mainFuncNode = reduceStmtsNode(mainFuncNode->children[1]);
@@ -77,7 +95,10 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	free(mainFuncNode_backup->children[2]);
 	free(mainFuncNode_backup);
 	insertFunction(globalFT, "main", 4, NULL, NULL, NULL, NULL, 0, 0);
-	// printFunctionTable(globalFT);
+
+
+	// printf("Local SymbolTable:\n"); printSymbolTable(mainFuncNode->st);
+	// printf("Global SymbolTable:\n"); printSymbolTable(globalST);
 	return mainFuncNode;
 }
 
@@ -128,6 +149,14 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	funcNode->st = createSymbolTable(20);
 	copySymbolTableToChildren(funcNode);
 
+	if (curr_number < curr_max) {
+		allST[curr_number++] = funcNode->st;
+	} else {
+		curr_max *= 2;
+		allST = (SymbolTable**)realloc(allST, sizeof(SymbolTable) * curr_max);
+		allST[curr_number++] = funcNode->st;
+	}
+
 	// now make the first child as input paramenter list
 	funcNode->children[0] = reduceInputPar(funcNode->children[1]);
 
@@ -137,65 +166,85 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	// now make the 3nd child as stmts list
 	funcNode->children[2] = reduceStmtsNode(funcNode->children[4]);
 
-	// printf("========AST PRINTS==============\n");
 	// insert() into Function Table
 	int id_len = strlen(funcNode->tk_info.lexeme);
 	char *id = (char*)malloc(id_len*sizeof(char));
 	strcpy(id, funcNode->tk_info.lexeme);
-	// printf("id:%s, ", id);
+
 	int input_len = funcNode->children[0]->curr_children;
-	int output_len = funcNode->children[1]->curr_children;
-	// printf("input_len: %d. output_len: %d \n", input_len, output_len);
+	int output_len;
+
+	if (funcNode->children[1]) {
+		output_len = funcNode->children[1]->curr_children;
+	} else {
+		output_len = 0;
+	}
+
 	char **input_types = (char**)malloc(input_len*sizeof(char*));
 	char **output_types = (char**)malloc(output_len*sizeof(char*));
 	char **input_ids = (char**)malloc(input_len*sizeof(char*));
 	char **output_ids = (char**)malloc(output_len*sizeof(char*));
+
 	int i = 0;
-	for (;i < input_len; ++i){
+	for (i = 0;i < input_len; ++i){
 		int len = strlen(funcNode->children[0]->children[i]->tk_info.lexeme);
-		if(i%2 == 0){
+
+		if (i % 2 == 0) {
 			input_types[i/2] = (char*)malloc((len+1)*sizeof(char));
 			memset(input_types[i/2], '\0', len+1);
 			strcpy(input_types[i/2], funcNode->children[0]->children[i]->tk_info.lexeme);
-			// printf("input_types[%d] = %s\n", i/2, input_types[i/2]);
-		}
-		else{
+		} else {
 			input_ids[i/2] = (char*)malloc(sizeof(char)*(len+1));
 			memset(input_ids[i/2], '\0', len+1);
 			strcpy(input_ids[i/2], funcNode->children[0]->children[i]->tk_info.lexeme);
-			// printf("input_ids[%d] = %s\n", i/2, input_ids[i/2]);
+
+
+			insertSymbol(funcNode->st, funcNode->children[0]->children[i]->tk_info.lexeme,
+				strlen(funcNode->children[0]->children[i]->tk_info.lexeme),
+				funcNode->children[0]->children[i-1]->tk_info.lexeme
+			);
 		}
 	}
-	for (i=0;i < output_len; ++i){
+	for (i = 0; i < output_len; ++i){
 		int len = strlen(funcNode->children[1]->children[i]->tk_info.lexeme);
-		if(i%2 == 0){
+
+		if (i % 2 == 0) {
 			output_types[i/2] = (char*)malloc((len+1)*sizeof(char));
 			memset(output_types[i/2], '\0', len+1);
 			strcpy(output_types[i/2], funcNode->children[1]->children[i]->tk_info.lexeme);
-			// printf("output_types[%d] = %s\n", i/2, output_types[i/2]);
-		}
-		else{
+
+		} else{
 			output_ids[i/2] = (char*)malloc(sizeof(char)*(len+1));
 			memset(output_ids[i/2], '\0', len+1);
 			strcpy(output_ids[i/2], funcNode->children[1]->children[i]->tk_info.lexeme);
-			// printf("output_ids[%d] = %s\n", i/2, output_ids[i/2]);
+
+			// insert symbol with type in Local ST
+			insertSymbol(funcNode->st, funcNode->children[1]->children[i]->tk_info.lexeme,
+				strlen(funcNode->children[1]->children[i]->tk_info.lexeme),
+				funcNode->children[1]->children[i-1]->tk_info.lexeme
+			);
 		}
+
 	}
 	insertFunction(globalFT, id, id_len, input_types, output_types, input_ids, output_ids, input_len/2, output_len/2);
-	// printFunctionTable(globalFT);
-	// printf("=================================\n");
+
 	funcNode->children[0]->parent = funcNode;
 	funcNode->children[1]->parent = funcNode;
 
 	// if returned value is not NULL
-	if (funcNode->children[1])
+	if (funcNode->children[1]) {
 		funcNode->children[1]->parent = funcNode;
+	}
 
 	// I think this is redundant check
 	if (funcNode->children[2])
 		funcNode->children[2]->parent = funcNode;
 
 	funcNode->curr_children = 3;
+
+	// printf("Local SymbolTable:\n"); printSymbolTable(funcNode->st);
+	// printf("Global SymbolTable:\n"); printSymbolTable(globalST);
+
 	return funcNode;
 }
 
@@ -505,6 +554,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 	}
 
 	copySymbolTableToChildren(orig);
+
 	treeNode* decns = orig;
 	orig->children = (treeNode**)realloc(orig->children, 10 * sizeof(treeNode*));
 	int size = 10;
@@ -514,6 +564,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 	treeNode *decns_backup, *temp;
 
 	decns = orig->children[1];
+
 	while(decns->children[0]->symbol_type != eps) {
 		decns_backup = decns;
 		if (i == size - 1) {
@@ -539,17 +590,19 @@ treeNode* reduceDeclarations(treeNode* orig) {
 	}
 
 	orig->curr_children = i;
-	orig->st = createSymbolTable(10);
+
 	int k;
 	for (k = 0; k < i; ++k){
 		treeNode* declarationNode = orig->children[k];
-		if(declarationNode->curr_children > 2){
+
+		if (declarationNode->curr_children > 2) {
 			// insert in global
 
 			int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
 			char *type = (char*)malloc(type_len * sizeof(char));
 
 			strcpy(type, declarationNode->children[0]->tk_info.lexeme);
+
 			insertSymbol(globalST, declarationNode->children[1]->tk_info.lexeme,
 				strlen(declarationNode->children[1]->tk_info.lexeme), type
 			);
@@ -578,9 +631,6 @@ treeNode* reduceDeclarations(treeNode* orig) {
 			free(id);
 		}
 	}
-
-	// printf("Local SymbolTable:\n"); printSymbolTable(orig->st);
-	// printf("Global SymbolTable:\n"); printSymbolTable(globalST);
 
 	return orig;
 }
@@ -705,8 +755,8 @@ treeNode* reduceReturnStmt(treeNode* orig) {
 		return NULL;
 	} else {
 		treeNode* backup = reduceIdList(orig->children[1]->children[1]);
-		if (backup)
-			backup->curr_children = 1;
+		// if (backup)
+		// 	backup->curr_children = 1;
 		return backup;
 	}
 }
@@ -721,7 +771,6 @@ treeNode* reduceAssignStmt(treeNode* orig) {
 	orig->children[0] = reduceSingleOrRecId(
 		backup->children[0]
 	);
-
 	orig->children[1] = reduceArithmeticExpr(
 		backup->children[2]
 	);
@@ -839,6 +888,119 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 	// free(backup->children[3]);
 	// free(backup->children[4]);
 
+	// Perform some semantic analysis here
+	functionTableElem *func = lookupFunction(
+		globalFT, orig->tk_info.lexeme,
+		strlen(orig->tk_info.lexeme)
+	);
+
+	// if Undeclared previously
+	if (func == NULL) {
+		fprintf(stderr,
+			"The function %s called at line no. %d is previously undeclared!\n",
+			orig->tk_info.lexeme, orig->tk_info.line_no
+		);
+	} else {
+		int i;
+		symbolTableElem* lookup;
+
+		// check input parameter list
+		for (i = 0; i < func->input_len && i < orig->children[1]->curr_children; i++) {
+			lookup = lookupSymbol(
+				orig->st,
+				orig->children[1]->children[i]->tk_info.lexeme,
+				strlen(orig->children[1]->children[i]->tk_info.lexeme)
+			);
+
+			// if not found, look in Global Symbol Table
+			if (lookup == NULL) {
+				lookup = lookupSymbol(
+					globalST,
+					orig->children[1]->children[i]->tk_info.lexeme,
+					strlen(orig->children[1]->children[i]->tk_info.lexeme)
+				);
+			}
+
+			// else if not found still, it is undeclared
+			if (lookup == NULL) {
+				fprintf(
+					stderr,
+					"The symbol %s is not declared before it use on line %d 2\n",
+					orig->children[1]->children[i]->tk_info.lexeme,
+					orig->children[1]->children[i]->tk_info.line_no
+				);
+				continue;
+			}
+
+			if (strcmp(
+				func->input_types[i], lookup->type) != 0
+			) {
+				printf("%s and %s\n", func->input_types[i], lookup->lexeme);
+				fprintf(stderr,
+					"The input argument %s does NOT match the expected parameter type '%s' on line %d\n",
+					orig->children[1]->children[i]->tk_info.lexeme,
+					func->input_types[i],
+					orig->children[1]->children[i]->tk_info.line_no
+				);
+			}
+		}
+
+		if (func->input_len != orig->children[1]->curr_children) {
+			fprintf(stderr,
+				"The function %s expects %d parameters, %d passed on line %d\n",
+				func->id, func->input_len, orig->children[1]->curr_children,
+				orig->tk_info.line_no
+			);
+		}
+
+		// check output parameter list
+		for (i = 0; i < func->output_len && i < orig->children[0]->curr_children; i = i + 1) {
+			lookup = lookupSymbol(
+				orig->st,
+				orig->children[0]->children[i]->tk_info.lexeme,
+				strlen(orig->children[0]->children[i]->tk_info.lexeme)
+			);
+
+			// if not found, look in Global Symbol Table
+			if (lookup == NULL) {
+				lookup = lookupSymbol(
+					globalST,
+					orig->children[0]->children[i]->tk_info.lexeme,
+					strlen(orig->children[0]->children[i]->tk_info.lexeme)
+				);
+			}
+
+			// else if not found still, it is undeclared
+			if (lookup == NULL) {
+				fprintf(
+					stderr,
+					"The symbol %s is not declared before it use on line %d 2\n",
+					orig->children[0]->children[i]->tk_info.lexeme,
+					orig->children[0]->children[i]->tk_info.line_no
+				);
+				continue;
+			}
+
+			if (strcmp(
+				func->output_types[i], lookup->type) != 0
+			) {
+				fprintf(stderr,
+					"The output argument %s does NOT match the expected parameter type '%s' on line %d\n",
+					orig->children[0]->children[i]->tk_info.lexeme,
+					func->output_types[i/2],
+					orig->children[0]->children[i]->tk_info.line_no
+				);
+			}
+		}
+
+		if (func->output_len != orig->children[0]->curr_children) {
+			fprintf(stderr,
+				"The function %s returns %d parameters, %d catched on line %d\n",
+				func->id, func->output_len, orig->children[0]->curr_children,
+				orig->tk_info.line_no
+			);
+		}
+	}
 
 	if (orig->children[0])
 		orig->children[0]->parent = orig;
@@ -892,7 +1054,7 @@ treeNode* reduceIdList(treeNode* orig) {
 	int size = 10;
 	orig->children = (treeNode**)realloc(orig->children, 10 * sizeof(treeNode*));
 
-	int i = 1, j = 1;
+	int i = 1, j = 0;
 	treeNode* remainList = orig->children[1];
 	treeNode* remainList_backup;
 
@@ -933,6 +1095,7 @@ treeNode* reduceSingleOrRecId(treeNode* orig) {
 	if (orig->children[1]->children[0]->symbol_type == eps) {
 		// free(orig->children[1]);
 		orig = orig->children[0];
+		orig->st = backup->st;
 		orig->parent = backup->parent;
 		orig->curr_children = 0;
 		// free(backup);
@@ -992,6 +1155,7 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 		|| orig->children[1]->symbol_type == eps
 	) {
 		orig = orig->children[0];
+		copySymbolTableToChildren(orig);
 		orig->parent = backup->parent;
 	} else {
 		orig = orig->children[1];
@@ -1004,6 +1168,8 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 	}
 
 	// free(backup);
+	orig->st = backup->st;
+	copySymbolTableToChildren(orig);
 	return orig;
 }
 
@@ -1119,16 +1285,19 @@ treeNode* reduceAll(treeNode* orig) {
 			orig->children[1] = NULL;
 			orig = orig->children[0];
 			orig->parent = backup->parent;
+			orig->st = backup->st;
 			// free(backup);
 		} else {
 			backup = orig->children[1];
 			orig->children[1] = orig->children[1]->children[1];
 			orig->children[1]->parent = orig;
 			// free(backup);
+			orig->children[1]->st = backup->st;
 			orig->curr_children = 2;
 		}
 	} else {
 		orig = orig->children[0];
+		orig->st = backup->st;
 		// free(backup);
 	}
 
@@ -1138,6 +1307,7 @@ treeNode* reduceAll(treeNode* orig) {
 treeNode* reduceBooleanExpr(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
+
 	if (orig->children[0]->symbol_type == TK_OP) {
 		orig = orig->children[3];
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
@@ -1177,5 +1347,38 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 		orig->curr_children = 2;
 	}
 
+	orig->st = backup->st;
+	copySymbolTableToChildren(orig);
 	return orig;
+}
+
+/*
+ * For every symbol in GlobalST, look it up in every other ST
+ *   If found, give an error
+ *   Else Move ahead
+ *
+ */
+int checkForDuplicates() {
+	int i, j;
+
+	for (i = 0; i < globalST->size; ++i) {
+        if (globalST->symbolArray[i] != NULL) {
+            symbolTableElem* curr = globalST->symbolArray[i];
+
+            while (curr != NULL) {
+	            for (j = 0; j < curr_number; j++) {
+	            	if (lookupSymbol(allST[j], curr->lexeme, strlen(curr->lexeme))) {
+	            		fprintf(stderr,
+	            			"The Symbol %s is declared globally and later redeclared inside a function.\n",
+	            			curr->lexeme
+	            		);
+	            		return -1;
+	            	}
+	            }
+                curr = curr->next;
+            }
+        }
+    }
+
+    return 0;
 }
