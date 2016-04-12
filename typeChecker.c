@@ -54,9 +54,6 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			}
 
 		} else {
-			printf("Curr : %d where %s and ST Size : %d %d\n", orig->symbol_type,
-				orig->children[0]->tk_info.lexeme, orig->st->size, strlen(orig->children[0]->tk_info.lexeme)
-			);
 
 			looked_up = lookupSymbol(
 				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
@@ -102,7 +99,9 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 
 			int k = 0;
 			for (k = 0; k < typeT_lookup->fields_count; k++) {
-				if (strcmp(typeT_lookup->field_names[k], orig->children[1]->tk_info.lexeme)) {
+				printf("%s vs %s\n", typeT_lookup->field_names[k], orig->children[1]->tk_info.lexeme);
+				if (strcmp(typeT_lookup->field_names[k], orig->children[1]->tk_info.lexeme) == 0) {
+
 					// reuse the pointer
 					typeT_lookup = lookupType(
 						globalTT,
@@ -185,7 +184,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			if (strcmp(type_name_next, type_name_already) != 0) {
 				fprintf(
 					stderr,
-					"The types of operands do not match on line 4 - %d\n",
+					"The types of operands do not match on line - %d\n",
 					orig->children[i]->tk_info.line_no
 				);
 				return -1;
@@ -222,7 +221,7 @@ int performTypeChecking (treeNode* orig) {
 			printf("Line %d : %s/%d\n", orig->tk_info.line_no, type_name, orig->symbol_type);
 			fprintf(
 				stderr,
-				"The types of operands do not match on line 3 - %d\n",
+				"The types of operands do not match on line - %d\n",
 				orig->tk_info.line_no
 			);
 
@@ -242,7 +241,7 @@ int performTypeChecking (treeNode* orig) {
 		} else {
 			fprintf(
 				stderr,
-				"The types of operands do not match on line 2 - %d\n",
+				"The types of operands do not match on line - %d\n",
 				orig->tk_info.line_no
 			);
 

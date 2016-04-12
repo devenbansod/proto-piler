@@ -446,8 +446,8 @@ treeNode* reduceFieldDefns(treeNode* orig) {
     field_types[0] = (char*) malloc(25*sizeof(char));
     memset(field_types[0], '\0', 25);
 
-	strcpy(field_names[0], orig->children[0]->children[0]->tk_info.lexeme);
-	strcpy(field_types[0], orig->children[0]->children[1]->tk_info.lexeme);
+	strcpy(field_names[0], orig->children[0]->children[1]->tk_info.lexeme);
+	strcpy(field_types[0], orig->children[0]->children[0]->tk_info.lexeme);
 
 	if (orig->children[0]->children[0]->symbol_type==TK_REAL){
 		width[0] = REAL_WIDTH;
@@ -462,8 +462,8 @@ treeNode* reduceFieldDefns(treeNode* orig) {
     field_types[1] = (char*) malloc(25*sizeof(char));
     memset(field_types[1], '\0', 25);
 
-	strcpy(field_names[1], orig->children[1]->children[0]->tk_info.lexeme);
-	strcpy(field_types[1], orig->children[1]->children[1]->tk_info.lexeme);
+	strcpy(field_names[1], orig->children[1]->children[1]->tk_info.lexeme);
+	strcpy(field_types[1], orig->children[1]->children[0]->tk_info.lexeme);
 
 	if (orig->children[1]->children[0]->symbol_type == TK_REAL) {
 		width[1] = REAL_WIDTH;
@@ -495,13 +495,14 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 		copySymbolTableToChildren(defns);
 
 		orig->children[i] = reduceFieldDefn(defns->children[0]);
+
 		field_names[i] = (char* )malloc(25*sizeof(char));
         memset(field_names[i], '\0', 25);
-		strcpy(field_names[i], orig->children[i]->children[0]->tk_info.lexeme);
+		strcpy(field_names[i], orig->children[i]->children[1]->tk_info.lexeme);
 
 		field_types[i] = (char* )malloc(25*sizeof(char));
         memset(field_types[i], '\0', 25);
-		strcpy(field_types[i], orig->children[i]->children[1]->tk_info.lexeme);
+		strcpy(field_types[i], orig->children[i]->children[0]->tk_info.lexeme);
 
 		if (orig->children[i]->children[0]->symbol_type == TK_REAL) {
 			width[i] = REAL_WIDTH;
