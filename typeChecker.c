@@ -12,8 +12,6 @@
 #include "symbolTable.h"
 #include "AST.h"
 
-// extern SymbolTable *globalST;
-// extern TypeTable *globalTT;
 SymbolTable *globalST;
 TypeTable *globalTT;
 FunctionTable *globalFT;
@@ -99,7 +97,6 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 
 			int k = 0;
 			for (k = 0; k < typeT_lookup->fields_count; k++) {
-				printf("%s vs %s\n", typeT_lookup->field_names[k], orig->children[1]->tk_info.lexeme);
 				if (strcmp(typeT_lookup->field_names[k], orig->children[1]->tk_info.lexeme) == 0) {
 
 					// reuse the pointer
@@ -168,6 +165,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 
 		int ret = checkAndReturnType(orig->children[i], type_name_already);
 
+		// if first operand is 
+
 		if (ret == -1)
 			return -1;
 
@@ -218,7 +217,6 @@ int performTypeChecking (treeNode* orig) {
 		if (checkAndReturnType(orig, type_name)) {
 			return 0;
 		} else {
-			printf("Line %d : %s/%d\n", orig->tk_info.line_no, type_name, orig->symbol_type);
 			fprintf(
 				stderr,
 				"The types of operands do not match on line - %d\n",

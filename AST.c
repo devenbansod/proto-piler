@@ -936,7 +936,6 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 			if (strcmp(
 				func->input_types[i], lookup->type) != 0
 			) {
-				printf("%s and %s\n", func->input_types[i], lookup->lexeme);
 				fprintf(stderr,
 					"The input argument %s does NOT match the expected parameter type '%s' on line %d\n",
 					orig->children[1]->children[i]->tk_info.lexeme,
