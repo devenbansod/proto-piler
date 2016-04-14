@@ -7,8 +7,9 @@
 % atleast one input parameter
 _readMarks input parameter list[int b7]
 output parameter list [ record #marks b3c45];
-	read(b7);
-	read(b3c45.physics);
+	read(b7.physics);
+	read(b3c45);
+	write(b3c45);
 	read(b3c45.chemistry);
 	return [b3c45];
 end
@@ -31,6 +32,7 @@ _main
 	type int : b5 : global;
 	type int : d5cb34567;
 	type record #marks : b5c666;
+
 	%The identifier b5c666 stores the sum of marks
 	type real : d5;
 
@@ -45,8 +47,10 @@ _main
 		% above displays the sum of records
 		b5 <--- b5 +1;
 	endwhile
-	d4 <--- b5c666 / d5cb34567;
+	%d4 <--- b5c666 / d5cb34567;
+	d4 <--- b5c666 * d5cb34567;
 	write(d4.maths);
+	read(d4.maths);
 	write(d4.physics);
 	write(d4.chemistry);
 	return;

@@ -852,6 +852,7 @@ treeNode* reduceIoStmt(treeNode* orig) {
 	if (orig->children[0]->symbol_type == TK_READ) {
 		// free(orig->children[1]);
 		orig = orig->children[0];
+		copySymbolTableToChildren(orig);
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
 
 		orig->children[0] = reduceSingleOrRecId(backup->children[2]);
@@ -861,6 +862,7 @@ treeNode* reduceIoStmt(treeNode* orig) {
 		// free(orig->children[1]);
 
 		orig = orig->children[0];
+		copySymbolTableToChildren(orig);
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
 		orig->children[0] = reduceAllVar(backup->children[2]);
 
@@ -1102,6 +1104,7 @@ treeNode* reduceSingleOrRecId(treeNode* orig) {
 	} else {
 		orig->children[1] = orig->children[1]->children[1];
 		orig->children[1]->parent = orig;
+		orig->children[1]->st = orig->st;
 
 		orig->curr_children = 2;
 	}
@@ -1116,6 +1119,8 @@ treeNode* reduceAllVar(treeNode* orig) {
 	if (orig->children[0]->symbol_type == some_types) {
 		orig = orig->children[0]->children[0];
 		orig->parent = backup->parent;
+		orig->st = backup->st;
+		copySymbolTableToChildren(orig);
 	} else {
 		// other_types
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
@@ -1123,6 +1128,11 @@ treeNode* reduceAllVar(treeNode* orig) {
 		if (orig->children[0]->children[1]->children[0]->symbol_type == eps) {
 			orig->children[0] = orig->children[0]->children[0];
 			orig->children[0]->parent = orig;
+
+			orig->st = backup->st;
+			copySymbolTableToChildren(orig);
+			// printf("Here size %d, %s\n", orig->st->size, orig->children[0]->tk_info.lexeme);
+
 			orig->curr_children = 1;
 		} else {
 			orig->children[1] = backup->children[0]->children[1]->children[1];
@@ -1131,6 +1141,11 @@ treeNode* reduceAllVar(treeNode* orig) {
 			orig->children[0]->parent = orig;
 			orig->children[1]->parent = orig;
 			orig->parent = backup->parent;
+
+			orig->st = backup->st;
+			// printf("Here size %d, %s\n", orig->st->size, orig->children[0]->tk_info.lexeme);
+			copySymbolTableToChildren(orig);
+
 			// free(backup);
 			orig->curr_children = 2;
 		}

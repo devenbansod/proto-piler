@@ -23,7 +23,7 @@ _main
 	type int :c4bd56;
 	type real :c4bd55;
 	b3 <--- 7;
-	[c4bd56, b3]<--- call _sumN with parameters [c4bd56];
+	[c4bd55, b3]<--- call _sumN with parameters [c4bd56];
 	write(c4bd56.value);
 	return;
 end
