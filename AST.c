@@ -229,7 +229,6 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	insertFunction(globalFT, id, id_len, input_types, output_types, input_ids, output_ids, input_len/2, output_len/2);
 
 	funcNode->children[0]->parent = funcNode;
-	funcNode->children[1]->parent = funcNode;
 
 	// if returned value is not NULL
 	if (funcNode->children[1]) {
@@ -275,7 +274,9 @@ treeNode* reduceOutputPar(treeNode* outputParNode) {
 	// free(outputParNode->children[3]);
 	// free(outputParNode->children[5]);
 
-	if (outputParNode->children[4]->symbol_type == eps) {
+	if (outputParNode->children[0]->symbol_type == eps
+		|| outputParNode->children[4]->symbol_type == eps
+	) {
 		// free(outputParNode->children[4]);
 		// free(back_up);
 		return NULL;
@@ -333,7 +334,11 @@ treeNode* reduceParameterList(treeNode* paramListNode) {
 
 treeNode* reduceDatatype(treeNode* datatypeNode) {
 	treeNode* datatypeNode_backup = datatypeNode;
-	// printf("%d\n", datatypeNode->children[0]->symbol_type);
+
+	if (datatypeNode->symbol_type == eps) {
+		return NULL;
+	}
+
 	if (datatypeNode->children[0]->symbol_type == primitiveDatatype)
 		datatypeNode = datatypeNode->children[0]->children[0];
 	else
@@ -905,7 +910,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 		);
 	} else {
 		int i;
-		symbolTableElem* lookup;
+		symbolTableElem* lookup = NULL;
 
 		// check input parameter list
 		for (i = 0; i < func->input_len && i < orig->children[1]->curr_children; i++) {
@@ -956,7 +961,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 		}
 
 		// check output parameter list
-		for (i = 0; i < func->output_len && i < orig->children[0]->curr_children; i = i + 1) {
+		for (i = 0; i < func->output_len && orig->children[0] && i < orig->children[0]->curr_children; i = i + 1) {
 			lookup = lookupSymbol(
 				orig->st,
 				orig->children[0]->children[i]->tk_info.lexeme,
@@ -995,10 +1000,16 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 			}
 		}
 
-		if (func->output_len != orig->children[0]->curr_children) {
+		if (orig->children[0] && func->output_len != orig->children[0]->curr_children) {
 			fprintf(stderr,
 				"The function %s returns %d parameters, %d catched on line %d\n",
 				func->id, func->output_len, orig->children[0]->curr_children,
+				orig->tk_info.line_no
+			);
+		} else if (orig->children[0] == NULL) {
+			fprintf(stderr,
+				"The function %s returns %d parameters, %d catched on line %d\n",
+				func->id, func->output_len, 0,
 				orig->tk_info.line_no
 			);
 		}
@@ -1026,7 +1037,8 @@ treeNode* reduceOutputParameters(treeNode* orig) {
 		// free(orig->children[3]);
 
 		orig = reduceIdList(orig->children[1]);
-		orig->parent = backup->parent;
+		if (orig)
+			orig->parent = backup->parent;
 		// free(backup);
 	}
 	return orig;

@@ -7,7 +7,7 @@
 % atleast one input parameter
 _readMarks input parameter list[int b7]
 output parameter list [ record #marks b3c45];
-	read(b7.physics);
+	read(b7.physicswe);
 	read(b3c45);
 	write(b3c45);
 	read(b3c45.chemistry);
@@ -42,7 +42,8 @@ _main
 	b5c666.physics <--- 0.00;
 	b5c666.chemistry <---0.00;
 	while(b5<=d5cb34567)
-		[d4] <--- call _readMarks with parameters [b5];
+		% [d4] <--- call _readMarks with parameters [b5];
+		call _readMarks with parameters [b5];
 		b5c666 <--- b5c666 + d4; 
 		% above displays the sum of records
 		b5 <--- b5 +1;
@@ -50,7 +51,7 @@ _main
 	%d4 <--- b5c666 / d5cb34567;
 	d4 <--- b5c666 * d5cb34567;
 	write(d4.maths);
-	read(d4.maths);
+	read(d4.mathsss);
 	write(d4.physics);
 	write(d4.chemistry);
 	return;

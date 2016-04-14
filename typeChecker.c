@@ -331,6 +331,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 		memset(type_name_next, '\0', 25);
 		int ret = 0;
 
+		typeTableElem* typeT_lookup = NULL;
+
 		// directly ID
 		if (orig->children[0]->curr_children == 0) {
 			ret = checkAndReturnType(orig->children[0], type_name_already);
@@ -361,11 +363,6 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 
 			ret = checkAndReturnType(orig->children[0]->children[i], type_name_already);
 
-			typeTableElem* typeT_lookup = lookupType(
-				globalTT, type_name_already,
-				strlen(type_name_already)
-			);
-
 			if (orig->children[0]->curr_children > 1
 				&& (strcmp(type_name_already, "real") == 0
 				|| strcmp(type_name_already, "int") == 0)
@@ -388,6 +385,10 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				return -1;
 			} else {
 
+				typeT_lookup = lookupType(
+					globalTT, type_name_already,
+					strlen(type_name_already)
+				);
 				// is a valid record. need to confirm if field exists
 				int k = 0;
 				for (k = 0; k < typeT_lookup->fields_count; k++) {
@@ -414,6 +415,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				);
 				return -1;
 			}
+			return ret;
 		}
 
 	}
