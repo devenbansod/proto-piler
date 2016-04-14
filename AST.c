@@ -40,6 +40,7 @@ void copySymbolTableToChildren(treeNode* orig) {
 		return;
 	} else {
 		int i;
+		// printf("%d -> %d\n", orig->symbol_type, orig->curr_children);
 		for (i = 0; i < orig->curr_children; i++) {
 			orig->children[i]->st = orig->st;
 		}
@@ -710,6 +711,8 @@ treeNode* reduceOtherStmts(treeNode* orig) {
 
 treeNode* reduceStatement(treeNode* orig) {
 	treeNode* backup = orig;
+
+	// printf("%d : %d\n", orig->symbol_type, orig->curr_children, orig->st->size);
 	copySymbolTableToChildren(orig);
 
 	switch (orig->children[0]->symbol_type) {
@@ -826,24 +829,36 @@ treeNode* reduceConditionalStmt(treeNode* orig) {
 	orig->children[1] = reduceStatement(orig->children[5]);
 	orig->children[2] = reduceOtherStmts(orig->children[6]);
 
-	if (orig->children[0])
+	if (orig->children[0]) {
 		orig->children[0]->parent = orig;
-	if (orig->children[1])
+		orig->children[0]->st = orig->st;
+	}
+	if (orig->children[1]) {
 		orig->children[1]->parent = orig;
-	if (orig->children[2])
+		orig->children[1]->st = orig->st;
+	}
+	if (orig->children[2]) {
 		orig->children[2]->parent = orig;
+		orig->children[2]->st = orig->st;
+	}
 
 
 	if (orig->children[7]->symbol_type == TK_ENDIF) {
 		orig->curr_children = 3;
 	} else {
+		copySymbolTableToChildren(orig->children[7]);
+
 		orig->children[3] = reduceStatement(orig->children[7]->children[1]);
 		orig->children[4] = reduceOtherStmts(orig->children[7]->children[2]);
 
-		if (orig->children[3])
+		if (orig->children[3]) {
 			orig->children[3]->parent = orig;
-		if (orig->children[4])
-			orig->children[5]->parent = orig;
+			orig->children[3]->st = orig->st;
+		}
+		if (orig->children[4]) {
+			orig->children[4]->parent = orig;
+			orig->children[4]->st = orig->st;
+		}
 		orig->curr_children = 5;
 	}
 
@@ -862,14 +877,15 @@ treeNode* reduceIoStmt(treeNode* orig) {
 
 		orig->children[0] = reduceSingleOrRecId(backup->children[2]);
 		orig->children[0]->parent = orig;
+		orig->children[0]->st = backup->st;
 		orig->curr_children = 1;
 	} else {
 		// free(orig->children[1]);
 
 		orig = orig->children[0];
-		copySymbolTableToChildren(orig);
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
 		orig->children[0] = reduceAllVar(backup->children[2]);
+		orig->children[0]->st = backup->st;
 
 		orig->curr_children = 1;
 	}
@@ -878,6 +894,7 @@ treeNode* reduceIoStmt(treeNode* orig) {
 
 	orig->parent = backup->parent;
 	orig->curr_children = 1;
+	orig->st = backup->st;
 
 	return orig;
 }
@@ -981,7 +998,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 			if (lookup == NULL) {
 				fprintf(
 					stderr,
-					"The symbol %s is not declared before it use on line %d 2\n",
+					"The symbol %s is not declared before it use on line %d\n",
 					orig->children[0]->children[i]->tk_info.lexeme,
 					orig->children[0]->children[i]->tk_info.line_no
 				);
@@ -1336,7 +1353,7 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
 	if (orig->children[0]->symbol_type == TK_OP) {
-		orig = orig->children[3];
+		orig = orig->children[3]->children[0];
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
 
 		orig->children[0] = reduceBooleanExpr(backup->children[1]);
@@ -1347,7 +1364,10 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 		// free(backup->children[6]);
 		orig->children[1] = reduceBooleanExpr(backup->children[5]);
 
+		orig->st = backup->st;
 		orig->curr_children = 2;
+
+		copySymbolTableToChildren(orig);
 	} else if (orig->children[0]->symbol_type == TK_NOT) {
 		orig = orig->children[0];
 		orig->children = (treeNode**)realloc(orig->children, 1 * sizeof(treeNode*));
@@ -1367,11 +1387,14 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 
 		orig->children[0]->parent = orig;
 		orig->children[1]->parent = orig;
+		orig->parent = backup->parent;
+		orig->st = backup->st;
 
 		// free(backup->children[0]);
 		// free(backup->children[1]);
 		// free(backup->children[2]);
 		orig->curr_children = 2;
+		copySymbolTableToChildren(orig);
 	}
 
 	orig->st = backup->st;

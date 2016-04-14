@@ -1063,7 +1063,7 @@ parseTree* parseInputSourceCode(
         && errorRecovery == 0
     ) {
         fprintf(stderr, "\nCompiled Successfully: \n"
-            "Input source code is syntactically correct!!\n"
+            "Input source code is syntactically correct!!\n\n"
         );
         new_tree->root = createAST(new_tree->root);
         performTypeChecking(new_tree->root);

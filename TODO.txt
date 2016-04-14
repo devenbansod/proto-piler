@@ -26,6 +26,7 @@ Semantic Analyzer: This module verifies the semantics of the code.
 		- done
 
 	8. An if statement must have the expression of boolean type.
+		- already checked in grammar, semantically checked for boolean expr
 
 	9. Function overloading is not allowed.
 		- Done while creating AST

@@ -155,12 +155,6 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 		|| orig->symbol_type == TK_MINUS
 		|| orig->symbol_type == TK_MUL
 		|| orig->symbol_type == TK_DIV
-		|| orig->symbol_type == TK_NOT
-		|| orig->symbol_type == TK_NE
-		|| orig->symbol_type == TK_GE
-		|| orig->symbol_type == TK_EQ
-		|| orig->symbol_type == TK_LE
-		|| orig->symbol_type == TK_LT
 		|| orig->symbol_type == TK_AND
 		|| orig->symbol_type == TK_OR
 		|| orig->symbol_type == TK_ASSIGNOP
@@ -241,6 +235,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 						"The types of operands do not match on line - %d\n",
 						orig->children[i]->tk_info.line_no
 					);
+					i = 1;
 			} else {
 				if (strcmp(type_name_next, type_name_already) != 0) {
 					fprintf(
@@ -284,18 +279,10 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				orig->children[0]->children[0]->tk_info.line_no
 			);
 			return -1;
-		} else if (orig->children[0]->curr_children <= 1
+		} else if (orig->children[0]->curr_children > 1
 			&& (strcmp(type_name_already, "real") != 0
 			&& strcmp(type_name_already, "int") != 0)
 		) {
-			fprintf(stderr,
-				"The ID %s on line %d has a record type and can not be directly printed\n",
-				orig->children[0]->children[0]->tk_info.lexeme,
-				orig->children[0]->children[0]->tk_info.line_no
-			);
-			return -1;
-		} else {
-
 			// is a valid record. need to confirm if field exists
 			int k = 0;
 			for (k = 0; k < typeT_lookup->fields_count; k++) {
@@ -318,10 +305,25 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 
 			fprintf(stderr,
 				"The field %s is not declared as part of Record type %s\n",
-				orig->children[0]->children[1]->tk_info.lexeme, typeT_lookup->type_name
+				orig->children[0]->children[1]->tk_info.lexeme, orig->children[0]->children[0]->tk_info.lexeme
 			);
 			return -1;
+		} else if (orig->children[0]->curr_children <= 1
+			&& (strcmp(type_name_already, "real") != 0
+			&& strcmp(type_name_already, "int") != 0)
+		) {
+			fprintf(stderr,
+				"The ID %s on line %d has a record type and can not be directly printed\n",
+				orig->children[0]->children[0]->tk_info.lexeme,
+				orig->children[0]->children[0]->tk_info.line_no
+			);
+			return -1;
+		} else {
+			// do nothing
 		}
+
+		strcpy(type_name, type_name_already);
+		return strlen(type_name);
 
 	} else if (orig->symbol_type == TK_READ) {
 		int i = 0;
@@ -418,6 +420,95 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			return ret;
 		}
 
+	} else if (orig->symbol_type == TK_NOT
+		|| orig->symbol_type == TK_NE
+		|| orig->symbol_type == TK_GE
+		|| orig->symbol_type == TK_EQ
+		|| orig->symbol_type == TK_LE
+		|| orig->symbol_type == TK_LT
+	) {
+		int i = 0;
+		char type_name_next[25];
+		char type_name_already[25];
+
+		memset(type_name_already, '\0', 25);
+		memset(type_name_next, '\0', 25);
+
+		int ret = checkAndReturnType(orig->children[i], type_name_already);
+
+		if (ret == -1)
+			return -1;
+
+		if (strcmp(type_name_already, "boolean") == 0) {
+			for (i = 1; i < orig->curr_children; i++) {
+				memset(type_name_next, '\0', 25);
+
+				if (orig->children[i]->symbol_type == eps) {
+					continue;
+				}
+
+				if (checkAndReturnType(orig->children[i], type_name_next) == -1)
+					return -1;
+
+				if (strcmp(type_name_already, type_name_next) != 0) {
+					fprintf(
+						stderr,
+						"Type error in Boolean expression on line 1 - %d\n",
+						orig->tk_info.line_no
+					);
+					return -1;
+				}
+			}
+		} else if (strcmp(type_name_already, "int") == 0) {
+			for (i = 1; i < orig->curr_children; i++) {
+				memset(type_name_next, '\0', 25);
+
+				if (orig->children[i]->symbol_type == eps) {
+					continue;
+				}
+
+				if (checkAndReturnType(orig->children[i], type_name_next) == -1)
+					return -1;
+
+				if (strcmp(type_name_already, type_name_next) != 0) {
+					fprintf(
+						stderr,
+						"Type error in Boolean expression on line 2 - %d\n",
+						orig->tk_info.line_no
+					);
+					return -1;
+				}
+			}
+		} else if (strcmp(type_name_already, "real") == 0) {
+			for (i = 1; i < orig->curr_children; i++) {
+				memset(type_name_next, '\0', 25);
+
+				if (orig->children[i]->symbol_type == eps) {
+					continue;
+				}
+
+				if (checkAndReturnType(orig->children[i], type_name_next) == -1)
+					return -1;
+
+				if (strcmp(type_name_already, type_name_next) != 0) {
+					fprintf(
+						stderr,
+						"Type error in Boolean expression on line 3 - %d\n",
+						orig->tk_info.line_no
+					);
+					return -1;
+				}
+			}
+		} else {
+			fprintf(stderr,
+				"Boolean expression must have only boolean, int or real"
+				" data types! Records are not allowed!\n"
+			);
+		}
+
+		strcpy(type_name, "boolean");
+		return 1;
+
 	}
 
 	return 1;
@@ -460,6 +551,7 @@ int performTypeChecking (treeNode* orig) {
 		|| orig->symbol_type == TK_LT
 		|| orig->symbol_type == TK_GE
 		|| orig->symbol_type == TK_GT
+		|| orig->symbol_type == TK_EQ
 	) {
 		memset(type_name, '\0', 25);
 		if (checkAndReturnType(orig, type_name)) {
