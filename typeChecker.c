@@ -124,6 +124,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				"The field %s is not declared as part of Record type %s\n",
 				orig->children[1]->tk_info.lexeme, typeT_lookup->type_name
 			);
+			sem_error++;
+
 			return -1;
 
 		}
@@ -278,6 +280,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				orig->children[0]->children[0]->tk_info.lexeme,
 				orig->children[0]->children[0]->tk_info.line_no
 			);
+			sem_error++;
 			return -1;
 		} else if (orig->children[0]->curr_children > 1
 			&& (strcmp(type_name_already, "real") != 0
@@ -307,6 +310,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				"The field %s is not declared as part of Record type %s\n",
 				orig->children[0]->children[1]->tk_info.lexeme, orig->children[0]->children[0]->tk_info.lexeme
 			);
+			sem_error++;
 			return -1;
 		} else if (orig->children[0]->curr_children <= 1
 			&& (strcmp(type_name_already, "real") != 0
@@ -317,6 +321,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				orig->children[0]->children[0]->tk_info.lexeme,
 				orig->children[0]->children[0]->tk_info.line_no
 			);
+			sem_error++;
 			return -1;
 		} else {
 			// do nothing
@@ -348,6 +353,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					orig->children[0]->tk_info.lexeme,
 					orig->children[0]->tk_info.line_no
 				);
+				sem_error++;
 				return -1;
 			} else if (orig->children[0]->curr_children <= 1
 				&& (strcmp(type_name_already, "real") != 0
@@ -358,6 +364,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					orig->children[0]->tk_info.lexeme,
 					orig->children[0]->tk_info.line_no
 				);
+				sem_error++;
 				return -1;
 			}
 		} else {
@@ -374,6 +381,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					orig->children[0]->children[0]->tk_info.lexeme,
 					orig->children[0]->children[0]->tk_info.line_no
 				);
+				sem_error++;
 				return -1;
 			} else if (orig->children[0]->curr_children <= 1
 				&& (strcmp(type_name_already, "real") != 0
@@ -384,6 +392,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					orig->children[0]->children[0]->tk_info.lexeme,
 					orig->children[0]->children[0]->tk_info.line_no
 				);
+				sem_error++;
 				return -1;
 			} else {
 
@@ -415,6 +424,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					"The field %s is not declared as part of Record type %s\n",
 					orig->children[0]->children[1]->tk_info.lexeme, typeT_lookup->type_name
 				);
+				sem_error++;
 				return -1;
 			}
 			return ret;
@@ -453,7 +463,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"Type error in Boolean expression on line 1 - %d\n",
+						"Type sem_error in Boolean expression on line 1 - %d\n",
 						orig->tk_info.line_no
 					);
 					return -1;
@@ -473,7 +483,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"Type error in Boolean expression on line 2 - %d\n",
+						"Type sem_error in Boolean expression on line 2 - %d\n",
 						orig->tk_info.line_no
 					);
 					return -1;
@@ -493,7 +503,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"Type error in Boolean expression on line 3 - %d\n",
+						"Type sem_error in Boolean expression on line 3 - %d\n",
 						orig->tk_info.line_no
 					);
 					return -1;
@@ -504,6 +514,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				"Boolean expression must have only boolean, int or real"
 				" data types! Records are not allowed!\n"
 			);
+			sem_error++;
 		}
 
 		strcpy(type_name, "boolean");

@@ -9,6 +9,9 @@
 #include "common.h"
 #include "symbolTableDef.h"
 #include "symbolTable.h"
+#include "AST.h"
+
+TypeTable *globalTT;
 
 /*
  * HASH FUNCTION
@@ -81,7 +84,7 @@ SymbolTable* rehash_symbol_table(SymbolTable *st, int new_size) {
     for (i = 0; i < st->size; i++) {
         if (st->symbolArray[i]) {
             for (curr = st->symbolArray[i]; curr != NULL; curr = curr->next){
-                insertSymbol(newst, curr->lexeme, curr->lex_len, curr->type);
+                insertSymbol(newst, curr->lexeme, curr->lex_len, curr->type, curr->offset);
             }
         }
     }
@@ -97,7 +100,7 @@ SymbolTable* rehash_symbol_table(SymbolTable *st, int new_size) {
  *  - Else, return -1 to indicate duplicate key error
  *
  */
-int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
+int insertSymbol(SymbolTable* st, char* id, int id_len, char* type, int* offset) {
 
     int h_index = hash(id, id_len, st->size);
     symbolTableElem* curr = st->symbolArray[h_index];
@@ -130,7 +133,7 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
 
     strcpy(curr->type, type);
     curr->next = NULL;
-
+    curr->offset = *offset;
     st->curr_size++;
 
     if (st->symbolArray[h_index] == NULL) {
@@ -138,6 +141,23 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type) {
     } else {
         curr->next = st->symbolArray[h_index];
         st->symbolArray[h_index] = curr;
+    }
+
+    typeTableElem* looked_up = lookupType(globalTT, type, strlen(type));
+    if (looked_up) {
+        for (i = 0; i < looked_up->fields_count; i++) {
+            *offset += looked_up->width[i];
+            printf("HI\n");
+        }
+
+        // for real and int
+        if (looked_up->fields_count == 0) {
+            if (strcmp(looked_up->type_name, "int") == 0) {
+                *offset += INT_WIDTH;
+            } else if (strcmp(looked_up->type_name, "real") == 0) {
+                *offset += REAL_WIDTH;
+            }
+        }
     }
 
     // If too much chaining spotted,
@@ -172,16 +192,16 @@ symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len) {
 }
 
 
-void printSymbolTable(SymbolTable* st){
+void printSymbolTable(SymbolTable* st, char* scope){
     int i;
-    printf("h_index\t| lexeme\t| type\t|\n");
+    // printf("h_index\t| lexeme\t| type\t| scope\n");
     for(i = 0; i < st->size; ++i){
         // printf("%d ", i);
         if(st->symbolArray[i]!=NULL){
             symbolTableElem* curr = st->symbolArray[i];
             while(curr!=NULL){
                 // printf("lexeme: %s ; type: %s\n", curr->lexeme, curr->type);
-                printf("%d\t| %s\t| %s\t|\n", i, curr->lexeme, curr->type);
+                printf("%s\t| %s\t| %s| %d\t\n", curr->lexeme, curr->type, scope, curr->offset);
                 curr = curr->next;
             }
         }

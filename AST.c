@@ -29,8 +29,10 @@ SymbolTable *globalST;
 FunctionTable *globalFT;
 
 SymbolTable **allST;
+
 int curr_number = 0;
 int curr_max = 9;
+int curr_global_offset = OFFSET_START;
 
 /*
  * Helper function
@@ -70,13 +72,14 @@ treeNode* reduceProgram(treeNode* root) {
 
 	checkForDuplicates();
 	curr_number = 0;
+	curr_global_offset = 0;
 
 	return root;
 }
 
 treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 
-	// No error checking as Main function always present
+	// No sem_error checking as Main function always present
 	treeNode* mainFuncNode_backup = mainFuncNode;
 	mainFuncNode->st = createSymbolTable(20);
 
@@ -98,8 +101,8 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	insertFunction(globalFT, "main", 4, NULL, NULL, NULL, NULL, 0, 0);
 
 
-	// printf("Local SymbolTable:\n"); printSymbolTable(mainFuncNode->st);
-	// printf("Global SymbolTable:\n"); printSymbolTable(globalST);
+	printSymbolTable(mainFuncNode->st, "main");
+	printSymbolTable(globalST, "global");
 	return mainFuncNode;
 }
 
@@ -202,7 +205,8 @@ treeNode* reduceFunction(treeNode* funcNode) {
 
 			insertSymbol(funcNode->st, funcNode->children[0]->children[i]->tk_info.lexeme,
 				strlen(funcNode->children[0]->children[i]->tk_info.lexeme),
-				funcNode->children[0]->children[i-1]->tk_info.lexeme
+				funcNode->children[0]->children[i-1]->tk_info.lexeme,
+				&curr_global_offset
 			);
 		}
 	}
@@ -222,7 +226,8 @@ treeNode* reduceFunction(treeNode* funcNode) {
 			// insert symbol with type in Local ST
 			insertSymbol(funcNode->st, funcNode->children[1]->children[i]->tk_info.lexeme,
 				strlen(funcNode->children[1]->children[i]->tk_info.lexeme),
-				funcNode->children[1]->children[i-1]->tk_info.lexeme
+				funcNode->children[1]->children[i-1]->tk_info.lexeme,
+				&curr_global_offset
 			);
 		}
 
@@ -242,8 +247,8 @@ treeNode* reduceFunction(treeNode* funcNode) {
 
 	funcNode->curr_children = 3;
 
-	// printf("Local SymbolTable:\n"); printSymbolTable(funcNode->st);
-	// printf("Global SymbolTable:\n"); printSymbolTable(globalST);
+	printSymbolTable(funcNode->st, funcNode->tk_info.lexeme);
+	printSymbolTable(globalST, "global");
 
 	return funcNode;
 }
@@ -611,9 +616,9 @@ treeNode* reduceDeclarations(treeNode* orig) {
 			strcpy(type, declarationNode->children[0]->tk_info.lexeme);
 
 			insertSymbol(globalST, declarationNode->children[1]->tk_info.lexeme,
-				strlen(declarationNode->children[1]->tk_info.lexeme), type
+				strlen(declarationNode->children[1]->tk_info.lexeme), type, 
+				&curr_global_offset
 			);
-
 			free(type);
 		}
 		else{
@@ -628,12 +633,12 @@ treeNode* reduceDeclarations(treeNode* orig) {
 
 				strcpy(type, declarationNode->children[0]->tk_info.lexeme);
 
-				insertSymbol(orig->st, id, id_len, type);
+				insertSymbol(orig->st, id, id_len, type, &curr_global_offset);
 				free(type);
 			}
 			else {
 				fprintf(stderr, "%s exists in global symbol table\n", id);
-				exit(1);
+				sem_error++;
 			}
 			free(id);
 		}
@@ -843,23 +848,26 @@ treeNode* reduceConditionalStmt(treeNode* orig) {
 	}
 
 
-	if (orig->children[7]->symbol_type == TK_ENDIF) {
+	if (orig->children[7]->children[0]->symbol_type == TK_ENDIF) {
 		orig->curr_children = 3;
 	} else {
 		copySymbolTableToChildren(orig->children[7]);
+		orig->children[3] = orig->children[7]->children[0];
+		orig->children[3]->parent = orig;
+		orig->children[3]->st = orig->st;
 
-		orig->children[3] = reduceStatement(orig->children[7]->children[1]);
-		orig->children[4] = reduceOtherStmts(orig->children[7]->children[2]);
+		orig->children[4] = reduceStatement(orig->children[7]->children[1]);
+		orig->children[5] = reduceOtherStmts(orig->children[7]->children[2]);
 
-		if (orig->children[3]) {
-			orig->children[3]->parent = orig;
-			orig->children[3]->st = orig->st;
-		}
 		if (orig->children[4]) {
 			orig->children[4]->parent = orig;
 			orig->children[4]->st = orig->st;
 		}
-		orig->curr_children = 5;
+		if (orig->children[5]) {
+			orig->children[5]->parent = orig;
+			orig->children[5]->st = orig->st;
+		}
+		orig->curr_children = 6;
 	}
 
 	return orig;
@@ -925,6 +933,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 			"The function %s called at line no. %d is previously undeclared!\n",
 			orig->tk_info.lexeme, orig->tk_info.line_no
 		);
+		sem_error++;
 	} else {
 		int i;
 		symbolTableElem* lookup = NULL;
@@ -966,6 +975,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 					func->input_types[i],
 					orig->children[1]->children[i]->tk_info.line_no
 				);
+				sem_error++;
 			}
 		}
 
@@ -975,6 +985,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 				func->id, func->input_len, orig->children[1]->curr_children,
 				orig->tk_info.line_no
 			);
+			sem_error++;
 		}
 
 		// check output parameter list
@@ -1014,6 +1025,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 					func->output_types[i/2],
 					orig->children[0]->children[i]->tk_info.line_no
 				);
+				sem_error++;
 			}
 		}
 
@@ -1023,12 +1035,14 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 				func->id, func->output_len, orig->children[0]->curr_children,
 				orig->tk_info.line_no
 			);
+			sem_error++;
 		} else if (orig->children[0] == NULL) {
 			fprintf(stderr,
 				"The function %s returns %d parameters, %d catched on line %d\n",
 				func->id, func->output_len, 0,
 				orig->tk_info.line_no
 			);
+			sem_error++;
 		}
 	}
 
@@ -1146,7 +1160,7 @@ treeNode* reduceAllVar(treeNode* orig) {
 
 	copySymbolTableToChildren(orig);
 	if (orig->children[0]->symbol_type == some_types) {
-		orig = orig->children[0]->children[0];
+		orig = orig->children[0];
 		orig->parent = backup->parent;
 		orig->st = backup->st;
 		copySymbolTableToChildren(orig);
@@ -1404,7 +1418,7 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 
 /*
  * For every symbol in GlobalST, look it up in every other ST
- *   If found, give an error
+ *   If found, give an sem_error
  *   Else Move ahead
  *
  */
@@ -1422,6 +1436,7 @@ int checkForDuplicates() {
 	            			"The Symbol %s is declared globally and later redeclared inside a function.\n",
 	            			curr->lexeme
 	            		);
+	            		sem_error++;
 	            		return -1;
 	            	}
 	            }

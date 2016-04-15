@@ -14,6 +14,8 @@
 extern TypeTable *globalTT;
 extern SymbolTable *globalST;
 extern FunctionTable *globalFT;
+int sem_error;
+
 
 treeNode* createAST(treeNode *parseTreeRoot);
 

@@ -28,7 +28,7 @@ void destroySymbolTable(SymbolTable *st);
 /*
  * Insert element into the Symbol table
  */
-int insertSymbol(SymbolTable* st, char *id, int id_len, char* type);
+int insertSymbol(SymbolTable* st, char *id, int id_len, char* type, int* offset);
 
 /*
  * Lookup for a particular key
@@ -39,7 +39,7 @@ symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len);
  * print the symbol table
  */
 
-void printSymbolTable(SymbolTable* st);
+void printSymbolTable(SymbolTable* st, char *scope);
 
 /*
  * TYPE TABLE

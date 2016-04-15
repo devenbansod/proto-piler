@@ -13,8 +13,11 @@
 
 #define MAX_BUCKETS 337
 #define MAX_CHAIN_LENGTH 10
-#define INT_WIDTH 4
-#define REAL_WIDTH 8
+#define INT_WIDTH 2
+#define REAL_WIDTH 4
+#define OFFSET_START 0
+#define BASE 0
+
 /*
  * Structure for Type table elem
  */
@@ -48,6 +51,7 @@ struct symbolTableElem {
     char *lexeme;
     int lex_len;
     char *type; // acts as a key for type-table
+    int offset;
     struct symbolTableElem* next;
 };
 
