@@ -12,6 +12,8 @@
 #include "AST.h"
 
 TypeTable *globalTT;
+SymbolTable *globalST;
+SymbolTable **allST;
 
 /*
  * HASH FUNCTION
@@ -84,7 +86,7 @@ SymbolTable* rehash_symbol_table(SymbolTable *st, int new_size) {
     for (i = 0; i < st->size; i++) {
         if (st->symbolArray[i]) {
             for (curr = st->symbolArray[i]; curr != NULL; curr = curr->next){
-                insertSymbol(newst, curr->lexeme, curr->lex_len, curr->type, curr->offset);
+                insertSymbol(newst, curr->lexeme, curr->lex_len, curr->type, &curr->offset);
             }
         }
     }
@@ -192,20 +194,30 @@ symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len) {
 }
 
 
-void printSymbolTable(SymbolTable* st, char* scope){
+void printSymbolTable(SymbolTable* st, char* scope) {
     int i;
-    // printf("h_index\t| lexeme\t| type\t| scope\n");
-    for(i = 0; i < st->size; ++i){
-        // printf("%d ", i);
-        if(st->symbolArray[i]!=NULL){
+
+    for (i = 0; i < st->size; ++i) {
+        if (st->symbolArray[i] != NULL) {
             symbolTableElem* curr = st->symbolArray[i];
-            while(curr!=NULL){
-                // printf("lexeme: %s ; type: %s\n", curr->lexeme, curr->type);
+            while (curr != NULL) {
                 printf("%s\t| %s\t| %s| %d\t\n", curr->lexeme, curr->type, scope, curr->offset);
                 curr = curr->next;
             }
         }
     }
+}
+
+
+void printAllSymbolTables() {
+    int j;
+
+    for (j = 0; j < curr_number_backup; j++) {
+        printSymbolTable(allST[j], allST[j]->scope);
+    }
+
+    // then print Global as well
+    printSymbolTable(globalST, globalST->scope);
 }
 
 /*

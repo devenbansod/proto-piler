@@ -41,6 +41,13 @@ symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len);
 
 void printSymbolTable(SymbolTable* st, char *scope);
 
+
+/*
+ * print all the symbol tables
+ */
+void printAllSymbolTables();
+
+
 /*
  * TYPE TABLE
  */

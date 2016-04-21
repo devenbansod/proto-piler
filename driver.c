@@ -15,6 +15,10 @@
 #include "treeDef.h"
 
 #include "parser.h"
+#include "AST.h"
+#include "typeChecker.h"
+#include "symbolTable.h"
+#include "codeGen.h"
 
 int main(int argc, char *argv[]) {
 
@@ -34,6 +38,7 @@ int main(int argc, char *argv[]) {
     int input = 0;
     FILE *fp = NULL;
     parseTree *tree = NULL;
+    parseTree* AST = NULL;
     int error = 0;
 
     // Initialization
@@ -54,47 +59,106 @@ int main(int argc, char *argv[]) {
 
     while (input != -1) {
         printf("Select an option :\n");
-        printf("\t1. Print Comment-free source code\n");
-        printf("\t2. Print Token stream\n");
-        printf("\t3. Check for syntactic correctness\n");
-        printf("\t4. Print the syntax tree\n");
+        printf("\t1. Print Token stream\n");
+        printf("\t2. Check for syntactic correctness and print Parse Tree\n");
+        printf("\t3. Print the Abstract syntax tree\n");
+        printf("\t4. Display compression statistics (from parse tree to AST)\n");
+        printf("\t5. Print the symbol table\n");
+        printf("\t6. Compile (Front-end only)\n");
+        printf("\t7. Compile and Generate Assembly\n");
         printf("\n\tEnter -1 to exit\n");
 
         scanf("%d", &input);
 
         switch (input) {
-            case 1:
-                printCommentFreeSource(argv[1]);
-                fprintf(stderr, "\n");
-                break;
+            // case 1:
+            //     printCommentFreeSource(argv[1]);
+            //     fprintf(stderr, "\n");
+            //     break;
 
-            case 2:
+            case 1:
                 fp = fopen(argv[1], "r");
                 lexicalAnalysis(fp, 4096);
                 fclose(fp);
                 fprintf(stderr, "\n");
                 break;
 
-            case 3:
-                parseInputSourceCode(argv[1], &error);
+            case 2:
+                tree = parseInputSourceCode(argv[1], &error);
                 if (error == 0) {
                     fprintf(stderr, "\nThe input is syntactically valid\n\n");
-                }
-
-                error = 0;
-                break;
-            case 4:
-                tree = parseInputSourceCode(argv[1], &error);
-
-                if (error != 1) {
-                    printParseTree(tree, argv[2]);
-                    fprintf(stderr, "\nThe Parse tree has been printed at : %s\n\n", argv[2]);
-                } else
+                    printParseTree(tree, stdout);
+                } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
+                    error = 0;
+                    free(tree);
+                }
+                break;
 
-                error = 0;
+            case 3:
+                tree = parseInputSourceCode(argv[1], &error);
+                if (error == 0) {
+                    AST = (parseTree*)malloc(sizeof(parseTree));
+                    AST->root = createAST(tree->root);
+                    printParseTree(AST, stdout);
+                } else {
+                    fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
+                    error = 0;
+                    free(tree);
+                }
+                break;
 
-                free(tree);
+            case 4:
+                // calculate Compression Stats
+                break;
+
+            case 5:
+                tree = parseInputSourceCode(argv[1], &error);
+                if (error == 0) {
+                    AST = (parseTree*)malloc(sizeof(parseTree));
+                    AST->root = createAST(tree->root);
+                    printf("aa rha\n");
+                    printAllSymbolTables();
+                } else {
+                    fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
+                    error = 0;
+                    free(tree);
+                }
+                break;
+
+            case 6:
+                tree = parseInputSourceCode(argv[1], &error);
+                if (error == 0) {
+                    AST = (parseTree*)malloc(sizeof(parseTree));
+                    AST->root = createAST(tree->root);
+                    performTypeChecking(tree->root);
+                } else {
+                    fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
+                    error = 0;
+                    free(tree);
+                }
+                break;
+
+
+            case 7:
+                tree = parseInputSourceCode(argv[1], &error);
+                if (error == 0) {
+                    AST = (parseTree*)malloc(sizeof(parseTree));
+                    AST->root = createAST(tree->root);
+                    performTypeChecking(tree->root);
+
+                    if (sem_error == 0) {
+                        FILE *f = fopen(argv[2], "w");
+                        generateProgram(AST->root, f);
+                        fclose(f);
+                    } else {
+                        fprintf(stderr, "\n*** ERROR! The Input could NOT be semantically verified!\n\n");
+                    }
+                } else {
+                    fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
+                    error = 0;
+                    free(tree);
+                }
                 break;
 
             case -1:

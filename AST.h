@@ -14,7 +14,10 @@
 extern TypeTable *globalTT;
 extern SymbolTable *globalST;
 extern FunctionTable *globalFT;
-int sem_error;
+extern SymbolTable **allST;
+extern int curr_number;
+extern int curr_number_backup;
+extern int sem_error;
 
 
 treeNode* createAST(treeNode *parseTreeRoot);
@@ -66,5 +69,7 @@ treeNode* reduceExpPrime(treeNode* orig);
 treeNode* reduceAll(treeNode* orig);
 treeNode* reduceBooleanExpr(treeNode* orig);
 
+
+int checkForDuplicates();
 
 #endif

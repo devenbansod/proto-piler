@@ -11,6 +11,9 @@
 #include "AST.h"
 #include "symbolTable.h"
 
+int curr_number = 0;
+int curr_number_backup = 0;
+int sem_error = 0;
 /*
  * Main Function call
  */
@@ -28,9 +31,6 @@ TypeTable *globalTT;
 SymbolTable *globalST;
 FunctionTable *globalFT;
 
-SymbolTable **allST;
-
-int curr_number = 0;
 int curr_max = 9;
 int curr_global_offset = OFFSET_START;
 
@@ -59,6 +59,8 @@ treeNode* reduceProgram(treeNode* root) {
 
 	allST = (SymbolTable**)malloc(sizeof(SymbolTable*) * (curr_max+1));
 	globalST = createSymbolTable(10);
+	strcpy(globalST->scope, "global");
+
 	globalFT = createFunctionTable(10);
 
 	root->children[0] = reduceOtherFunctions(root->children[0]);
@@ -71,6 +73,7 @@ treeNode* reduceProgram(treeNode* root) {
 	root->curr_children = 2;
 
 	checkForDuplicates();
+	curr_number_backup = curr_number;
 	curr_number = 0;
 	curr_global_offset = 0;
 
@@ -82,6 +85,7 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	// No sem_error checking as Main function always present
 	treeNode* mainFuncNode_backup = mainFuncNode;
 	mainFuncNode->st = createSymbolTable(20);
+	strcpy(mainFuncNode->st->scope, "main");
 
 	if (curr_number < curr_max) {
 		allST[curr_number++] = mainFuncNode->st;
@@ -100,9 +104,6 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	free(mainFuncNode_backup);
 	insertFunction(globalFT, "main", 4, NULL, NULL, NULL, NULL, 0, 0);
 
-
-	printSymbolTable(mainFuncNode->st, "main");
-	printSymbolTable(globalST, "global");
 	return mainFuncNode;
 }
 
@@ -151,6 +152,8 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	funcNode->symbol_type = funcNode->children[0]->symbol_type;
 	funcNode->tk_info = funcNode->children[0]->tk_info;
 	funcNode->st = createSymbolTable(20);
+	strcpy(funcNode->st->scope, funcNode->tk_info.lexeme);
+
 	copySymbolTableToChildren(funcNode);
 
 	if (curr_number < curr_max) {
@@ -246,9 +249,6 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		funcNode->children[2]->parent = funcNode;
 
 	funcNode->curr_children = 3;
-
-	printSymbolTable(funcNode->st, funcNode->tk_info.lexeme);
-	printSymbolTable(globalST, "global");
 
 	return funcNode;
 }
@@ -1377,6 +1377,8 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 		// free(backup->children[4]);
 		// free(backup->children[6]);
 		orig->children[1] = reduceBooleanExpr(backup->children[5]);
+		if (orig->children[1])
+			orig->children[1]->parent = orig;
 
 		orig->st = backup->st;
 		orig->curr_children = 2;

@@ -37,8 +37,11 @@ symbolTableElem* lookupSymbolHelper(SymbolTable* st, char *id, int id_len) {
 int generateProgram(treeNode* orig, FILE *fp) {
 	fprintf(fp, "SECTION\t.data\n\n");
 	fprintf(fp, "SECTION\t.text\n\n");
-	fprintf(fp, "global\t_start\n");
-	fprintf(fp, "_start:\n");
+	fprintf(fp, "extern\tprintf\n");
+	fprintf(fp, "extern\tscanf\n");
+	fprintf(fp, "global\tmain\n");
+	fprintf(fp, "main:\n");
+	fprintf(fp, "\tMOV BP, DS\n\n");
 
 	// move to StmtsNode
 	orig = orig->children[1];
@@ -60,7 +63,7 @@ int generateProgram(treeNode* orig, FILE *fp) {
 				break;
 
 			case iterativeStmt:
-				generateConditional(orig->children[i], fp);
+				generateIterative(orig->children[i], fp);
 				break;
 
 			case TK_WRITE:
@@ -72,6 +75,8 @@ int generateProgram(treeNode* orig, FILE *fp) {
 				continue;
 		}
 	}
+
+	return 0;
 }
 
 
@@ -80,6 +85,33 @@ int generateProgram(treeNode* orig, FILE *fp) {
  */
 int generateDeclarations(treeNode* orig, FILE *fp) {
 
+	return 0;
+}
+
+int generateStmt(treeNode* orig, FILE *fp) {
+	switch (orig->symbol_type) {
+		case TK_ASSIGNOP:
+			generateAssign(orig, fp);
+			break;
+
+		case conditionalStmt:
+			generateConditional(orig, fp);
+			break;
+
+		case iterativeStmt:
+			generateIterative(orig, fp);
+			break;
+
+		case TK_WRITE:
+		case TK_READ:
+			generateIO(orig, fp);
+			break;
+
+		default:
+			return -1;
+	}
+
+	return 0;
 }
 
 /*
@@ -110,6 +142,8 @@ int generateAssign(treeNode* orig, FILE *fp) {
 		// the real assign statement
 		fprintf(fp, "\tMOV [%dd], AX\n", BASE_ADDR + looked_up->offset);
 	}
+
+	return 0;
 }
 
 /*
@@ -117,37 +151,173 @@ int generateAssign(treeNode* orig, FILE *fp) {
  */
 int generateIterative(treeNode* orig, FILE *fp) {
 	fprintf(stderr, "Iterative on line %d\n", orig->children[0]->tk_info.line_no);
+
+	char* loop_label = (char*)malloc(sizeof(char) * 5);
+	char* end_label = (char*)malloc(sizeof(char) * 5);
+	char* reg_str = (char*)malloc(sizeof(char) * 5);
+	generateNewLabel(loop_label);
+	generateNewLabel(end_label);
+	getRegFromInt(1, reg_str);
+
+	fprintf(fp, "%s:\n", loop_label);
+	int ret = generateBooleanExpr(orig->children[0], fp, 1);
+
+	fprintf(fp, "\tCMP %s, 1\n", reg_str);
+	fprintf(fp, "\tJNZ %s\n", end_label);
+
+	// first handle first statement inside Then
+	int val = generateStmt(orig->children[1], fp);
+	// loop over otherStmts Node if it is not null
+	if (orig->children[2]) {
+		int i;
+		for (i = 0; i < orig->children[2]->curr_children; i++) {
+			val = generateStmt(orig->children[2]->children[i], fp);
+		}
+	}
+	fprintf(fp, "\tJMP %s\n", loop_label);
+
+	fprintf(fp, "%s:\n", end_label);
+
+	return 0;
 }
+
+
+/*
+ *
+ */
+int
+generateBooleanExpr(treeNode* orig, FILE *fp, int reg) {
+	if (orig->symbol_type == TK_AND) {
+		// condition1 && condition2
+		char* reg_str = (char*)malloc(sizeof(char) * 3);
+		char* reg_str_temp = (char*)malloc(sizeof(char) * 3);
+
+		int ret1 = generateBooleanExpr(orig->children[0], fp, reg);
+		getRegFromInt(ret1, reg_str);
+		fprintf(fp, "\tPUSH %s\n", reg_str);
+
+		int ret2 = generateBooleanExpr(orig->children[1], fp, reg);
+		getRegFromInt(ret2, reg_str_temp);
+
+		getRegFromInt((ret2 + 1) % 4, reg_str);
+		fprintf(fp, "\tPOP %s\n", reg_str);
+
+		fprintf(fp, "\tAND %s, %s\n", reg_str, reg_str_temp);
+
+		if ((ret2 + 1) % 4 != reg) {
+			getRegFromInt(reg, reg_str_temp);
+			fprintf(fp, "\tMOV %s, %s\n", reg_str_temp, reg_str);
+		}
+
+		return reg;
+
+	} else if (orig->symbol_type == TK_OR) {
+		// condition1 || condition2
+		char* reg_str = (char*)malloc(sizeof(char) * 3);
+		char* reg_str_temp = (char*)malloc(sizeof(char) * 3);
+
+		int ret1 = generateBooleanExpr(orig->children[0], fp, reg);
+		getRegFromInt(ret1, reg_str);
+		fprintf(fp, "\tPUSH %s\n", reg_str);
+
+		int ret2 = generateBooleanExpr(orig->children[1], fp, reg);
+		getRegFromInt(ret2, reg_str_temp);
+
+		getRegFromInt((ret2 + 1) % 4, reg_str);
+		fprintf(fp, "\tPOP %s\n", reg_str);
+
+		fprintf(fp, "\tOR %s, %s\n", reg_str, reg_str_temp);
+
+		if ((ret2 + 1) % 4 != reg) {
+			getRegFromInt(reg, reg_str_temp);
+			fprintf(fp, "\tMOV %s, %s\n", reg_str_temp, reg_str);
+		}
+
+		return reg;
+	} else {
+		// relational operator
+		return generateRelational(orig, fp, reg);
+	}
+}
+
 
 /*
  *
  */
 int generateConditional(treeNode* orig, FILE *fp) {
-	fprintf(stderr, "Conditional on line %d\n", orig->children[0]->tk_info.line_no);
+	fprintf(stderr, "Conditional on line %d with %d\n", orig->children[0]->tk_info.line_no, orig->curr_children);
 
-	if (orig->symbol_type == TK_AND) {
-		// condition1 && condition2
-		char* true_label = (char*)malloc(sizeof(char) * 5);
-		char* false_label = (char*)malloc(sizeof(char) * 5);
+	// boolean expr
+	int ret = generateBooleanExpr(orig->children[0], fp, 1);
 
-	} else if (orig->symbol_type == TK_AND) {
-		// condition1 || condition2
-	} else {
-		// relational operator
+	char* true_label = (char*)malloc(sizeof(char) * 5);
+	char* false_label = (char*)malloc(sizeof(char) * 5);
+	char* end_label = (char*)malloc(sizeof(char) * 5);
+
+	generateNewLabel(true_label);
+	generateNewLabel(false_label);
+	generateNewLabel(end_label);
+
+	char* reg_str = (char*)malloc(sizeof(char) * 3);
+	getRegFromInt(ret, reg_str);
+
+	fprintf(fp, "\tCMP %s, 1\n", reg_str);
+	fprintf(fp, "\tJNZ %s\n", false_label);
+	// generate for THEN Statements
+	fprintf(fp, "%s:\n", true_label);
+
+	// first handle first statement inside Then
+	int val = generateStmt(orig->children[1], fp);
+	// loop over otherStmts Node if it is not null
+	if (orig->children[2]) {
+		int i;
+		for (i = 0; i < orig->children[2]->curr_children; i++) {
+			val = generateStmt(orig->children[2]->children[i], fp);
+		}
 	}
+	fprintf(fp, "\tJMP %s\n", end_label);
+
+	// generate for ELSE statements
+	fprintf(fp, "%s:\n", false_label);
+
+	// check if TK_ELSE Node exists
+	if (orig->curr_children > 3
+		&& orig->children[3]->symbol_type == TK_ELSE
+	) {
+		// first handle first statement inside Then
+		int val = generateStmt(orig->children[4], fp);
+		// loop over otherStmts Node if it is not null
+		if (orig->children[5]) {
+			int i;
+			for (i = 0; i < orig->children[5]->curr_children; i++) {
+				val = generateStmt(orig->children[5]->children[i], fp);
+			}
+		}
+	}
+
+	fprintf(fp, "%s:\n", end_label);
+	return 0;
 }
 
 /*
  *
  */
-int generateRelational(treeNode* orig, FILE *fp, char* true_label, char* false_label) {
+int generateRelational(treeNode* orig, FILE *fp, int reg) {
+
+	char* true_label = (char*)malloc(sizeof(char) * 5);
+	char* false_label = (char*)malloc(sizeof(char) * 5);
+	char* end_label = (char*)malloc(sizeof(char) * 5);
+	generateNewLabel(true_label);
+	generateNewLabel(false_label);
+
+	char* reg_str = (char*)malloc(sizeof(char) * 3);
+	getRegFromInt((reg + 1) % 4, reg_str);
+	fprintf(fp, "\tMOV %s, 1\n", reg_str);
 
 	if (orig->children[0]->symbol_type == TK_NUM
 		&& orig->children[1]->symbol_type == TK_NUM
 	) {
-		char* reg_str = (char*)malloc(sizeof(char) * 3);
 		getRegFromInt(1, reg_str);
-
 		fprintf(fp, "\tMOV %s, %sd\n", reg_str, orig->children[0]->tk_info.lexeme);
 
 		fprintf(fp, "\tCMP %s, %s\n",
@@ -212,29 +382,32 @@ int generateRelational(treeNode* orig, FILE *fp, char* true_label, char* false_l
 		);
 	}
 
-
-
 	if (orig->symbol_type == TK_LT) {
-		fprintf(fp, "JL %s\n", true_label);
-		fprintf(fp, "JMP %s\n", false_label);
+		fprintf(fp, "\tJL %s\n", true_label);
 	} else if (orig->symbol_type == TK_LE) {
-		fprintf(fp, "JLE %s\n", true_label);
-		fprintf(fp, "JMP %s\n", false_label);
+		fprintf(fp, "\tJLE %s\n", true_label);
 	} else if (orig->symbol_type == TK_GT) {
-		fprintf(fp, "JG %s\n", true_label);
-		fprintf(fp, "JMP %s\n", false_label);
+		fprintf(fp, "\tJG %s\n", true_label);
 	} else if (orig->symbol_type == TK_GE) {
-		fprintf(fp, "JGE %s\n", true_label);
-		fprintf(fp, "JMP %s\n", false_label);
+		fprintf(fp, "\tJGE %s\n", true_label);
 	} else if (orig->symbol_type == TK_EQ) {
-		fprintf(fp, "JE %s\n", true_label);
-		fprintf(fp, "JMP %s\n", false_label);
+		fprintf(fp, "\tJE %s\n", true_label);
 	} else {
-		fprintf(fp, "JNE %s\n", true_label);
-		fprintf(fp, "JMP %s\n", false_label);
+		fprintf(fp, "\tJNE %s\n", true_label);
 	}
 
-	return 1;
+	fprintf(fp, "%s:\n", false_label);
+	getRegFromInt((reg + 1) % 4, reg_str);
+
+	char *reg_str_temp = (char*)malloc(sizeof(char) * 3);
+	getRegFromInt(reg, reg_str_temp);
+
+	fprintf(fp, "\tMOV %s, 0\n", reg_str);
+
+	fprintf(fp, "%s:\n", true_label);
+	fprintf(fp, "\tMOV %s, %s\n", reg_str_temp, reg_str);
+
+	return reg;
 }
 
 /*
@@ -242,6 +415,9 @@ int generateRelational(treeNode* orig, FILE *fp, char* true_label, char* false_l
  */
 int generateIO(treeNode* orig, FILE *fp) {
 	fprintf(stderr, "IO on line %d\n", orig->tk_info.line_no);
+
+
+	return 0;
 }
 
 int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
@@ -287,7 +463,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				BASE_ADDR + looked_up->offset
 			);
 			fprintf(
-				fp, "\tSUB %s, %sd\n",
+				fp, "\tADD %s, %sd\n",
 				reg_str,
 				orig->children[1]->tk_info.lexeme
 			);
@@ -1171,6 +1347,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 		}
 	}
 
+	return 0;
 }
 
 int getRegFromInt(int ret, char *reg) {

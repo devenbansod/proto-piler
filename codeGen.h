@@ -33,6 +33,8 @@ int generateDeclarations(treeNode* orig, FILE *fp);
 int generateAssign(treeNode* orig, FILE *fp);
 int generateIterative(treeNode* orig, FILE *fp);
 int generateConditional(treeNode* orig, FILE *fp);
+int generateBooleanExpr(treeNode* orig, FILE *fp, int reg);
+int generateRelational(treeNode* orig, FILE *fp, int reg);
 int generateIO(treeNode* orig, FILE *fp);
 
 #endif

@@ -62,6 +62,7 @@ struct symbolTable {
     symbolTableElem **symbolArray;
     int size;
     int curr_size;
+    char scope[10];
 };
 
 typedef struct symbolTable SymbolTable;

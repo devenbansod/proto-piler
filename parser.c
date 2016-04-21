@@ -10,9 +10,6 @@
 #include "parserDef.h"
 #include "lexer.h"
 #include "stack.h"
-#include "AST.h"
-#include "typeChecker.h"
-#include "codeGen.h"
 
 /*
  * FUNCTIONS RELATED TO FIRST FOLLOW SET
@@ -812,8 +809,8 @@ void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
  * Print the parse Tree in file named char* filename
  *
  */
-void printParseTree(parseTree *new_tree, char* filename) {
-    FILE *out_file = fopen(filename, "w");
+void printParseTree(parseTree *new_tree, FILE* filename) {
+    FILE *out_file = filename;
 
     // print the Header line
     fprintf(out_file, "\t\t\t\t\t\t\t\t\t************** PARSE TREE ***************\n");
@@ -1066,13 +1063,6 @@ parseTree* parseInputSourceCode(
         fprintf(stderr, "\nCompiled Successfully: \n"
             "Input source code is syntactically correct!!\n\n"
         );
-        new_tree->root = createAST(new_tree->root);
-        performTypeChecking(new_tree->root);
-
-        if (sem_error == 0) {
-            FILE *f = fopen("Abc.txt", "w");
-            generateProgram(new_tree->root, f);
-        }
     } else if (*error == 0 && errorRecovery == 1) {
         fprintf(stderr, "\nCompiled Successfully: \n"
         );
