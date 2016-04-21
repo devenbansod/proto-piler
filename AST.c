@@ -258,14 +258,14 @@ treeNode* reduceInputPar(treeNode* inputParNode) {
 	treeNode* back_up = inputParNode;
 
 	// remove unnecesarry nodes
-	// free(inputParNode->children[0]);
-	// free(inputParNode->children[1]);
-	// free(inputParNode->children[2]);
-	// free(inputParNode->children[3]);
-	// free(inputParNode->children[5]);
+	free(inputParNode->children[0]);
+	free(inputParNode->children[1]);
+	free(inputParNode->children[2]);
+	free(inputParNode->children[3]);
+	free(inputParNode->children[5]);
 
 	inputParNode = reduceParameterList(inputParNode->children[4]);
-	// free(back_up);
+	free(back_up);
 
 	return inputParNode;
 }
@@ -274,11 +274,11 @@ treeNode* reduceOutputPar(treeNode* outputParNode) {
 	treeNode* back_up = outputParNode;
 
 	// remove unnecesarry nodes
-	// free(outputParNode->children[0]);
-	// free(outputParNode->children[1]);
-	// free(outputParNode->children[2]);
-	// free(outputParNode->children[3]);
-	// free(outputParNode->children[5]);
+	free(outputParNode->children[0]);
+	free(outputParNode->children[1]);
+	free(outputParNode->children[2]);
+	free(outputParNode->children[3]);
+	free(outputParNode->children[5]);
 
 	if (outputParNode->children[0]->symbol_type == eps
 		|| outputParNode->children[4]->symbol_type == eps
@@ -289,7 +289,7 @@ treeNode* reduceOutputPar(treeNode* outputParNode) {
 	} else {
 		outputParNode = reduceParameterList(outputParNode->children[4]);
 	}
-
+	free(back_up);
 	return outputParNode;
 }
 
@@ -327,11 +327,10 @@ treeNode* reduceParameterList(treeNode* paramListNode) {
 			orig->children[i-1]->parent = orig;
 			orig->children[i-2]->parent = orig;
 
-			// free(remainList->children[1]);
 			remainList = remainList->children[2];
 		}
 		j++;
-		// free(remainList_backup);
+		free(remainList_backup);
 	}
 
 	orig->curr_children = i;
@@ -354,7 +353,7 @@ treeNode* reduceDatatype(treeNode* datatypeNode) {
 	datatypeNode->curr_children = 0;
 
 	// free(datatypeNode_backup->children[0]);
-	// free(datatypeNode_backup);
+	free(datatypeNode_backup);
 
 	return datatypeNode;
 }
@@ -417,7 +416,7 @@ treeNode* reduceTypeDefns(treeNode* orig) {
 		copySymbolTableToChildren(defns);
 		orig->children[i++] = reduceTypeDefn(defns->children[0]);
 		defns = defns->children[1];
-		// free(defns_backup);
+		free(defns_backup);
 	}
 
 	orig->curr_children = i;

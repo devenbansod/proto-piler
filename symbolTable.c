@@ -149,7 +149,7 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type, int* offset)
     if (looked_up) {
         for (i = 0; i < looked_up->fields_count; i++) {
             *offset += looked_up->width[i];
-            printf("HI\n");
+            // printf("HI\n");
         }
 
         // for real and int
