@@ -37,19 +37,19 @@ symbolTableElem* lookupSymbolHelper(SymbolTable* st, char *id, int id_len) {
  */
 int generateProgram(treeNode* orig, FILE *fp) {
 	fprintf(fp, "SECTION\t.data\n\n");
-	fprintf(fp, "data_start:");
 	fprintf(fp, "\tformatin db \"%%d\", 0\n");
     fprintf(fp, "\tformatout db \"%%d\", 10, 0 ; newline, nul terminator\n");
+	fprintf(fp, "datastart:\n");
 
     fprintf(fp, "SECTION .bss\n");
-    fprintf(fp, "buffer_start: resb %d\n", curr_global_offset_backup * 2);
+    fprintf(fp, "bufferstart: resb %d\n", curr_global_offset_backup * 2);
 
 	fprintf(fp, "SECTION\t.text\n\n");
 	fprintf(fp, "extern\tprintf\n");
 	fprintf(fp, "extern\tscanf\n");
 	fprintf(fp, "global\tmain\n");
 	fprintf(fp, "main:\n");
-	fprintf(fp, "\tMOV EBP, buffer_start\n\n");
+	fprintf(fp, "\tMOV EBP, bufferstart\n\n");
 
 	// move to StmtsNode
 	orig = orig->children[1];
@@ -84,6 +84,9 @@ int generateProgram(treeNode* orig, FILE *fp) {
 		}
 	}
 
+	fprintf(fp, "\tret\n");
+
+	curr_label = 0;
 	return 0;
 }
 
@@ -160,17 +163,17 @@ int generateAssign(treeNode* orig, FILE *fp) {
 	if (orig->children[1]->symbol_type == TK_NUM) {
 		// the real assign statement
 		fprintf(fp,
-			"\tMOV word [EBP + %dd], %s\n",
+			"\tMOV dword [EBP + %dd], %s\n",
 			BASE_ADDR + looked_up->offset + offset,
 			orig->children[1]->tk_info.lexeme
 		);
 	} else {
 		// since assign will always be from a expr to memory
-		// we always generate MOV 1stChild, AX i.e. reg = 1 as argument
+		// we always generate MOV 1stChild, EAX i.e. reg = 1 as argument
 		int ret = generateArithmeticExpr(orig->children[1], fp, 1);
 
 		// the real assign statement
-		fprintf(fp, "\tMOV word [EBP + %dd], AX\n", BASE_ADDR + looked_up->offset + offset);
+		fprintf(fp, "\tMOV dword [EBP + %dd], EAX\n", BASE_ADDR + looked_up->offset + offset);
 	}
 
 	return 0;
@@ -363,7 +366,7 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
 			strlen(orig->children[1]->tk_info.lexeme)
 		);
 
-		fprintf(fp, "\tCMP %s, word [EBP + %dd]\n",
+		fprintf(fp, "\tCMP %s,  [EBP + %dd]\n",
 			orig->children[0]->tk_info.lexeme,
 			BASE_ADDR + looked_up->offset
 		);
@@ -378,7 +381,7 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
 		char* reg_str = (char*)malloc(sizeof(char) * 3);
 		getRegFromInt(1, reg_str);
 
-		fprintf(fp, "\tMOV %s, word [EBP + %dd]\n",
+		fprintf(fp, "\tMOV %s,  [EBP + %dd]\n",
 			reg_str,
 			BASE_ADDR + looked_up->offset
 		);
@@ -395,7 +398,7 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
 		char* reg_str = (char*)malloc(sizeof(char) * 3);
 		getRegFromInt(1, reg_str);
 
-		fprintf(fp, "\tMOV %s, word [EBP + %dd]\n",
+		fprintf(fp, "\tMOV %s,  [EBP + %dd]\n",
 			reg_str,
 			BASE_ADDR + looked_up->offset
 		);
@@ -406,7 +409,7 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
 			strlen(orig->children[1]->tk_info.lexeme)
 		);
 
-		fprintf(fp, "\tCMP %s, word [EBP + %dd]\n",
+		fprintf(fp, "\tCMP %s,  [EBP + %dd]\n",
 			reg_str,
 			BASE_ADDR + looked_up->offset
 		);
@@ -446,11 +449,86 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
 int generateIO(treeNode* orig, FILE *fp) {
 	fprintf(stderr, "IO on line %d\n", orig->tk_info.line_no);
 
-	fprintf(fp, "MOV EBP, data_start\n");
+	if (orig->symbol_type == TK_WRITE) {
+		// get value from offset into reg
+		// push it
+		// change EBP value from bufferstart to datastart
+		// push address of formatout
 
-	
+		int offset = 0;
+		symbolTableElem* looked_up = NULL;
 
-	fprintf(fp, "MOV EBP, buffer_start\n");
+		if (orig->children[0]->symbol_type == allVar) {
+			looked_up = lookupSymbolHelper(
+				orig->st, orig->children[0]->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->children[0]->tk_info.lexeme)
+			);
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+			int i = 0;
+
+			for (i = 0; i < looked_up_type->fields_count; i++) {
+				if (strcpy(
+					looked_up_type->field_names[i], orig->children[0]->children[1]->tk_info.lexeme)
+				) {
+					offset = looked_up_type->offset[i];
+				}
+			}
+		} else {
+			looked_up = lookupSymbolHelper(
+				orig->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+		}
+
+		fprintf(fp, "\tMOV EAX, [EBP + %dd]\n", BASE_ADDR + looked_up->offset + offset);
+
+		fprintf(fp,
+		  	"\tpush EAX\n"
+		    "\tpush formatout\n"
+		    "\tcall printf\n"
+		    "\tadd esp, 8 ; remove parameters\n"
+	    );
+	} else {
+		int offset = 0;
+		symbolTableElem* looked_up = NULL;
+
+		if (orig->children[0]->symbol_type == allVar) {
+			looked_up = lookupSymbolHelper(
+				orig->st, orig->children[0]->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->children[0]->tk_info.lexeme)
+			);
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+			int i = 0;
+
+			for (i = 0; i < looked_up_type->fields_count; i++) {
+				if (strcpy(
+					looked_up_type->field_names[i], orig->children[0]->children[1]->tk_info.lexeme)
+				) {
+					offset = looked_up_type->offset[i];
+				}
+			}
+		} else {
+			looked_up = lookupSymbolHelper(
+				orig->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+		}
+
+		fprintf(fp, "\tMOV EAX, EBP\n");
+		fprintf(fp, "\tADD EAX, %dd\n", BASE_ADDR + looked_up->offset + offset);
+
+		fprintf(fp,
+		  	"\tpush EAX\n"
+		    "\tpush formatin\n"
+		    "\tcall scanf\n"
+		    "\tadd esp, 8 ; remove parameters\n"
+	    );
+	}
+
 	return 0;
 }
 
@@ -469,14 +547,14 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
 
 			looked_up = lookupSymbolHelper(
 				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tADD %s, word [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tADD %s,  [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
 
 			return reg;
 		} else if (orig->children[0]->symbol_type == TK_ID
@@ -492,7 +570,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 
 			fprintf(fp,
-				"\tMOV %s, word [EBP + %dd]\n",
+				"\tMOV %s,  [EBP + %dd]\n",
 				reg_str,
 				BASE_ADDR + looked_up->offset
 			);
@@ -522,7 +600,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n",
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n",
 				reg_str,
 				BASE_ADDR + looked_up->offset
 			);
@@ -565,7 +643,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				orig->children[0]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tADD %s, word [EBP + %dd]\n", reg_str,
+			fprintf(fp, "\tADD %s,  [EBP + %dd]\n", reg_str,
 				BASE_ADDR + looked_up->offset
 			);
 
@@ -634,7 +712,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 			getRegFromInt(ret, reg_str_temp);
 
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n",
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n",
 				reg_str,
 				BASE_ADDR + looked_up->offset
 			);
@@ -679,14 +757,14 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
 
 			looked_up = lookupSymbolHelper(
 				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tSUB %s, word [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tSUB %s,  [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
 
 			return reg;
 		} else if (orig->children[0]->symbol_type == TK_ID
@@ -701,7 +779,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 
 			fprintf(fp,
-				"\tMOV %s, word [EBP + %dd]\n",
+				"\tMOV %s,  [EBP + %dd]\n",
 				reg_str,
 				BASE_ADDR + looked_up->offset
 			);
@@ -730,7 +808,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n",
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n",
 				reg_str,
 				BASE_ADDR + looked_up->offset
 			);
@@ -773,7 +851,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				orig->children[0]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tSUB %s, word [EBP + %dd]\n", reg_str,
+			fprintf(fp, "\tSUB %s,  [EBP + %dd]\n", reg_str,
 				BASE_ADDR + looked_up->offset
 			);
 
@@ -831,7 +909,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 			getRegFromInt(reg, reg_str);
 
-			fprintf(fp, "\tSUB %s, word [EBP + %dd]\n",
+			fprintf(fp, "\tSUB %s,  [EBP + %dd]\n",
 				reg_str, BASE_ADDR + looked_up->offset
 			);
 
@@ -872,18 +950,18 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
 
 			looked_up = lookupSymbolHelper(
 				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMUL word [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tMUL  [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
 
 			if (reg != 1) {
 				getRegFromInt(reg, reg_str);
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -900,7 +978,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(1, reg_str);
 
 			fprintf(fp,
-				"\tMOV %s, word [EBP + %dd]\n",
+				"\tMOV %s,  [EBP + %dd]\n",
 				reg_str,
 				BASE_ADDR + looked_up->offset
 			);
@@ -911,7 +989,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 
 			if (reg != 1) {
 				getRegFromInt(reg, reg_str);
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -934,7 +1012,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV AX, word [EBP + %dd]\n",
+			fprintf(fp, "\tMOV EAX,  [EBP + %dd]\n",
 				BASE_ADDR + looked_up->offset
 			);
 
@@ -943,7 +1021,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -964,7 +1042,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -984,12 +1062,12 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				orig->children[0]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tMUL word [EBP + %dd]\n",
+			fprintf(fp, "\tMUL  [EBP + %dd]\n",
 				BASE_ADDR + looked_up->offset
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1006,7 +1084,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 			getRegFromInt(ret, reg_str_temp);
 
-			fprintf(fp, "\tMOV AX, %sd\n",
+			fprintf(fp, "\tMOV EAX, %sd\n",
 				orig->children[0]->tk_info.lexeme
 			);
 
@@ -1015,7 +1093,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1033,7 +1111,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 			getRegFromInt(ret, reg_str_temp);
 
-			fprintf(fp, "\tMOV AX, %s\n",
+			fprintf(fp, "\tMOV EAX, %s\n",
 				reg_str_temp
 			);
 
@@ -1048,7 +1126,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1065,7 +1143,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 			getRegFromInt(ret, reg_str_temp);
 
-			fprintf(fp, "\tMOV AX, %s\n",
+			fprintf(fp, "\tMOV EAX, %s\n",
 				reg_str_temp
 			);
 
@@ -1074,7 +1152,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 			getRegFromInt((ret+1) % 4, reg_str_temp);
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n",
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n",
 				reg_str_temp,
 				BASE_ADDR + looked_up->offset
 			);
@@ -1084,7 +1162,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1107,14 +1185,14 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt((reg + 1) % 4, reg_str_temp);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV AX, %s\n", reg_str);
+				fprintf(fp, "\tMOV EAX, %s\n", reg_str);
 			}
 
 			fprintf(fp, "POP %s\n", reg_str_temp);
 			fprintf(fp, "\tMUL %s\n", reg_str_temp);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1132,18 +1210,18 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n", reg_str, BASE_ADDR + looked_up->offset);
 
 			looked_up = lookupSymbolHelper(
 				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tDIV word [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tDIV  [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
 
 			if (reg != 1) {
 				getRegFromInt(reg, reg_str);
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1160,7 +1238,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(1, reg_str);
 
 			fprintf(fp,
-				"\tMOV %s, word [EBP + %dd]\n",
+				"\tMOV %s,  [EBP + %dd]\n",
 				reg_str,
 				BASE_ADDR + looked_up->offset
 			);
@@ -1171,7 +1249,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 
 			if (reg != 1) {
 				getRegFromInt(reg, reg_str);
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1194,7 +1272,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMOV AX, word [EBP + %dd]\n",
+			fprintf(fp, "\tMOV EAX,  [EBP + %dd]\n",
 				BASE_ADDR + looked_up->offset
 			);
 
@@ -1203,7 +1281,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1224,7 +1302,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1244,12 +1322,12 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				orig->children[0]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tDIV word [EBP + %dd]\n",
+			fprintf(fp, "\tDIV  [EBP + %dd]\n",
 				BASE_ADDR + looked_up->offset
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1266,7 +1344,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 			getRegFromInt(ret, reg_str_temp);
 
-			fprintf(fp, "\tMOV AX, %sd\n",
+			fprintf(fp, "\tMOV EAX, %sd\n",
 				orig->children[0]->tk_info.lexeme
 			);
 
@@ -1275,7 +1353,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1293,7 +1371,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 			getRegFromInt(ret, reg_str_temp);
 
-			fprintf(fp, "\tMOV AX, %s\n",
+			fprintf(fp, "\tMOV EAX, %s\n",
 				reg_str_temp
 			);
 
@@ -1308,7 +1386,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1325,7 +1403,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(reg, reg_str);
 			getRegFromInt(ret, reg_str_temp);
 
-			fprintf(fp, "\tMOV AX, %s\n",
+			fprintf(fp, "\tMOV EAX, %s\n",
 				reg_str_temp
 			);
 
@@ -1334,7 +1412,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 			getRegFromInt((ret+1) % 4, reg_str_temp);
-			fprintf(fp, "\tMOV %s, word [EBP + %dd]\n",
+			fprintf(fp, "\tMOV %s,  [EBP + %dd]\n",
 				reg_str_temp,
 				BASE_ADDR + looked_up->offset
 			);
@@ -1344,7 +1422,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1367,14 +1445,14 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt((reg + 1) % 4, reg_str_temp);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV AX, %s\n", reg_str);
+				fprintf(fp, "\tMOV EAX, %s\n", reg_str);
 			}
 
 			fprintf(fp, "POP %s\n", reg_str_temp);
 			fprintf(fp, "\tDIV %s\n", reg_str_temp);
 
 			if (reg != 1) {
-				fprintf(fp, "\tMOV %s, AX\n", reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
 			}
 
 			return reg;
@@ -1387,7 +1465,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 int getRegFromInt(int ret, char *reg) {
 	switch (ret) {
 		case 1:
-			strcpy(reg, "AX");
+			strcpy(reg, "EAX");
 			break;
 
 		case 2:
@@ -1415,7 +1493,7 @@ int getRegFromInt(int ret, char *reg) {
 /*
 	Assign statement
 	================
-	Calculate the results from left side (recursively) in AX
+	Calculate the results from left side (recursively) in EAX
 	then
-		MOV OFFSET_OF_RHS, AX
+		MOV OFFSET_OF_RHS, EAX
  */
