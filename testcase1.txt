@@ -1,11 +1,12 @@
 %Test Case 1
 %Following function computes the sum of user defined real numbers
 %The variable d3 maintains the sum of values
+
 _sumN  input parameter list [int d5cc34]
 output parameter list[real d3, int d5cc];
 	type int : b5b567;
 	type real : c3bd;
-	type real : b3;
+	% type real : b3;
 	b5b567 <--- 1;
 	d3 <--- 0.00;
 	while ( b5b567 <= d5cc34)
@@ -13,8 +14,7 @@ output parameter list[real d3, int d5cc];
 		d3 <--- d3 + c3bd;
 		b5b567 <--- b5b567 + 1 * 2 / (b5b567);
 	endwhile
-
-	[d3, d5cc]<--- call _sumN with parameters [d5cc34];
+	% [d3, d5cc]<--- call _sumN with parameters [d5cc34];
 	return [d3c, d5cc];
 end
 
@@ -24,7 +24,7 @@ _main
 	type real :c4bd55;
 	b3 <--- 7;
 	[c4bd55, b3]<--- call _sumN with parameters [c4bd56];
-	write(c4bd56.value);
+	write(c4bd56);
 	return;
 end
 

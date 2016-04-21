@@ -34,6 +34,9 @@ struct grammarRule
 typedef struct grammarRule grammarRule;
 
 
+extern int treeSize;
+extern int numberNodes;
+
 // Row-index is the Non-terminal on top of stack
 // Column-index is the look-ahead symbol read
 // Value refers to a particular grammar rule.

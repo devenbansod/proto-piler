@@ -44,7 +44,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			if (looked_up == NULL) {
 				fprintf(
 					stderr,
-					"The symbol %s is not declared before it use on %d\n",
+					"*** ERROR: The symbol %s is not declared before it use on %d\n",
 					orig->tk_info.lexeme,
 					orig->tk_info.line_no
 				);
@@ -70,7 +70,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			if (looked_up == NULL) {
 				fprintf(
 					stderr,
-					"The symbol %s is not declared before it use on %d\n",
+					"*** ERROR: The symbol %s is not declared before it use on %d\n",
 					orig->children[0]->tk_info.lexeme,
 					orig->children[0]->tk_info.line_no
 				);
@@ -98,7 +98,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			if (typeT_lookup->fields_count == 0) {
 				fprintf(
 					stderr,
-					"The variable %s is not a record!\n",
+					"*** ERROR: The variable %s is not a record!\n",
 					looked_up->lexeme
 				);
 				return -1;
@@ -121,7 +121,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			}
 
 			fprintf(stderr,
-				"The field %s is not declared as part of Record type %s\n",
+				"*** ERROR: The field %s is not declared as part of Record type %s\n",
 				orig->children[1]->tk_info.lexeme, typeT_lookup->type_name
 			);
 			sem_error++;
@@ -203,7 +203,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_next, type_name_already) != 0) {
 					fprintf(
 						stderr,
-						"The types of operands do not match on line - %d\n",
+						"*** ERROR: The types of operands do not match on line - %d\n",
 						orig->children[i]->tk_info.line_no
 					);
 					return -1;
@@ -217,7 +217,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				) {
 					fprintf(
 						stderr,
-						"Invalid operation on line - %d!"
+						"*** ERROR:  Invalid operation on line - %d!"
 						" Only scalar multiplications to records is allowed\n",
 						orig->children[i]->tk_info.line_no
 					);
@@ -234,7 +234,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				else
 					fprintf(
 						stderr,
-						"The types of operands do not match on line - %d\n",
+						"*** ERROR: The types of operands do not match on line - %d\n",
 						orig->children[i]->tk_info.line_no
 					);
 					i = 1;
@@ -242,7 +242,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_next, type_name_already) != 0) {
 					fprintf(
 						stderr,
-						"The types of operands do not match on line - %d\n",
+						"*** ERROR: The types of operands do not match on line - %d\n",
 						orig->children[i]->tk_info.line_no
 					);
 					return -1;
@@ -276,7 +276,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			|| strcmp(type_name_already, "int") == 0)
 		) {
 			fprintf(stderr,
-				"The ID %s on line %d does not have a record type\n",
+				"*** ERROR: The ID %s on line %d does not have a record type\n",
 				orig->children[0]->children[0]->tk_info.lexeme,
 				orig->children[0]->children[0]->tk_info.line_no
 			);
@@ -307,7 +307,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			}
 
 			fprintf(stderr,
-				"The field %s is not declared as part of Record type %s\n",
+				"*** ERROR: The field %s is not declared as part of Record type %s\n",
 				orig->children[0]->children[1]->tk_info.lexeme, orig->children[0]->children[0]->tk_info.lexeme
 			);
 			sem_error++;
@@ -317,7 +317,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			&& strcmp(type_name_already, "int") != 0)
 		) {
 			fprintf(stderr,
-				"The ID %s on line %d has a record type and can not be directly printed\n",
+				"*** ERROR: The ID %s on line %d has a record type and can not be directly printed\n",
 				orig->children[0]->children[0]->tk_info.lexeme,
 				orig->children[0]->children[0]->tk_info.line_no
 			);
@@ -349,7 +349,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				|| strcmp(type_name_already, "int") == 0)
 			) {
 				fprintf(stderr,
-					"The ID %s on line %d does not have a record type\n",
+					"*** ERROR: The ID %s on line %d does not have a record type\n",
 					orig->children[0]->tk_info.lexeme,
 					orig->children[0]->tk_info.line_no
 				);
@@ -360,7 +360,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				&& strcmp(type_name_already, "int") != 0)
 			) {
 				fprintf(stderr,
-					"The ID %s on line %d has a record type and can not be directly read\n",
+					"*** ERROR: The ID %s on line %d has a record type and can not be directly read\n",
 					orig->children[0]->tk_info.lexeme,
 					orig->children[0]->tk_info.line_no
 				);
@@ -377,7 +377,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				|| strcmp(type_name_already, "int") == 0)
 			) {
 				fprintf(stderr,
-					"The ID %s on line %d does not have a record type\n",
+					"*** ERROR: The ID %s on line %d does not have a record type\n",
 					orig->children[0]->children[0]->tk_info.lexeme,
 					orig->children[0]->children[0]->tk_info.line_no
 				);
@@ -388,7 +388,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				&& strcmp(type_name_already, "int") != 0)
 			) {
 				fprintf(stderr,
-					"The ID %s on line %d has a record type and can not be directly read\n",
+					"*** ERROR: The ID %s on line %d has a record type and can not be directly read\n",
 					orig->children[0]->children[0]->tk_info.lexeme,
 					orig->children[0]->children[0]->tk_info.line_no
 				);
@@ -421,7 +421,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				}
 
 				fprintf(stderr,
-					"The field %s is not declared as part of Record type %s\n",
+					"*** ERROR: The field %s is not declared as part of Record type %s\n",
 					orig->children[0]->children[1]->tk_info.lexeme, typeT_lookup->type_name
 				);
 				sem_error++;
@@ -463,7 +463,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"Type sem_error in Boolean expression on line 1 - %d\n",
+						"*** ERROR: Type sem_error in Boolean expression on line 1 - %d\n",
 						orig->tk_info.line_no
 					);
 					return -1;
@@ -483,7 +483,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"Type sem_error in Boolean expression on line 2 - %d\n",
+						"*** ERROR: Type sem_error in Boolean expression on line 2 - %d\n",
 						orig->tk_info.line_no
 					);
 					return -1;
@@ -503,7 +503,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"Type sem_error in Boolean expression on line 3 - %d\n",
+						"*** ERROR: Type sem_error in Boolean expression on line 3 - %d\n",
 						orig->tk_info.line_no
 					);
 					return -1;
@@ -511,7 +511,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			}
 		} else {
 			fprintf(stderr,
-				"Boolean expression must have only boolean, int or real"
+				"*** ERROR: Boolean expression must have only boolean, int or real"
 				" data types! Records are not allowed!\n"
 			);
 			sem_error++;
@@ -549,7 +549,7 @@ int performTypeChecking (treeNode* orig) {
 		} else {
 			fprintf(
 				stderr,
-				"The types of operands do not match on line - %d\n",
+				"*** ERROR: The types of operands do not match on line - %d\n",
 				orig->tk_info.line_no
 			);
 
@@ -570,7 +570,7 @@ int performTypeChecking (treeNode* orig) {
 		} else {
 			fprintf(
 				stderr,
-				"The types of operands do not match on line - %d\n",
+				"*** ERROR: The types of operands do not match on line - %d\n",
 				orig->tk_info.line_no
 			);
 
@@ -583,7 +583,7 @@ int performTypeChecking (treeNode* orig) {
 		int i = 0;
 		for(i = 0; i < orig->curr_children; i++) {
 			if (performTypeChecking(orig->children[i]) == -1) {
-				printf("Type checking failed here %d\n", orig->children[i]->symbol_type);
+				fprintf(stderr, "*** ERROR: Type checking failed here %d\n", orig->children[i]->symbol_type);
 			}
 		}
 	}

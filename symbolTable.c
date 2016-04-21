@@ -149,7 +149,7 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type, int* offset)
     if (looked_up) {
         for (i = 0; i < looked_up->fields_count; i++) {
             *offset += looked_up->width[i];
-            printf("HI\n");
+            // printf("HI\n");
         }
 
         // for real and int
@@ -196,12 +196,14 @@ symbolTableElem* lookupSymbol(SymbolTable* st, char *id, int id_len) {
 
 void printSymbolTable(SymbolTable* st, char* scope) {
     int i;
-
+    printf("------\t|-----\t|------\t|-------\n");
+    printf("Lexeme\t| Type\t| Scope\t| Offset\n");
+    printf("------\t|-----\t|------\t|-------\n");
     for (i = 0; i < st->size; ++i) {
         if (st->symbolArray[i] != NULL) {
             symbolTableElem* curr = st->symbolArray[i];
             while (curr != NULL) {
-                printf("%s\t| %s\t| %s| %d\t\n", curr->lexeme, curr->type, scope, curr->offset);
+                printf("%s\t| %s\t| %s\t| %d\t\n", curr->lexeme, curr->type, scope, curr->offset);
                 curr = curr->next;
             }
         }

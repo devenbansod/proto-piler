@@ -15,6 +15,7 @@
 #include "treeDef.h"
 
 #include "parser.h"
+#include "parserDef.h"
 #include "AST.h"
 #include "typeChecker.h"
 #include "symbolTable.h"
@@ -110,6 +111,26 @@ int main(int argc, char *argv[]) {
 
             case 4:
                 // calculate Compression Stats
+                treeSize = 0; numberNodes = 0;           
+                tree = parseInputSourceCode(argv[1], &error);
+                parseTreeSize(tree->root);
+                printf("Parse Tree: Number of Nodes = %d ; Total Size = %d bytes\n", numberNodes, treeSize);
+                int size_parse_tree = treeSize;
+                if (error == 0) {
+                    AST = (parseTree*)malloc(sizeof(parseTree));
+                    AST->root = createAST(tree->root);
+                } else {
+                    fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
+                    error = 0;
+                    free(tree);
+                }
+                treeSize = 0; numberNodes = 0;
+                parseTreeSize(AST->root);
+                printf("AST Size: Number of Nodes = %d ; Total Size = %d bytes\n", numberNodes, treeSize);
+                int size_ast = treeSize;
+
+                double compression = ((double)size_parse_tree - (double)size_ast)/((double)size_parse_tree);
+                printf("Compression: %f %%\n", compression*100);
                 break;
 
             case 5:

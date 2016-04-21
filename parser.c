@@ -667,8 +667,38 @@ parseTree* createParseTree(parseTree *new_tree) {
 /*
  * Helper function to recurse over child nodes
  * while printing the parse tree
- *
+ *Nide
  */
+
+ 
+
+int calcNodeSize(treeNode *currNode){
+    int size = 0;
+    size += sizeof(currNode->parent) + sizeof(currNode->next);
+    size += sizeof(currNode->symbol_type) + sizeof(currNode->tk_info);
+    size += sizeof(currNode->st) + sizeof(currNode->curr_children) + sizeof(currNode->processed_children);
+    int i = 0;
+    for(; i < currNode->curr_children;++i){
+        size += sizeof(currNode->children[i]);
+    } 
+    return size;
+}
+
+int treeSize = 0;
+int numberNodes = 0;
+void parseTreeSize(treeNode *current_tree_node) {
+    if (current_tree_node) {
+        // printf("%d %d\n", calcNodeSize(current_tree_node), current_tree_node->symbol_type);
+        treeSize += calcNodeSize(current_tree_node);
+        numberNodes++;
+        int k = 0;
+        for(k = 0; current_tree_node && k < current_tree_node->curr_children; k++) {
+            parseTreeSize(current_tree_node->children[k]);
+        }
+    }    
+}
+
+
 void printParseTreeHelper(treeNode *current_tree_node, FILE *out_file) {
     char par[100], cur[100];
     int i = 0;

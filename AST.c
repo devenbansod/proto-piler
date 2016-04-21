@@ -261,14 +261,14 @@ treeNode* reduceInputPar(treeNode* inputParNode) {
 	treeNode* back_up = inputParNode;
 
 	// remove unnecesarry nodes
-	// free(inputParNode->children[0]);
-	// free(inputParNode->children[1]);
-	// free(inputParNode->children[2]);
-	// free(inputParNode->children[3]);
-	// free(inputParNode->children[5]);
+	free(inputParNode->children[0]);
+	free(inputParNode->children[1]);
+	free(inputParNode->children[2]);
+	free(inputParNode->children[3]);
+	free(inputParNode->children[5]);
 
 	inputParNode = reduceParameterList(inputParNode->children[4]);
-	// free(back_up);
+	free(back_up);
 
 	return inputParNode;
 }
@@ -277,11 +277,11 @@ treeNode* reduceOutputPar(treeNode* outputParNode) {
 	treeNode* back_up = outputParNode;
 
 	// remove unnecesarry nodes
-	// free(outputParNode->children[0]);
-	// free(outputParNode->children[1]);
-	// free(outputParNode->children[2]);
-	// free(outputParNode->children[3]);
-	// free(outputParNode->children[5]);
+	free(outputParNode->children[0]);
+	free(outputParNode->children[1]);
+	free(outputParNode->children[2]);
+	free(outputParNode->children[3]);
+	free(outputParNode->children[5]);
 
 	if (outputParNode->children[0]->symbol_type == eps
 		|| outputParNode->children[4]->symbol_type == eps
@@ -292,7 +292,7 @@ treeNode* reduceOutputPar(treeNode* outputParNode) {
 	} else {
 		outputParNode = reduceParameterList(outputParNode->children[4]);
 	}
-
+	free(back_up);
 	return outputParNode;
 }
 
@@ -330,11 +330,10 @@ treeNode* reduceParameterList(treeNode* paramListNode) {
 			orig->children[i-1]->parent = orig;
 			orig->children[i-2]->parent = orig;
 
-			// free(remainList->children[1]);
 			remainList = remainList->children[2];
 		}
 		j++;
-		// free(remainList_backup);
+		free(remainList_backup);
 	}
 
 	orig->curr_children = i;
@@ -357,7 +356,7 @@ treeNode* reduceDatatype(treeNode* datatypeNode) {
 	datatypeNode->curr_children = 0;
 
 	// free(datatypeNode_backup->children[0]);
-	// free(datatypeNode_backup);
+	free(datatypeNode_backup);
 
 	return datatypeNode;
 }
@@ -420,7 +419,7 @@ treeNode* reduceTypeDefns(treeNode* orig) {
 		copySymbolTableToChildren(defns);
 		orig->children[i++] = reduceTypeDefn(defns->children[0]);
 		defns = defns->children[1];
-		// free(defns_backup);
+		free(defns_backup);
 	}
 
 	orig->curr_children = i;
@@ -640,7 +639,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 				free(type);
 			}
 			else {
-				fprintf(stderr, "%s exists in global symbol table\n", id);
+				fprintf(stderr, "*** ERROR: %s exists in global symbol table\n", id);
 				sem_error++;
 			}
 			free(id);
@@ -933,7 +932,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 	// if Undeclared previously
 	if (func == NULL) {
 		fprintf(stderr,
-			"The function %s called at line no. %d is previously undeclared!\n",
+			"*** ERROR: The function %s called at line no. %d is previously undeclared!\n",
 			orig->tk_info.lexeme, orig->tk_info.line_no
 		);
 		sem_error++;
@@ -962,7 +961,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 			if (lookup == NULL) {
 				fprintf(
 					stderr,
-					"The symbol %s is not declared before it use on line %d 2\n",
+					"*** ERROR: The symbol %s is not declared before it use on line %d 2\n",
 					orig->children[1]->children[i]->tk_info.lexeme,
 					orig->children[1]->children[i]->tk_info.line_no
 				);
@@ -973,7 +972,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 				func->input_types[i], lookup->type) != 0
 			) {
 				fprintf(stderr,
-					"The input argument %s does NOT match the expected parameter type '%s' on line %d\n",
+					"*** ERROR: The input argument %s does NOT match the expected parameter type '%s' on line %d\n",
 					orig->children[1]->children[i]->tk_info.lexeme,
 					func->input_types[i],
 					orig->children[1]->children[i]->tk_info.line_no
@@ -984,7 +983,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 
 		if (func->input_len != orig->children[1]->curr_children) {
 			fprintf(stderr,
-				"The function %s expects %d parameters, %d passed on line %d\n",
+				"*** ERROR: The function %s expects %d parameters, %d passed on line %d\n",
 				func->id, func->input_len, orig->children[1]->curr_children,
 				orig->tk_info.line_no
 			);
@@ -1012,7 +1011,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 			if (lookup == NULL) {
 				fprintf(
 					stderr,
-					"The symbol %s is not declared before it use on line %d\n",
+					"*** ERROR: The symbol %s is not declared before it use on line %d\n",
 					orig->children[0]->children[i]->tk_info.lexeme,
 					orig->children[0]->children[i]->tk_info.line_no
 				);
@@ -1023,7 +1022,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 				func->output_types[i], lookup->type) != 0
 			) {
 				fprintf(stderr,
-					"The output argument %s does NOT match the expected parameter type '%s' on line %d\n",
+					"*** ERROR: The output argument %s does NOT match the expected parameter type '%s' on line %d\n",
 					orig->children[0]->children[i]->tk_info.lexeme,
 					func->output_types[i/2],
 					orig->children[0]->children[i]->tk_info.line_no
@@ -1034,14 +1033,14 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 
 		if (orig->children[0] && func->output_len != orig->children[0]->curr_children) {
 			fprintf(stderr,
-				"The function %s returns %d parameters, %d catched on line %d\n",
+				"*** ERROR: The function %s returns %d parameters, %d catched on line %d\n",
 				func->id, func->output_len, orig->children[0]->curr_children,
 				orig->tk_info.line_no
 			);
 			sem_error++;
 		} else if (orig->children[0] == NULL) {
 			fprintf(stderr,
-				"The function %s returns %d parameters, %d catched on line %d\n",
+				"*** ERROR: The function %s returns %d parameters, %d catched on line %d\n",
 				func->id, func->output_len, 0,
 				orig->tk_info.line_no
 			);
@@ -1438,7 +1437,7 @@ int checkForDuplicates() {
 	            for (j = 0; j < curr_number; j++) {
 	            	if (lookupSymbol(allST[j], curr->lexeme, strlen(curr->lexeme))) {
 	            		fprintf(stderr,
-	            			"The Symbol %s is declared globally and later redeclared inside a function.\n",
+	            			"*** ERROR: The Symbol %s is declared globally and later redeclared inside a function.\n",
 	            			curr->lexeme
 	            		);
 	            		sem_error++;
