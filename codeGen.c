@@ -103,19 +103,23 @@ int generateStmt(treeNode* orig, FILE *fp) {
 	switch (orig->symbol_type) {
 		case TK_ASSIGNOP:
 			generateAssign(orig, fp);
+			fprintf(fp, "\n");
 			break;
 
 		case conditionalStmt:
 			generateConditional(orig, fp);
+			fprintf(fp, "\n");
 			break;
 
 		case iterativeStmt:
 			generateIterative(orig, fp);
+			fprintf(fp, "\n");
 			break;
 
 		case TK_WRITE:
 		case TK_READ:
 			generateIO(orig, fp);
+			fprintf(fp, "\n");
 			break;
 
 		default:
@@ -183,7 +187,6 @@ int generateAssign(treeNode* orig, FILE *fp) {
  *
  */
 int generateIterative(treeNode* orig, FILE *fp) {
-	fprintf(stderr, "Iterative on line %d\n", orig->children[0]->tk_info.line_no);
 
 	char* loop_label = (char*)malloc(sizeof(char) * 5);
 	char* end_label = (char*)malloc(sizeof(char) * 5);
@@ -278,7 +281,6 @@ generateBooleanExpr(treeNode* orig, FILE *fp, int reg) {
  *
  */
 int generateConditional(treeNode* orig, FILE *fp) {
-	fprintf(stderr, "Conditional on line %d with %d\n", orig->children[0]->tk_info.line_no, orig->curr_children);
 
 	// boolean expr
 	int ret = generateBooleanExpr(orig->children[0], fp, 1);
@@ -447,7 +449,13 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
  *
  */
 int generateIO(treeNode* orig, FILE *fp) {
-	fprintf(stderr, "IO on line %d\n", orig->tk_info.line_no);
+
+	fprintf(fp,
+		"\tPUSH EAX\n"
+		"\tPUSH EBX\n"
+		"\tPUSH ECX\n"
+		"\tPUSH EDX\n"
+	);
 
 	if (orig->symbol_type == TK_WRITE) {
 		// get value from offset into reg
@@ -528,6 +536,14 @@ int generateIO(treeNode* orig, FILE *fp) {
 		    "\tadd esp, 8 ; remove parameters\n"
 	    );
 	}
+
+	fprintf(fp,
+		"\tPOP EAX\n"
+		"\tPOP EBX\n"
+		"\tPOP ECX\n"
+		"\tPOP EDX\n"
+	);
+
 
 	return 0;
 }
@@ -957,7 +973,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tMUL  [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tMUL dword [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
 
 			if (reg != 1) {
 				getRegFromInt(reg, reg_str);
@@ -1062,7 +1078,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				orig->children[0]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tMUL  [EBP + %dd]\n",
+			fprintf(fp, "\tMUL dword [EBP + %dd]\n",
 				BASE_ADDR + looked_up->offset
 			);
 
@@ -1188,7 +1204,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				fprintf(fp, "\tMOV EAX, %s\n", reg_str);
 			}
 
-			fprintf(fp, "POP %s\n", reg_str_temp);
+			fprintf(fp, "\tPOP %s\n", reg_str_temp);
 			fprintf(fp, "\tMUL %s\n", reg_str_temp);
 
 			if (reg != 1) {
@@ -1217,7 +1233,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				strlen(orig->children[1]->tk_info.lexeme)
 			);
 
-			fprintf(fp, "\tDIV  [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
+			fprintf(fp, "\tDIV dword [EBP + %dd]\n", BASE_ADDR + looked_up->offset);
 
 			if (reg != 1) {
 				getRegFromInt(reg, reg_str);
@@ -1322,7 +1338,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				orig->children[0]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tDIV  [EBP + %dd]\n",
+			fprintf(fp, "\tDIV dword [EBP + %dd]\n",
 				BASE_ADDR + looked_up->offset
 			);
 
@@ -1448,7 +1464,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 				fprintf(fp, "\tMOV EAX, %s\n", reg_str);
 			}
 
-			fprintf(fp, "POP %s\n", reg_str_temp);
+			fprintf(fp, "\tPOP %s\n", reg_str_temp);
 			fprintf(fp, "\tDIV %s\n", reg_str_temp);
 
 			if (reg != 1) {
@@ -1469,15 +1485,15 @@ int getRegFromInt(int ret, char *reg) {
 			break;
 
 		case 2:
-			strcpy(reg, "BX");
+			strcpy(reg, "EBX");
 			break;
 
 		case 3:
-			strcpy(reg, "CX");
+			strcpy(reg, "ECX");
 			break;
 
 		case 4:
-			strcpy(reg, "DX");
+			strcpy(reg, "EDX");
 			break;
 
 		default:

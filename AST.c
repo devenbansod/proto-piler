@@ -562,6 +562,7 @@ treeNode* reduceFieldDefn(treeNode* orig) {
 
 treeNode* reduceDeclarations(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
+		// free(orig->children[0]);
 		free(orig);
 		return NULL;
 	}
@@ -1060,7 +1061,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 treeNode* reduceOutputParameters(treeNode* orig) {
 	treeNode* backup = orig;
 	if (orig->symbol_type == eps) {
-		// free(orig);
+		free(orig);
 		return NULL;
 	} else {
 		copySymbolTableToChildren(orig);
@@ -1071,7 +1072,7 @@ treeNode* reduceOutputParameters(treeNode* orig) {
 		orig = reduceIdList(orig->children[1]);
 		if (orig)
 			orig->parent = backup->parent;
-		// free(backup);
+		free(backup);
 	}
 	return orig;
 }
@@ -1198,6 +1199,23 @@ treeNode* reduceAllVar(treeNode* orig) {
 	return orig;
 }
 
+treeNode* pullUp(treeNode* left_child, treeNode* right_child) {
+
+	if (right_child == NULL) {
+		return NULL;
+	} else if (right_child->children[1] == NULL || right_child->children[1]->symbol_type == eps) {
+		right_child->children[1] = right_child->children[0];
+		right_child->children[0] = left_child;
+		right_child->curr_children = 2;
+		return right_child;
+	} else {
+		right_child->children[1] = pullUp(right_child->children[0], right_child->children[1]);
+		right_child->children[0] = left_child;
+		right_child->curr_children = 2;
+		return right_child;
+	}
+}
+
 treeNode* reduceArithmeticExpr(treeNode* orig) {
 
 	copySymbolTableToChildren(orig);
@@ -1217,13 +1235,19 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 		copySymbolTableToChildren(orig);
 		orig->parent = backup->parent;
 	} else {
-		orig = orig->children[1];
-		orig->children = (treeNode**)realloc(orig->children, sizeof(treeNode*) * 2);
 
-		orig->children[1] = orig->children[0];
-		orig->children[0] = backup->children[0];
+		treeNode* temp = orig->children[1];
+
+		orig->children = (treeNode**)realloc(orig->children, sizeof(treeNode*) * 2);
+		// orig = orig->children[1];
+		orig = pullUp(orig->children[0], orig->children[1]);
+
+		// orig->children[1] = orig->children[0];
+		// orig->children[0] = backup->children[0];
 		orig->children[0]->parent = orig;
+		// orig->children[1]->parent = orig;
 		orig->curr_children = 2;
+		return orig;
 	}
 
 	free(backup);
@@ -1234,8 +1258,6 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 
 treeNode* reduceExpPrime(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
-		// free(orig->children[0]);
-		free(orig);
 		return NULL;
 	} else {
 		treeNode* backup = orig;
@@ -1248,6 +1270,7 @@ treeNode* reduceExpPrime(treeNode* orig) {
 
 		if (orig->children[0])
 			orig->children[0]->parent = orig;
+
 		if (orig->children[1])
 			orig->children[1]->parent = orig;
 
@@ -1291,7 +1314,7 @@ treeNode* reduceTerm(treeNode* orig) {
 
 treeNode* reduceTermPrime(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
-		// free(orig->children[0]);
+		free(orig->children[0]);
 		free(orig);
 		return NULL;
 	} else {
