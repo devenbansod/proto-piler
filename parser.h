@@ -18,8 +18,7 @@ parseTable** createParseTable(grammarRule *G, parseTable *T);
 parseTree* createParseTree(parseTree *t);
 parseTree* parseInputSourceCode(char *testcaseFile, int *error);
 void printParseTree(parseTree *PT, FILE* outfile);
-
-
+void parseTreeSize(treeNode *current_tree_node);
 /*
  * Interface to First and follow set creation
  *
