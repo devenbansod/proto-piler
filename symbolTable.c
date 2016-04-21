@@ -108,7 +108,7 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type, int* offset)
     symbolTableElem* curr = st->symbolArray[h_index];
 
     if (lookupSymbol(st, id, id_len) != NULL) {
-        fprintf(stderr, "%s already exists in the table\n", id);
+        fprintf(stderr, "*** ERROR: %s already exists in the table\n", id);
         return -1;
     }
 
@@ -508,7 +508,7 @@ int insertFunction(FunctionTable *fxTable, char *id, int id_len,
 
     int i = 0;
     if(lookupFunction(fxTable, id, id_len)!=NULL){
-        fprintf(stderr, "function %s already declared\n", id);
+        fprintf(stderr, "*** ERROR: function %s already declared\n", id);
         return -1;
         // exit(-1);
     }

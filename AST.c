@@ -426,13 +426,13 @@ treeNode* reduceTypeDefns(treeNode* orig) {
 treeNode* reduceTypeDefn(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
-	// free(orig->children[0]);
+	free(orig->children[0]);
 	orig->children[0] = orig->children[1];
 
 	orig->children[1] = reduceFieldDefns(orig->children[2]);
 
-	// free(orig->children[3]);
-	// free(orig->children[4]);
+	free(orig->children[3]);
+	free(orig->children[4]);
 
 	orig->curr_children = 2;
 
@@ -522,7 +522,7 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 		offset[i] = offset[i-1] + width[i-1];
 
 		defns = defns->children[1];
-		// free(defns_backup);
+		free(defns_backup);
 		i++;
 	}
 	orig->curr_children = i;
@@ -544,13 +544,13 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 treeNode* reduceFieldDefn(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
-	// free(orig->children[0]);
+	free(orig->children[0]);
 	orig->children[0] = orig->children[1]->children[0];
 
 	orig->children[1] = orig->children[3];
 
-	// free(orig->children[2]);
-	// free(orig->children[4]);
+	free(orig->children[2]);
+	free(orig->children[4]);
 
 	orig->curr_children = 2;
 
@@ -559,8 +559,7 @@ treeNode* reduceFieldDefn(treeNode* orig) {
 
 treeNode* reduceDeclarations(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
-		// free(orig->children[0]);
-		// free(orig);
+		free(orig);
 		return NULL;
 	}
 
@@ -597,7 +596,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 		temp->parent = orig;
 
 		decns = decns->children[1];
-		// free(decns_backup);
+		free(decns_backup);
 	}
 
 	orig->curr_children = i;
@@ -647,7 +646,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 }
 
 treeNode* reduceDeclaration(treeNode* orig) {
-	// free(orig->children[2]);
+	free(orig->children[2]);
 	if (orig->symbol_type == eps) {
 		return NULL;
 	}
@@ -661,8 +660,8 @@ treeNode* reduceDeclaration(treeNode* orig) {
 	if (orig->children[4]->children[0]->symbol_type == eps) {
 		orig->children[2] = NULL;
 		orig->curr_children = 2;
-		// free(orig->children[4]->children[0]);
-		// free(orig->children[4]);
+		free(orig->children[4]->children[0]);
+		free(orig->children[4]);
 	} else {
 		orig->children[2] = orig->children[4]->children[1];
 		orig->children[2]->parent = orig;
@@ -675,8 +674,8 @@ treeNode* reduceDeclaration(treeNode* orig) {
 treeNode* reduceOtherStmts(treeNode* orig) {
 	treeNode* stmts = orig;
 	if (orig->children[0]->symbol_type == eps) {
-		// free(orig->children[0]);
-		// free(orig);
+		free(orig->children[0]);
+		free(orig);
 		return NULL;
 	}
 
@@ -706,7 +705,7 @@ treeNode* reduceOtherStmts(treeNode* orig) {
 			orig->children[i-1]->parent = orig;
 
 		stmts = stmts->children[1];
-		// free(stmts_backup);
+		free(stmts_backup);
 	}
 
 	orig->curr_children = i;
@@ -754,7 +753,7 @@ treeNode* reduceStatement(treeNode* orig) {
 	}
 
 	orig->parent = backup->parent;
-	// free(backup);
+	free(backup);
 	return orig;
 }
 
@@ -796,7 +795,7 @@ treeNode* reduceAssignStmt(treeNode* orig) {
 	orig->parent = backup->parent;
 
 	orig->curr_children = 2;
-	// free(backup);
+	free(backup);
 
 	return orig;
 }
@@ -804,10 +803,10 @@ treeNode* reduceAssignStmt(treeNode* orig) {
 treeNode* reduceIterativeStmt(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
-	// free(orig->children[0]);
-	// free(orig->children[1]);
-	// free(orig->children[3]);
-	// free(orig->children[6]);
+	free(orig->children[0]);
+	free(orig->children[1]);
+	free(orig->children[3]);
+	free(orig->children[6]);
 	orig->children[0] = reduceBooleanExpr(orig->children[2]);
 	orig->children[1] = reduceStatement(orig->children[4]);
 	orig->children[2] = reduceOtherStmts(orig->children[5]);
@@ -827,8 +826,8 @@ treeNode* reduceIterativeStmt(treeNode* orig) {
 treeNode* reduceConditionalStmt(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
-	// free(orig->children[0]);
-	// free(orig->children[1]);
+	free(orig->children[0]);
+	free(orig->children[1]);
 	orig->children[0] = reduceBooleanExpr(orig->children[2]);
 	orig->children[1] = reduceStatement(orig->children[5]);
 	orig->children[2] = reduceOtherStmts(orig->children[6]);
@@ -877,7 +876,7 @@ treeNode* reduceIoStmt(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
 	if (orig->children[0]->symbol_type == TK_READ) {
-		// free(orig->children[1]);
+		free(orig->children[1]);
 		orig = orig->children[0];
 		copySymbolTableToChildren(orig);
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
@@ -887,7 +886,7 @@ treeNode* reduceIoStmt(treeNode* orig) {
 		orig->children[0]->st = backup->st;
 		orig->curr_children = 1;
 	} else {
-		// free(orig->children[1]);
+		free(orig->children[1]);
 
 		orig = orig->children[0];
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
@@ -916,9 +915,9 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 	orig->children[0] = reduceOutputParameters(backup->children[0]);
 	orig->children[1] = reduceInputParameters(backup->children[5]);
 
-	// free(backup->children[1]);
-	// free(backup->children[3]);
-	// free(backup->children[4]);
+	free(backup->children[1]);
+	free(backup->children[3]);
+	free(backup->children[4]);
 
 	// Perform some semantic analysis here
 	functionTableElem *func = lookupFunction(
@@ -1062,9 +1061,9 @@ treeNode* reduceOutputParameters(treeNode* orig) {
 		return NULL;
 	} else {
 		copySymbolTableToChildren(orig);
-		// free(orig->children[0]);
-		// free(orig->children[2]);
-		// free(orig->children[3]);
+		free(orig->children[0]);
+		free(orig->children[2]);
+		free(orig->children[3]);
 
 		orig = reduceIdList(orig->children[1]);
 		if (orig)
@@ -1078,12 +1077,12 @@ treeNode* reduceInputParameters(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
 
-	// free(orig->children[0]);
-	// free(orig->children[2]);
+	free(orig->children[0]);
+	free(orig->children[2]);
 
 	orig = reduceIdList(orig->children[1]);
 	orig->parent = backup->parent;
-	// free(backup);
+	free(backup);
 
 	return orig;
 }
@@ -1125,7 +1124,7 @@ treeNode* reduceIdList(treeNode* orig) {
 		}
 		j++;
 
-		// free(remainList_backup);
+		free(remainList_backup);
 	}
 
 	orig->curr_children = i;
@@ -1137,12 +1136,12 @@ treeNode* reduceSingleOrRecId(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
 	if (orig->children[1]->children[0]->symbol_type == eps) {
-		// free(orig->children[1]);
+		free(orig->children[1]);
 		orig = orig->children[0];
 		orig->st = backup->st;
 		orig->parent = backup->parent;
 		orig->curr_children = 0;
-		// free(backup);
+		free(backup);
 	} else {
 		orig->children[1] = orig->children[1]->children[1];
 		orig->children[1]->parent = orig;
@@ -1188,7 +1187,7 @@ treeNode* reduceAllVar(treeNode* orig) {
 			// printf("Here size %d, %s\n", orig->st->size, orig->children[0]->tk_info.lexeme);
 			copySymbolTableToChildren(orig);
 
-			// free(backup);
+			free(backup);
 			orig->curr_children = 2;
 		}
 	}
@@ -1224,7 +1223,7 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 		orig->curr_children = 2;
 	}
 
-	// free(backup);
+	free(backup);
 	orig->st = backup->st;
 	copySymbolTableToChildren(orig);
 	return orig;
@@ -1233,7 +1232,7 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 treeNode* reduceExpPrime(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
 		// free(orig->children[0]);
-		// free(orig);
+		free(orig);
 		return NULL;
 	} else {
 		treeNode* backup = orig;
@@ -1251,7 +1250,7 @@ treeNode* reduceExpPrime(treeNode* orig) {
 
 		orig->curr_children = 2;
 
-		// free(backup);
+		free(backup);
 		return orig;
 	}
 }
@@ -1283,14 +1282,14 @@ treeNode* reduceTerm(treeNode* orig) {
 		orig->curr_children = 2;
 	}
 
-	// free(backup);
+	free(backup);
 	return orig;
 }
 
 treeNode* reduceTermPrime(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
 		// free(orig->children[0]);
-		// free(orig);
+		free(orig);
 		return NULL;
 	} else {
 		treeNode* backup = orig;
@@ -1311,7 +1310,7 @@ treeNode* reduceTermPrime(treeNode* orig) {
 
 		orig->curr_children = 2;
 
-		// free(backup);
+		free(backup);
 		return orig;
 	}
 }
@@ -1326,7 +1325,7 @@ treeNode* reduceFactor(treeNode* orig) {
 		copySymbolTableToChildren(orig);
 		orig = reduceArithmeticExpr(orig->children[1]);
 		orig->parent = backup->parent;
-		// free(backup);
+		free(backup);
 	}
 
 	return orig;
@@ -1337,25 +1336,25 @@ treeNode* reduceAll(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 	if (orig->children[0]->symbol_type == TK_ID) {
 		if (orig->children[1]->children[0]->symbol_type == eps) {
-			// free(orig->children[1]->children[0]);
-			// free(orig->children[1]);
+			free(orig->children[1]->children[0]);
+			free(orig->children[1]);
 			orig->children[1] = NULL;
 			orig = orig->children[0];
 			orig->parent = backup->parent;
 			orig->st = backup->st;
-			// free(backup);
+			free(backup);
 		} else {
 			backup = orig->children[1];
 			orig->children[1] = orig->children[1]->children[1];
 			orig->children[1]->parent = orig;
-			// free(backup);
+			free(backup);
 			orig->children[1]->st = backup->st;
 			orig->curr_children = 2;
 		}
 	} else {
 		orig = orig->children[0];
 		orig->st = backup->st;
-		// free(backup);
+		free(backup);
 	}
 
 	return orig;
@@ -1371,10 +1370,10 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 
 		orig->children[0] = reduceBooleanExpr(backup->children[1]);
 		orig->children[0]->parent = orig;
-		// free(backup->children[0]);
-		// free(backup->children[2]);
-		// free(backup->children[4]);
-		// free(backup->children[6]);
+		free(backup->children[0]);
+		free(backup->children[2]);
+		free(backup->children[4]);
+		free(backup->children[6]);
 		orig->children[1] = reduceBooleanExpr(backup->children[5]);
 		if (orig->children[1])
 			orig->children[1]->parent = orig;
@@ -1392,8 +1391,8 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 
 		orig->curr_children = 1;
 
-		// free(backup->children[1]);
-		// free(backup->children[3]);
+		free(backup->children[1]);
+		free(backup->children[3]);
 	} else {
 		orig = orig->children[1]->children[0];
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
@@ -1405,9 +1404,9 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 		orig->parent = backup->parent;
 		orig->st = backup->st;
 
-		// free(backup->children[0]);
-		// free(backup->children[1]);
-		// free(backup->children[2]);
+		free(backup->children[0]);
+		free(backup->children[1]);
+		free(backup->children[2]);
 		orig->curr_children = 2;
 		copySymbolTableToChildren(orig);
 	}
