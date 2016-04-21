@@ -48,6 +48,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					orig->tk_info.lexeme,
 					orig->tk_info.line_no
 				);
+				sem_error++;
 				return -1;
 			}
 
@@ -74,6 +75,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					orig->children[0]->tk_info.lexeme,
 					orig->children[0]->tk_info.line_no
 				);
+				sem_error++;
+
 				return -1;
 			}
 		}
@@ -101,6 +104,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 					"*** ERROR: The variable %s is not a record!\n",
 					looked_up->lexeme
 				);
+				sem_error++;
+
 				return -1;
 			}
 
@@ -231,13 +236,15 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				// only operation allowed in that case is Multiplication
 				if (orig->symbol_type == TK_MUL)
 					copy_already = 0;
-				else
+				else {
 					fprintf(
 						stderr,
 						"*** ERROR: The types of operands do not match on line - %d\n",
 						orig->children[i]->tk_info.line_no
 					);
-					i = 1;
+					sem_error++;
+				}
+				i = 1;
 			} else {
 				if (strcmp(type_name_next, type_name_already) != 0) {
 					fprintf(
@@ -245,6 +252,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 						"*** ERROR: The types of operands do not match on line - %d\n",
 						orig->children[i]->tk_info.line_no
 					);
+					sem_error++;
 					return -1;
 				}
 			}
@@ -463,9 +471,10 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"*** ERROR: Type sem_error in Boolean expression on line 1 - %d\n",
+						"*** ERROR: Type sem_error in Boolean expression on line- %d\n",
 						orig->tk_info.line_no
 					);
+					sem_error++;
 					return -1;
 				}
 			}
@@ -483,9 +492,11 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"*** ERROR: Type sem_error in Boolean expression on line 2 - %d\n",
+						"*** ERROR: Type sem_error in Boolean expression on line - %d\n",
 						orig->tk_info.line_no
 					);
+					sem_error++;
+
 					return -1;
 				}
 			}
@@ -503,9 +514,10 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"*** ERROR: Type sem_error in Boolean expression on line 3 - %d\n",
+						"*** ERROR: Type sem_error in Boolean expression on line - %d\n",
 						orig->tk_info.line_no
 					);
+					sem_error++;
 					return -1;
 				}
 			}
@@ -552,7 +564,7 @@ int performTypeChecking (treeNode* orig) {
 				"*** ERROR: The types of operands do not match on line - %d\n",
 				orig->tk_info.line_no
 			);
-
+			sem_error++;
 			return 0;
 		}
 	}
@@ -573,6 +585,7 @@ int performTypeChecking (treeNode* orig) {
 				"*** ERROR: The types of operands do not match on line - %d\n",
 				orig->tk_info.line_no
 			);
+			sem_error++;
 
 			return 0;
 		}
@@ -584,6 +597,7 @@ int performTypeChecking (treeNode* orig) {
 		for(i = 0; i < orig->curr_children; i++) {
 			if (performTypeChecking(orig->children[i]) == -1) {
 				fprintf(stderr, "*** ERROR: Type checking failed here %d\n", orig->children[i]->symbol_type);
+				sem_error++;
 			}
 		}
 	}
