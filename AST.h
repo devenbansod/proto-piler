@@ -18,6 +18,8 @@ extern SymbolTable **allST;
 extern int curr_number;
 extern int curr_number_backup;
 extern int sem_error;
+extern int curr_global_offset;
+extern int curr_global_offset_backup;
 
 
 treeNode* createAST(treeNode *parseTreeRoot);

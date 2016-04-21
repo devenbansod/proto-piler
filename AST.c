@@ -33,6 +33,7 @@ FunctionTable *globalFT;
 
 int curr_max = 9;
 int curr_global_offset = OFFSET_START;
+int curr_global_offset_backup = OFFSET_START;
 
 /*
  * Helper function
@@ -75,6 +76,8 @@ treeNode* reduceProgram(treeNode* root) {
 	checkForDuplicates();
 	curr_number_backup = curr_number;
 	curr_number = 0;
+
+	curr_global_offset_backup = curr_global_offset;
 	curr_global_offset = 0;
 
 	return root;
