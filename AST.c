@@ -256,6 +256,7 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		// printf("%d\n",strcmp(output_ids[i], funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme));				
 		if(strcmp(output_ids[i], funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme)!=0){
 			fprintf(stderr, "*** ERROR: Output parameter list and return list have different ids\n");
+			sem_error++;
 		}
 		// printf("%s %s \n", output_typels[i], funcNode->children[2]->children[children_count-1]->children[i]);
 		symbolTableElem* temp = lookupSymbol(funcNode->st, 
@@ -266,6 +267,7 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		// printf("%s %s\n", temp->type, output_types[i]);
 		if(strcmp(output_types[i], temp->type)!=0){
 			fprintf(stderr, "*** ERROR: Output parameter list and return list have different data types\n");
+			sem_error++;
 		}
 	}
 
