@@ -167,15 +167,16 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		allST[curr_number++] = funcNode->st;
 	}
 
-	// now make the first child as input paramenter list
+	// now make the first child as input parameter list
 	funcNode->children[0] = reduceInputPar(funcNode->children[1]);
 
-	// now make the 2nd child as output paramenter list
+	// now make the 2nd child as output parameter list
 	funcNode->children[1] = reduceOutputPar(funcNode->children[2]);
 
 	// now make the 3nd child as stmts list
 	funcNode->children[2] = reduceStmtsNode(funcNode->children[4]);
 
+	// printf("%d \n", );
 	// insert() into Function Table
 	int id_len = strlen(funcNode->tk_info.lexeme);
 	char *id = (char*)malloc(id_len*sizeof(char));
@@ -189,13 +190,26 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	} else {
 		output_len = 0;
 	}
+	int i = 0;
+	int count;
+	int children_count = funcNode->children[2]->curr_children;
+	
+	if(!funcNode->children[2]->children[children_count-1]){
+		count = 0;
+	}
+	else{
+		count = funcNode->children[2]->children[children_count-1]->curr_children;
+	}
+	if(count != (output_len/2)){
+		fprintf(stderr, "*** ERROR: Return list (%d elements) and Output parameter list (%d elements) have unequal number of elements\n", count, output_len);
+		sem_error++;
+	}	
 
 	char **input_types = (char**)malloc(input_len*sizeof(char*));
 	char **output_types = (char**)malloc(output_len*sizeof(char*));
 	char **input_ids = (char**)malloc(input_len*sizeof(char*));
 	char **output_ids = (char**)malloc(output_len*sizeof(char*));
 
-	int i = 0;
 	for (i = 0;i < input_len; ++i){
 		int len = strlen(funcNode->children[0]->children[i]->tk_info.lexeme);
 
@@ -238,6 +252,26 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		}
 
 	}
+	for (i = 0; i < count; ++i){
+		// printf("%d\n",strcmp(output_ids[i], funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme));				
+		if(strcmp(output_ids[i], funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme)!=0){
+			fprintf(stderr, "*** ERROR: Output parameter list and return list have different ids\n");
+			sem_error++;
+		}
+		// printf("%s %s \n", output_typels[i], funcNode->children[2]->children[children_count-1]->children[i]);
+		symbolTableElem* temp = lookupSymbol(funcNode->st, 
+			funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme, 
+			strlen(funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme)
+			);
+
+		// printf("%s %s\n", temp->type, output_types[i]);
+		if(strcmp(output_types[i], temp->type)!=0){
+			fprintf(stderr, "*** ERROR: Output parameter list and return list have different data types\n");
+			sem_error++;
+		}
+	}
+
+
 	insertFunction(globalFT, id, id_len, input_types, output_types, input_ids, output_ids, input_len/2, output_len/2);
 
 	funcNode->children[0]->parent = funcNode;

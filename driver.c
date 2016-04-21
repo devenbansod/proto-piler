@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
                 if (error == 0) {
                     AST = (parseTree*)malloc(sizeof(parseTree));
                     AST->root = createAST(tree->root);
-                    printf("aa rha\n");
+                    // printf("aa rha\n");
                     printAllSymbolTables();
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
