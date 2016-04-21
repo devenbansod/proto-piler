@@ -106,9 +106,9 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type, int* offset)
 
     int h_index = hash(id, id_len, st->size);
     symbolTableElem* curr = st->symbolArray[h_index];
-
+    // symbolTableElem* temp = ;
     if (lookupSymbol(st, id, id_len) != NULL) {
-        fprintf(stderr, "*** ERROR: %s already exists in the table\n", id);
+        fprintf(stderr, "*** ERROR: Multiple declarations of %s in scope %s \n", id, st->scope);
         return -1;
     }
 
@@ -149,7 +149,6 @@ int insertSymbol(SymbolTable* st, char* id, int id_len, char* type, int* offset)
     if (looked_up) {
         for (i = 0; i < looked_up->fields_count; i++) {
             *offset += looked_up->width[i];
-            // printf("HI\n");
         }
 
         // for real and int
