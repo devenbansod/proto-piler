@@ -14,7 +14,7 @@
 #include "AST.h"
 #include "symbolTable.h"
 
-#define BASE_ADDR 100
+#define BASE_ADDR 0
 
 /*
  * Get a new Temporary variable,
