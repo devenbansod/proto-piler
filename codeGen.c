@@ -64,19 +64,23 @@ int generateProgram(treeNode* orig, FILE *fp) {
 		switch (orig->children[i]->symbol_type) {
 			case TK_ASSIGNOP:
 				generateAssign(orig->children[i], fp);
+				fprintf(fp, "\n");
 				break;
 
 			case conditionalStmt:
 				generateConditional(orig->children[i], fp);
+				fprintf(fp, "\n");
 				break;
 
 			case iterativeStmt:
 				generateIterative(orig->children[i], fp);
+				fprintf(fp, "\n");
 				break;
 
 			case TK_WRITE:
 			case TK_READ:
 				generateIO(orig->children[i], fp);
+				fprintf(fp, "\n");
 				break;
 
 			default:
@@ -129,6 +133,443 @@ int generateStmt(treeNode* orig, FILE *fp) {
 	return 0;
 }
 
+int generateRecordExpr(treeNode* orig, FILE *fp, int field_no, int reg) {
+	if (orig->symbol_type == TK_PLUS) {
+		if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type == TK_ID
+		) {
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV %s, [EBP + %dd]\n",
+				reg_str,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			looked_up = lookupSymbolHelper(
+				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
+				strlen(orig->children[1]->tk_info.lexeme)
+			);
+
+			looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+			fprintf(fp, "\tADD %s, [EBP + %dd]\n",
+				reg_str,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			return reg;
+
+		} else if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type != TK_ID
+		) {
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			char *reg_str_temp = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+			getRegFromInt((reg + 1) % 4, reg_str_temp);
+
+			generateRecordExpr(orig->children[1], fp, field_no, (reg+1)%4);
+
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV %s, [EBP + %dd]\n",
+				reg_str,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tADD %s, %s\n",
+				reg_str,
+				reg_str_temp
+			);
+
+			return reg;
+
+		} else if (orig->children[0]->symbol_type != TK_ID
+			&& orig->children[1]->symbol_type == TK_ID
+		) {
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			char *reg_str_temp = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+			getRegFromInt((reg + 1) % 4, reg_str_temp);
+
+			generateRecordExpr(orig->children[0], fp, field_no, reg);
+
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
+				strlen(orig->children[1]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV %s, [EBP + %dd]\n",
+				reg_str_temp,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tADD %s, %s\n",
+				reg_str,
+				reg_str_temp
+			);
+
+			return reg;
+
+		} else {
+			// both children are Expr
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			char *reg_str_temp = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+			getRegFromInt((reg + 1) % 4, reg_str_temp);
+
+			generateRecordExpr(orig->children[1], fp, field_no, (reg+1)%4);
+			fprintf(fp, "\tPUSH %s\n", reg_str_temp);
+
+			generateRecordExpr(orig->children[0], fp, field_no, reg);
+			fprintf(fp, "\tPOP %s\n", reg_str_temp);
+
+			fprintf(fp, "\tADD %s, %s\n", reg_str, reg_str_temp);
+
+			return reg;
+		}
+	} else if (orig->symbol_type == TK_MINUS) {
+		if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type == TK_ID
+		) {
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV %s, [EBP + %dd]\n",
+				reg_str,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			looked_up = lookupSymbolHelper(
+				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
+				strlen(orig->children[1]->tk_info.lexeme)
+			);
+
+			looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+			fprintf(fp, "\tSUB %s, [EBP + %dd]\n",
+				reg_str,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			return reg;
+
+		} else if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type != TK_ID
+		) {
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			char *reg_str_temp = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+			getRegFromInt((reg + 1) % 4, reg_str_temp);
+
+			generateRecordExpr(orig->children[1], fp, field_no, (reg+1)%4);
+
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV %s, [EBP + %dd]\n",
+				reg_str,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tSUB %s, %s\n",
+				reg_str,
+				reg_str_temp
+			);
+
+			return reg;
+
+		} else if (orig->children[0]->symbol_type != TK_ID
+			&& orig->children[1]->symbol_type == TK_ID
+		) {
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			char *reg_str_temp = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+			getRegFromInt((reg + 1) % 4, reg_str_temp);
+
+			generateRecordExpr(orig->children[0], fp, field_no, reg);
+
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[1]->st, orig->children[1]->tk_info.lexeme,
+				strlen(orig->children[1]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV %s, [EBP + %dd]\n",
+				reg_str_temp,
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tSUB %s, %s\n",
+				reg_str,
+				reg_str_temp
+			);
+
+			return reg;
+
+		} else {
+			// both children are Expr
+			char *reg_str = (char*)malloc(sizeof(char) * 3);
+			char *reg_str_temp = (char*)malloc(sizeof(char) * 3);
+			getRegFromInt(reg, reg_str);
+			getRegFromInt((reg + 1) % 4, reg_str_temp);
+
+			generateRecordExpr(orig->children[1], fp, field_no, (reg+1)%4);
+			fprintf(fp, "\tPUSH %s\n", reg_str_temp);
+
+			generateRecordExpr(orig->children[0], fp, field_no, reg);
+			fprintf(fp, "\tPOP %s\n", reg_str_temp);
+
+			fprintf(fp, "\tSUB %s, %s\n", reg_str, reg_str_temp);
+
+			return reg;
+		}
+	} else if (orig->symbol_type == TK_MUL) {
+		if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[0]->symbol_type == TK_ID
+		) {
+			int record_child = 0;
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			if (strcmp(looked_up->type, "int") != 0
+				&& strcmp(looked_up->type, "real") != 0
+			) {
+				record_child = 0;
+			} else {
+				looked_up = lookupSymbolHelper(
+					orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+					strlen(orig->children[0]->tk_info.lexeme)
+				);
+				record_child = 1;
+			}
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			symbolTableElem* non_rec = lookupSymbolHelper(
+				orig->children[(record_child + 1) % 2]->st,
+				orig->children[(record_child + 1) % 2]->tk_info.lexeme,
+				strlen(orig->children[(record_child + 1) % 2]->tk_info.lexeme)
+			);
+
+			fprintf(fp, "\tMOV EAX, [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tMUL dword [EBP + %dd]\n",
+				BASE_ADDR + non_rec->offset
+			);
+
+			if (reg != 1) {
+				char *reg_str = (char*)malloc(sizeof(char) * 3);
+				getRegFromInt(reg, reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
+			}
+
+			return reg;
+		} else if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type == TK_NUM
+		) {
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV EAX, [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tMUL %sd\n",
+				orig->children[1]->tk_info.lexeme
+			);
+
+			if (reg != 1) {
+				char *reg_str = (char*)malloc(sizeof(char) * 3);
+				getRegFromInt(reg, reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
+			}
+
+			return reg;
+		}
+
+	} else if (orig->symbol_type == TK_DIV) {
+		if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[0]->symbol_type == TK_ID
+		) {
+			int record_child = 0;
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			if (strcmp(looked_up->type, "int") != 0
+				&& strcmp(looked_up->type, "real") != 0
+			) {
+				record_child = 0;
+			} else {
+				looked_up = lookupSymbolHelper(
+					orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+					strlen(orig->children[0]->tk_info.lexeme)
+				);
+				record_child = 1;
+			}
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			symbolTableElem* non_rec = lookupSymbolHelper(
+				orig->children[(record_child + 1) % 2]->st,
+				orig->children[(record_child + 1) % 2]->tk_info.lexeme,
+				strlen(orig->children[(record_child + 1) % 2]->tk_info.lexeme)
+			);
+
+			fprintf(fp, "\tMOV EAX, [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tDIV [EBP + %dd]\n",
+				BASE_ADDR + non_rec->offset
+			);
+
+			if (reg != 1) {
+				char *reg_str = (char*)malloc(sizeof(char) * 3);
+				getRegFromInt(reg, reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
+			}
+
+			return reg;
+		} else if (orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type == TK_NUM
+		) {
+			symbolTableElem* looked_up = lookupSymbolHelper(
+				orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+				strlen(orig->children[0]->tk_info.lexeme)
+			);
+
+			typeTableElem* looked_up_type = lookupType(
+				globalTT, looked_up->type, strlen(looked_up->type)
+			);
+
+			fprintf(fp, "\tMOV EAX, [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			);
+
+			fprintf(fp, "\tMUL %sd\n",
+				orig->children[1]->tk_info.lexeme
+			);
+
+			if (reg != 1) {
+				char *reg_str = (char*)malloc(sizeof(char) * 3);
+				getRegFromInt(reg, reg_str);
+				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
+			}
+
+			return reg;
+		}
+	} else if (orig->symbol_type == TK_ID) {
+		char *reg_str = (char*)malloc(sizeof(char) * 3);
+		getRegFromInt(reg, reg_str);
+
+		symbolTableElem* looked_up = lookupSymbolHelper(
+			orig->children[0]->st, orig->children[0]->tk_info.lexeme,
+			strlen(orig->children[0]->tk_info.lexeme)
+		);
+
+		typeTableElem* looked_up_type = lookupType(
+			globalTT, looked_up->type, strlen(looked_up->type)
+		);
+
+		fprintf(fp, "\tMOV %s, [EBP + %dd]\n",
+			reg_str,
+			BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+		);
+
+		return reg;
+	}
+
+	return reg;
+}
+
+
+/*
+ * Specially for operations on record types
+ */
+int generateAssignRecords(treeNode* orig, FILE *fp) {
+	// for every field, perform the operation
+	symbolTableElem* looked_up = lookupSymbolHelper(
+		orig->st, orig->children[0]->tk_info.lexeme,
+		strlen(orig->children[0]->tk_info.lexeme)
+	);
+
+	typeTableElem* looked_up_type = lookupType(
+		globalTT, looked_up->type, strlen(looked_up->type)
+	);
+	int i = 0, offset = 0;
+
+	for (i = 0; i < looked_up_type->fields_count; i++) {
+		offset = looked_up_type->offset[i];
+		generateRecordExpr(orig->children[1], fp, i, 1);
+		char *reg_str = (char*)malloc(sizeof(char) * 3);
+		getRegFromInt(1, reg_str);
+
+		fprintf(fp, "\tMOV dword [EBP + %dd], %s\n",
+			BASE_ADDR + looked_up->offset + offset,
+			reg_str
+		);
+	}
+
+	return 0;
+}
+
 /*
  * First, evaluate the 2nd child (recursively)
  * Then, append to it,
@@ -151,10 +592,12 @@ int generateAssign(treeNode* orig, FILE *fp) {
 		int i = 0;
 
 		for (i = 0; i < looked_up_type->fields_count; i++) {
-			if (strcpy(
+			if (strcmp(
 				looked_up_type->field_names[i], orig->children[0]->children[1]->tk_info.lexeme)
+				== 0
 			) {
 				offset = looked_up_type->offset[i];
+				break;
 			}
 		}
 	} else {
@@ -162,6 +605,14 @@ int generateAssign(treeNode* orig, FILE *fp) {
 			orig->st, orig->children[0]->tk_info.lexeme,
 			strlen(orig->children[0]->tk_info.lexeme)
 		);
+
+		// operations on Record types
+		if (strcmp(looked_up->type, "int") != 0
+			&& strcmp(looked_up->type, "real") != 0
+		) {
+			generateAssignRecords(orig, fp);
+			return 0;
+		}
 	}
 
 	if (orig->children[1]->symbol_type == TK_NUM) {
@@ -174,7 +625,7 @@ int generateAssign(treeNode* orig, FILE *fp) {
 	} else {
 		// since assign will always be from a expr to memory
 		// we always generate MOV 1stChild, EAX i.e. reg = 1 as argument
-		int ret = generateArithmeticExpr(orig->children[1], fp, 1);
+		generateArithmeticExpr(orig->children[1], fp, 1);
 
 		// the real assign statement
 		fprintf(fp, "\tMOV dword [EBP + %dd], EAX\n", BASE_ADDR + looked_up->offset + offset);
@@ -196,18 +647,18 @@ int generateIterative(treeNode* orig, FILE *fp) {
 	getRegFromInt(1, reg_str);
 
 	fprintf(fp, "%s:\n", loop_label);
-	int ret = generateBooleanExpr(orig->children[0], fp, 1);
+	generateBooleanExpr(orig->children[0], fp, 1);
 
 	fprintf(fp, "\tCMP %s, 1\n", reg_str);
 	fprintf(fp, "\tJNZ %s\n", end_label);
 
 	// first handle first statement inside Then
-	int val = generateStmt(orig->children[1], fp);
+	generateStmt(orig->children[1], fp);
 	// loop over otherStmts Node if it is not null
 	if (orig->children[2]) {
 		int i;
 		for (i = 0; i < orig->children[2]->curr_children; i++) {
-			val = generateStmt(orig->children[2]->children[i], fp);
+			generateStmt(orig->children[2]->children[i], fp);
 		}
 	}
 	fprintf(fp, "\tJMP %s\n", loop_label);
@@ -302,12 +753,12 @@ int generateConditional(treeNode* orig, FILE *fp) {
 	fprintf(fp, "%s:\n", true_label);
 
 	// first handle first statement inside Then
-	int val = generateStmt(orig->children[1], fp);
+	generateStmt(orig->children[1], fp);
 	// loop over otherStmts Node if it is not null
 	if (orig->children[2]) {
 		int i;
 		for (i = 0; i < orig->children[2]->curr_children; i++) {
-			val = generateStmt(orig->children[2]->children[i], fp);
+			generateStmt(orig->children[2]->children[i], fp);
 		}
 	}
 	fprintf(fp, "\tJMP %s\n", end_label);
@@ -320,12 +771,12 @@ int generateConditional(treeNode* orig, FILE *fp) {
 		&& orig->children[3]->symbol_type == TK_ELSE
 	) {
 		// first handle first statement inside Then
-		int val = generateStmt(orig->children[4], fp);
+		generateStmt(orig->children[4], fp);
 		// loop over otherStmts Node if it is not null
 		if (orig->children[5]) {
 			int i;
 			for (i = 0; i < orig->children[5]->curr_children; i++) {
-				val = generateStmt(orig->children[5]->children[i], fp);
+				generateStmt(orig->children[5]->children[i], fp);
 			}
 		}
 	}
@@ -341,7 +792,6 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
 
 	char* true_label = (char*)malloc(sizeof(char) * 5);
 	char* false_label = (char*)malloc(sizeof(char) * 5);
-	char* end_label = (char*)malloc(sizeof(char) * 5);
 	generateNewLabel(true_label);
 	generateNewLabel(false_label);
 
@@ -471,16 +921,52 @@ int generateIO(treeNode* orig, FILE *fp) {
 				orig->st, orig->children[0]->children[0]->tk_info.lexeme,
 				strlen(orig->children[0]->children[0]->tk_info.lexeme)
 			);
-			typeTableElem* looked_up_type = lookupType(
-				globalTT, looked_up->type, strlen(looked_up->type)
-			);
-			int i = 0;
 
-			for (i = 0; i < looked_up_type->fields_count; i++) {
-				if (strcpy(
-					looked_up_type->field_names[i], orig->children[0]->children[1]->tk_info.lexeme)
-				) {
+			if (strcmp(looked_up->type, "int") != 0
+				&& strcmp(looked_up->type, "real") != 0
+			) {
+				// print all fields of record
+				typeTableElem* looked_up_type = lookupType(
+					globalTT, looked_up->type, strlen(looked_up->type)
+				);
+				int i = 0;
+
+				for (i = 0; i < looked_up_type->fields_count; i++) {
 					offset = looked_up_type->offset[i];
+					fprintf(fp, "\tMOV EAX, [EBP + %dd]\n", BASE_ADDR + looked_up->offset + offset);
+
+					fprintf(fp,
+					  	"\tpush EAX\n"
+					    "\tpush formatout\n"
+					    "\tcall printf\n"
+					    "\tadd esp, 8 ; remove parameters\n"
+				    );
+				}
+
+				fprintf(fp,
+					"\tPOP EAX\n"
+					"\tPOP EBX\n"
+					"\tPOP ECX\n"
+					"\tPOP EDX\n"
+				);
+
+
+				return 0;
+			} else {
+
+				typeTableElem* looked_up_type = lookupType(
+					globalTT, looked_up->type, strlen(looked_up->type)
+				);
+				int i = 0;
+
+				for (i = 0; i < looked_up_type->fields_count; i++) {
+					if (strcmp(
+						looked_up_type->field_names[i], orig->children[0]->children[1]->tk_info.lexeme)
+						== 0
+					) {
+						offset = looked_up_type->offset[i];
+						break;
+					}
 				}
 			}
 		} else {
@@ -502,7 +988,7 @@ int generateIO(treeNode* orig, FILE *fp) {
 		int offset = 0;
 		symbolTableElem* looked_up = NULL;
 
-		if (orig->children[0]->symbol_type == allVar) {
+		if (orig->children[0]->symbol_type == singleOrRecId) {
 			looked_up = lookupSymbolHelper(
 				orig->st, orig->children[0]->children[0]->tk_info.lexeme,
 				strlen(orig->children[0]->children[0]->tk_info.lexeme)
@@ -513,10 +999,12 @@ int generateIO(treeNode* orig, FILE *fp) {
 			int i = 0;
 
 			for (i = 0; i < looked_up_type->fields_count; i++) {
-				if (strcpy(
+				if (strcmp(
 					looked_up_type->field_names[i], orig->children[0]->children[1]->tk_info.lexeme)
+					== 0
 				) {
 					offset = looked_up_type->offset[i];
+					break;
 				}
 			}
 		} else {
@@ -744,13 +1232,13 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			&& orig->children[1]->symbol_type != TK_NUM
 		) {
 			// EXPR OP EXPR
-			int ret = generateArithmeticExpr(orig->children[1], fp, reg);
+			generateArithmeticExpr(orig->children[1], fp, reg);
 			char *reg_str = (char*)malloc(sizeof(char)*3);
 			char *reg_str_temp = (char*)malloc(sizeof(char)*3);
 			getRegFromInt(reg, reg_str);
 			fprintf(fp, "\tPUSH %s\n", reg_str);
 
-			ret = generateArithmeticExpr(orig->children[0], fp, reg);
+			generateArithmeticExpr(orig->children[0], fp, reg);
 			getRegFromInt(reg, reg_str);
 			getRegFromInt((reg + 1) % 4, reg_str_temp);
 
@@ -916,7 +1404,7 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			&& orig->children[1]->symbol_type == TK_ID
 		) {
 			// EXPR OP ID
-			int ret = generateArithmeticExpr(orig->children[1], fp, reg);
+			generateArithmeticExpr(orig->children[1], fp, reg);
 			char *reg_str = (char*)malloc(sizeof(char)*3);
 
 			symbolTableElem* looked_up = lookupSymbolHelper(
@@ -936,13 +1424,13 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			&& orig->children[1]->symbol_type != TK_NUM
 		) {
 			// EXPR OP EXPR
-			int ret = generateArithmeticExpr(orig->children[1], fp, reg);
+			generateArithmeticExpr(orig->children[1], fp, reg);
 			char *reg_str = (char*)malloc(sizeof(char)*3);
 			char *reg_str_temp = (char*)malloc(sizeof(char)*3);
 			getRegFromInt(reg, reg_str);
 			fprintf(fp, "\tPUSH %s\n", reg_str);
 
-			ret = generateArithmeticExpr(orig->children[0], fp, reg);
+			generateArithmeticExpr(orig->children[0], fp, reg);
 			getRegFromInt(reg, reg_str);
 			getRegFromInt((reg + 1) % 4, reg_str_temp);
 

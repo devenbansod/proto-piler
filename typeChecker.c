@@ -211,6 +211,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 						"*** ERROR: The types of operands do not match on line - %d\n",
 						orig->children[i]->tk_info.line_no
 					);
+					sem_error++;
 					return -1;
 				}
 			} else if (scalar == 1
@@ -226,6 +227,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 						" Only scalar multiplications to records is allowed\n",
 						orig->children[i]->tk_info.line_no
 					);
+					sem_error++;
 					return -1;
 				}
 			} else if (scalar == 0 && i == 1
@@ -272,7 +274,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 		memset(type_name_already, '\0', 25);
 		memset(type_name_next, '\0', 25);
 
-		int ret = checkAndReturnType(orig->children[0]->children[i], type_name_already);
+		checkAndReturnType(orig->children[0]->children[i], type_name_already);
 
 		typeTableElem* typeT_lookup = lookupType(
 			globalTT, type_name_already,
@@ -320,18 +322,20 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 			);
 			sem_error++;
 			return -1;
-		} else if (orig->children[0]->curr_children <= 1
-			&& (strcmp(type_name_already, "real") != 0
-			&& strcmp(type_name_already, "int") != 0)
-		) {
-			fprintf(stderr,
-				"*** ERROR: The ID %s on line %d has a record type and can not be directly printed\n",
-				orig->children[0]->children[0]->tk_info.lexeme,
-				orig->children[0]->children[0]->tk_info.line_no
-			);
-			sem_error++;
-			return -1;
-		} else {
+		}
+		// else if (orig->children[0]->curr_children <= 1
+		// 	&& (strcmp(type_name_already, "real") != 0
+		// 	&& strcmp(type_name_already, "int") != 0)
+		// ) {
+		// 	fprintf(stderr,
+		// 		"*** ERROR: The ID %s on line %d has a record type and can not be directly printed\n",
+		// 		orig->children[0]->children[0]->tk_info.lexeme,
+		// 		orig->children[0]->children[0]->tk_info.line_no
+		// 	);
+		// 	sem_error++;
+		// 	return -1;
+		// }
+		else {
 			// do nothing
 		}
 
@@ -363,7 +367,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				);
 				sem_error++;
 				return -1;
-			} else if (orig->children[0]->curr_children <= 1
+			}
+			else if (orig->children[0]->curr_children <= 1
 				&& (strcmp(type_name_already, "real") != 0
 				&& strcmp(type_name_already, "int") != 0)
 			) {
@@ -391,7 +396,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				);
 				sem_error++;
 				return -1;
-			} else if (orig->children[0]->curr_children <= 1
+			}
+			else if (orig->children[0]->curr_children <= 1
 				&& (strcmp(type_name_already, "real") != 0
 				&& strcmp(type_name_already, "int") != 0)
 			) {
@@ -402,7 +408,8 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				);
 				sem_error++;
 				return -1;
-			} else {
+			} 
+			else {
 
 				typeT_lookup = lookupType(
 					globalTT, type_name_already,

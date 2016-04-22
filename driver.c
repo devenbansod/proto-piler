@@ -46,7 +46,10 @@ int main(int argc, char *argv[]) {
     initKeywordTrie();
 
 
-    fprintf(stderr, "\n*** INFORMATION ***");
+    fprintf(stderr, "\nLEVEL #4 Symbol Table, Semantic Check, "
+        "Type Verfications, Code Generation modules work."
+    );
+    fprintf(stderr, "\n\n*** INFORMATION ***");
     fprintf(stderr, "\n\t* FIRST SET automated");
     fprintf(stderr, "\n\t* FOLLOW SET NOT automated");
     fprintf(stderr, "\n\t* Lexer  module implemented");
@@ -72,11 +75,6 @@ int main(int argc, char *argv[]) {
         scanf("%d", &input);
 
         switch (input) {
-            // case 1:
-            //     printCommentFreeSource(argv[1]);
-            //     fprintf(stderr, "\n");
-            //     break;
-
             case 1:
                 fp = fopen(argv[1], "r");
                 lexicalAnalysis(fp, 4096);
@@ -92,7 +90,6 @@ int main(int argc, char *argv[]) {
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
-                    free(tree);
                 }
                 break;
 
@@ -101,36 +98,53 @@ int main(int argc, char *argv[]) {
                 if (error == 0) {
                     AST = (parseTree*)malloc(sizeof(parseTree));
                     AST->root = createAST(tree->root);
-                    printParseTree(AST, stdout);
+
+                    if (sem_error == 0) {
+                        printParseTree(AST, stdout);
+                        fprintf(stderr, "AST created! Input is semantically correct\n\n");
+                    } else {
+                        fprintf(stderr, "\n*** ERROR! The Input was NOT semantically correct!\n\n");
+                    }
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
-                    free(tree);
                 }
+                sem_error = 0;
                 break;
 
             case 4:
                 // calculate Compression Stats
-                treeSize = 0; numberNodes = 0;           
+                treeSize = 0; numberNodes = 0;
                 tree = parseInputSourceCode(argv[1], &error);
-                parseTreeSize(tree->root);
-                printf("Parse Tree: Number of Nodes = %d ; Total Size = %d bytes\n", numberNodes, treeSize);
-                int size_parse_tree = treeSize;
+
                 if (error == 0) {
+                    parseTreeSize(tree->root);
+                    int size_parse_tree = treeSize;
+
+                    printf("\nParse Tree: Number of Nodes = %d ; Total Size = %d bytes\n", numberNodes, treeSize);
+
                     AST = (parseTree*)malloc(sizeof(parseTree));
                     AST->root = createAST(tree->root);
+
+                    treeSize = 0; numberNodes = 0;
+                    parseTreeSize(AST->root);
+                    printf("\n\nAST Size: Number of Nodes = %d ; Total Size = %d bytes\n", numberNodes, treeSize);
+                    int size_ast = treeSize;
+
+                    double compression = ((double)size_parse_tree - (double)size_ast)/((double)size_parse_tree);
+                    printf("Compression: %f %%\n\n", compression * 100);
+
+                    if (sem_error != 0) {
+                        fprintf(stderr, "\n*** ERROR! The Input was NOT semantically correct!\n\n");
+                    } else {
+                        fprintf(stderr, "\nInput is semantically correct");
+                    }
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
                     free(tree);
                 }
-                treeSize = 0; numberNodes = 0;
-                parseTreeSize(AST->root);
-                printf("AST Size: Number of Nodes = %d ; Total Size = %d bytes\n", numberNodes, treeSize);
-                int size_ast = treeSize;
-
-                double compression = ((double)size_parse_tree - (double)size_ast)/((double)size_parse_tree);
-                printf("Compression: %f %%\n", compression*100);
+                sem_error = 0;
                 break;
 
             case 5:
@@ -138,13 +152,17 @@ int main(int argc, char *argv[]) {
                 if (error == 0) {
                     AST = (parseTree*)malloc(sizeof(parseTree));
                     AST->root = createAST(tree->root);
-                    // printf("aa rha\n");
                     printAllSymbolTables();
+                    if (sem_error == 0) {
+                        fprintf(stderr, "AST created! Input is semantically correct\n\n");
+                    } else {
+                        fprintf(stderr, "\n*** ERROR! The Input was NOT semantically correct!\n\n");
+                    }
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
-                    free(tree);
                 }
+                sem_error = 0;
                 break;
 
             case 6:
@@ -152,12 +170,18 @@ int main(int argc, char *argv[]) {
                 if (error == 0) {
                     AST = (parseTree*)malloc(sizeof(parseTree));
                     AST->root = createAST(tree->root);
-                    performTypeChecking(tree->root);
+
+                    performTypeChecking(AST->root);
+                    if (sem_error == 0) {
+                        fprintf(stderr, "Input is semantically correct\n\n");
+                    } else {
+                        fprintf(stderr, "\n*** ERROR! The Input was NOT semantically correct!\n\n");
+                    }
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
-                    free(tree);
                 }
+                sem_error = 0;
                 break;
 
 
@@ -171,6 +195,7 @@ int main(int argc, char *argv[]) {
                     if (sem_error == 0) {
                         FILE *f = fopen(argv[2], "w");
                         generateProgram(AST->root, f);
+                        fprintf(stderr, "\nThe Input is successfully compiled and assembly generated at %s!\n\n", argv[2]);
                         fclose(f);
                     } else {
                         fprintf(stderr, "\n*** ERROR! The Input could NOT be semantically verified!\n\n");
@@ -178,8 +203,8 @@ int main(int argc, char *argv[]) {
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
-                    free(tree);
                 }
+                sem_error = 0;
                 break;
 
             case -1:

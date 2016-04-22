@@ -193,24 +193,20 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	int i = 0;
 	int count;
 	int children_count = funcNode->children[2]->curr_children;
-	
-	if(!funcNode->children[2]->children[children_count-1]){
+
+	if( !funcNode->children[2]->children[children_count-1]) {
 		count = 0;
 	}
 	else{
 		count = funcNode->children[2]->children[children_count-1]->curr_children;
 	}
-	if(count != (output_len/2)){
-		fprintf(stderr, "*** ERROR: Return list (%d elements) and Output parameter list (%d elements) have unequal number of elements\n", count, output_len);
-		sem_error++;
-	}	
 
 	char **input_types = (char**)malloc(input_len*sizeof(char*));
 	char **output_types = (char**)malloc(output_len*sizeof(char*));
 	char **input_ids = (char**)malloc(input_len*sizeof(char*));
 	char **output_ids = (char**)malloc(output_len*sizeof(char*));
 
-	for (i = 0;i < input_len; ++i){
+	for (i = 0; i < input_len; ++i) {
 		int len = strlen(funcNode->children[0]->children[i]->tk_info.lexeme);
 
 		if (i % 2 == 0) {
@@ -230,7 +226,7 @@ treeNode* reduceFunction(treeNode* funcNode) {
 			);
 		}
 	}
-	for (i = 0; i < output_len; ++i){
+	for (i = 0; i < output_len; ++i) {
 		int len = strlen(funcNode->children[1]->children[i]->tk_info.lexeme);
 
 		if (i % 2 == 0) {
@@ -252,28 +248,43 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		}
 
 	}
-	for (i = 0; i < count; ++i){
-		// printf("%d\n",strcmp(output_ids[i], funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme));				
-		if(strcmp(output_ids[i], funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme)!=0){
-			fprintf(stderr, "*** ERROR: Output parameter list and return list have different ids\n");
-			sem_error++;
-		}
-		// printf("%s %s \n", output_typels[i], funcNode->children[2]->children[children_count-1]->children[i]);
-		symbolTableElem* temp = lookupSymbol(funcNode->st, 
-			funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme, 
-			strlen(funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme)
+
+
+	if (count != (output_len/2)) {
+		fprintf(stderr,
+			"*** ERROR: Return list (%d elements) and Output parameter list"
+			" (%d elements) have unequal number of elements\n",
+			count, output_len
+		);
+		sem_error++;
+	} else {
+		for (i = 0; i < count; ++i) {
+			if(strcmp(output_ids[i], funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme) !=0 ) {
+				fprintf(stderr, "*** ERROR: Output parameter list and return list have different ids\n");
+				sem_error++;
+			}
+			symbolTableElem* looked_up = lookupSymbol(
+				funcNode->st,
+				funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme,
+				strlen(funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme)
 			);
 
-		// printf("%s %s\n", temp->type, output_types[i]);
-		if(strcmp(output_types[i], temp->type)!=0){
-			fprintf(stderr, "*** ERROR: Output parameter list and return list have different data types\n");
-			sem_error++;
+			if (looked_up == NULL) {
+				looked_up = lookupSymbol(
+					globalST,
+					funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme,
+					strlen(funcNode->children[2]->children[children_count-1]->children[i]->tk_info.lexeme)
+				);
+			}
+
+			if (strcmp(output_types[i], looked_up->type) !=0 ) {
+				fprintf(stderr, "*** ERROR: Output parameter list and return list have different data types\n");
+				sem_error++;
+			}
 		}
 	}
 
-
 	insertFunction(globalFT, id, id_len, input_types, output_types, input_ids, output_ids, input_len/2, output_len/2);
-
 	funcNode->children[0]->parent = funcNode;
 
 	// if returned value is not NULL
@@ -1183,7 +1194,7 @@ treeNode* reduceSingleOrRecId(treeNode* orig) {
 	} else {
 		orig->children[1] = orig->children[1]->children[1];
 		orig->children[1]->parent = orig;
-		orig->children[1]->st = orig->st;
+		orig->children[1]->st = backup->st;
 
 		orig->curr_children = 2;
 	}
@@ -1269,8 +1280,6 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 		copySymbolTableToChildren(orig);
 		orig->parent = backup->parent;
 	} else {
-
-		treeNode* temp = orig->children[1];
 
 		orig->children = (treeNode**)realloc(orig->children, sizeof(treeNode*) * 2);
 		// orig = orig->children[1];

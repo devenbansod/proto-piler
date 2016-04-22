@@ -277,13 +277,16 @@ void destroyTypeTable(TypeTable *typeTbl) {
 TypeTable* rehash_type_table(TypeTable *typeTbl, int new_size) {
     TypeTable *newst = createTypeTable(new_size);
     int i;
-    typeTableElem* curr;
+    typeTableElem* curr = NULL;
 
     for (i = 0; i < typeTbl->size; i++) {
         if (typeTbl->typeArray[i]) {
-            // for (curr = typeTbl->typeArray[i]; curr != NULL; curr = curr->next){
-                // insertType(newst, curr->type_name, curr->type_len, curr->width, curr->offset, curr->fields_count);
-            // }
+            for (curr = typeTbl->typeArray[i]; curr != NULL; curr = curr->next){
+                insertType(newst, curr->type_name, strlen(curr->type_name),
+                    curr->width, curr->offset, curr->field_names,
+                    curr->field_types, curr->fields_count
+                );
+            }
         }
     }
 
@@ -425,7 +428,7 @@ FunctionTable* createFunctionTable(int size) {
  */
 void destroyFunctionTable(FunctionTable *fxTable) {
     int i = 0;
-    functionTableElem *curr, *prev;
+    functionTableElem *curr = NULL, *prev = NULL;
 
     for(i = 0; i < fxTable->size; i++) {
         prev = fxTable->functionArray[i];
@@ -450,13 +453,17 @@ void destroyFunctionTable(FunctionTable *fxTable) {
 FunctionTable* rehash_function_table(FunctionTable *fxTable, int new_size) {
     FunctionTable *newst = createFunctionTable(new_size);
     int i;
-    functionTableElem* curr;
+    functionTableElem* curr = NULL;
 
     for (i = 0; i < fxTable->size; i++) {
         if (fxTable->functionArray[i]) {
-            // for (curr = fxTable->functionArray[i]; curr != NULL; curr = curr->next){
-                // insertType(newst, curr->type_name, curr->type_len, curr->width, curr->offset, curr->fields_count);
-            // }
+            for (curr = fxTable->functionArray[i]; curr != NULL; curr = curr->next){
+                insertFunction(
+                    newst, curr->id, strlen(curr->id),
+                    curr->input_types, curr->output_types, curr->input_ids,
+                    curr->output_ids, curr->input_len, curr->output_len
+                );
+            }
         }
     }
 

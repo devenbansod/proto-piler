@@ -3,10 +3,10 @@
 # Nirant Kasliwal 2012C6PS694P
 
 all: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o codeGen.o
-	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o codeGen.o driver.c -o stage1exe
+	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o codeGen.o driver.c -o toycompiler
 
 debug: fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o codeGen.o
-	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o codeGen.o driver.c -g -Wall -o stage1exe
+	gcc  -Wall       fileBuffer.o lexer.o stack.o parser.o AST.o symbolTable.o typeChecker.o codeGen.o driver.c -g -Wall -o toycompiler
 
 clean:
 	rm -rf *.gch

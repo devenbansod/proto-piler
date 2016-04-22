@@ -670,17 +670,15 @@ parseTree* createParseTree(parseTree *new_tree) {
  *Nide
  */
 
- 
-
 int calcNodeSize(treeNode *currNode){
     int size = 0;
     size += sizeof(currNode->parent) + sizeof(currNode->next);
-    size += sizeof(currNode->symbol_type) + sizeof(currNode->tk_info);
+    size += sizeof(currNode->symbol_type) + sizeof(currNode->tk_info) - 100 + strlen(currNode->tk_info.lexeme);
     size += sizeof(currNode->st) + sizeof(currNode->curr_children) + sizeof(currNode->processed_children);
     int i = 0;
     for(; i < currNode->curr_children;++i){
         size += sizeof(currNode->children[i]);
-    } 
+    }
     return size;
 }
 
@@ -695,7 +693,7 @@ void parseTreeSize(treeNode *current_tree_node) {
         for(k = 0; current_tree_node && k < current_tree_node->curr_children; k++) {
             parseTreeSize(current_tree_node->children[k]);
         }
-    }    
+    }
 }
 
 
