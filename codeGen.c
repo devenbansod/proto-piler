@@ -12,6 +12,10 @@
 
 int curr_label = 0;
 
+/*
+* function to generate new label
+*/
+
 void generateNewLabel(char* new_label) {
 	strcpy(new_label, "L");
 	char temp[10];
@@ -20,7 +24,9 @@ void generateNewLabel(char* new_label) {
 	curr_label++;
 }
 
-
+/*
+* helper function to lookup any (global or local) declared symbol
+*/
 symbolTableElem* lookupSymbolHelper(SymbolTable* st, char *id, int id_len) {
 	symbolTableElem* looked_up = lookupSymbol(st, id, id_len);
 
@@ -635,7 +641,7 @@ int generateAssign(treeNode* orig, FILE *fp) {
 }
 
 /*
- *
+ * to generate NASM code for iterative statements
  */
 int generateIterative(treeNode* orig, FILE *fp) {
 
@@ -670,7 +676,7 @@ int generateIterative(treeNode* orig, FILE *fp) {
 
 
 /*
- *
+ * to generate NASM code for boolean expression
  */
 int
 generateBooleanExpr(treeNode* orig, FILE *fp, int reg) {
@@ -729,7 +735,7 @@ generateBooleanExpr(treeNode* orig, FILE *fp, int reg) {
 
 
 /*
- *
+ * to generate NASM code for conditional statements (using JMP)
  */
 int generateConditional(treeNode* orig, FILE *fp) {
 
@@ -786,7 +792,7 @@ int generateConditional(treeNode* orig, FILE *fp) {
 }
 
 /*
- *
+ * to generate NASM code relational statements
  */
 int generateRelational(treeNode* orig, FILE *fp, int reg) {
 
@@ -896,7 +902,7 @@ int generateRelational(treeNode* orig, FILE *fp, int reg) {
 }
 
 /*
- *
+ * to generate code for IO statements
  */
 int generateIO(treeNode* orig, FILE *fp) {
 
@@ -1036,6 +1042,9 @@ int generateIO(treeNode* orig, FILE *fp) {
 	return 0;
 }
 
+/*
+* to generate NASM code for arithmetic expressions
+*/
 int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 
 	if (orig->symbol_type == TK_PLUS) {
@@ -1966,6 +1975,9 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 	return 0;
 }
 
+/*
+* to generate NASM code for getting register acc to ret
+*/
 int getRegFromInt(int ret, char *reg) {
 	switch (ret) {
 		case 1:

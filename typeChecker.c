@@ -16,6 +16,11 @@ SymbolTable *globalST;
 TypeTable *globalTT;
 FunctionTable *globalFT;
 
+/*
+ helper function for type checking
+ checks for type compatibility, previous type declarations, 
+ missing declarations etc.
+*/
 int checkAndReturnType(treeNode* orig, char* type_name) {
 	if (orig == NULL || orig->symbol_type == eps) {
 		printf("EPS/NULL so returning\n");
@@ -463,7 +468,10 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 
 		if (ret == -1)
 			return -1;
+		
+		// check for type compatibility
 
+		// type checks for boolean expression
 		if (strcmp(type_name_already, "boolean") == 0) {
 			for (i = 1; i < orig->curr_children; i++) {
 				memset(type_name_next, '\0', 25);
@@ -478,7 +486,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				if (strcmp(type_name_already, type_name_next) != 0) {
 					fprintf(
 						stderr,
-						"*** ERROR: Type sem_error in Boolean expression on line- %d\n",
+						"*** ERROR: Semantic error in Boolean expression on line - %d\n",
 						orig->tk_info.line_no
 					);
 					sem_error++;
@@ -486,6 +494,7 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 				}
 			}
 		} else if (strcmp(type_name_already, "int") == 0) {
+			// if type is int
 			for (i = 1; i < orig->curr_children; i++) {
 				memset(type_name_next, '\0', 25);
 
@@ -544,6 +553,9 @@ int checkAndReturnType(treeNode* orig, char* type_name) {
 	return 1;
 }
 
+/*
+driver function for type checking
+*/
 int performTypeChecking (treeNode* orig) {
 	char type_name[25];
 

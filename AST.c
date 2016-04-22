@@ -37,6 +37,7 @@ int curr_global_offset_backup = OFFSET_START;
 
 /*
  * Helper function
+ 	Copies symbol table to all the children nodes
  */
 void copySymbolTableToChildren(treeNode* orig) {
 	if (orig == NULL) {
@@ -50,6 +51,7 @@ void copySymbolTableToChildren(treeNode* orig) {
 	}
 }
 
+//  function to reduce program statement
 treeNode* reduceProgram(treeNode* root) {
 	globalTT = createTypeTable(10);
 
@@ -64,6 +66,7 @@ treeNode* reduceProgram(treeNode* root) {
 
 	globalFT = createFunctionTable(10);
 
+	// start reduction of all functions from other function and main function
 	root->children[0] = reduceOtherFunctions(root->children[0]);
 	root->children[1] = reduceMainFunction(root->children[1]);
 
@@ -74,6 +77,7 @@ treeNode* reduceProgram(treeNode* root) {
 	root->curr_children = 2;
 
 	checkForDuplicates();
+
 	curr_number_backup = curr_number;
 	curr_number = 0;
 
@@ -90,6 +94,7 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 	mainFuncNode->st = createSymbolTable(20);
 	strcpy(mainFuncNode->st->scope, "main");
 
+	// add main function to allST all symbol table
 	if (curr_number < curr_max) {
 		allST[curr_number++] = mainFuncNode->st;
 	} else {
@@ -109,7 +114,7 @@ treeNode* reduceMainFunction(treeNode* mainFuncNode) {
 
 	return mainFuncNode;
 }
-
+// reduce all programmed functions other than main
 treeNode* reduceOtherFunctions(treeNode* orig) {
 
 	// Might reduce to EPS, so check
@@ -151,6 +156,9 @@ treeNode* reduceOtherFunctions(treeNode* orig) {
 	}
 }
 
+/*
+* Reduce function, called from otherFunction to reduce all functions
+*/
 treeNode* reduceFunction(treeNode* funcNode) {
 	funcNode->symbol_type = funcNode->children[0]->symbol_type;
 	funcNode->tk_info = funcNode->children[0]->tk_info;
@@ -191,6 +199,8 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		output_len = 0;
 	}
 	int i = 0;
+
+	// count will be used later for semantic checking
 	int count;
 	int children_count = funcNode->children[2]->curr_children;
 
@@ -200,6 +210,8 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	else{
 		count = funcNode->children[2]->children[children_count-1]->curr_children;
 	}
+
+	// create a new symbol table for each function
 
 	char **input_types = (char**)malloc(input_len*sizeof(char*));
 	char **output_types = (char**)malloc(output_len*sizeof(char*));
@@ -218,7 +230,7 @@ treeNode* reduceFunction(treeNode* funcNode) {
 			memset(input_ids[i/2], '\0', len+1);
 			strcpy(input_ids[i/2], funcNode->children[0]->children[i]->tk_info.lexeme);
 
-
+			// insert all relevant symbols into the symbol table for this function
 			insertSymbol(funcNode->st, funcNode->children[0]->children[i]->tk_info.lexeme,
 				strlen(funcNode->children[0]->children[i]->tk_info.lexeme),
 				funcNode->children[0]->children[i-1]->tk_info.lexeme,
@@ -249,7 +261,7 @@ treeNode* reduceFunction(treeNode* funcNode) {
 
 	}
 
-
+	// semantic error checking between return and output params list
 	if (count != (output_len/2)) {
 		fprintf(stderr,
 			"*** ERROR: Return list (%d elements) and Output parameter list"
@@ -283,6 +295,8 @@ treeNode* reduceFunction(treeNode* funcNode) {
 			}
 		}
 	}
+	
+	// insert function into the globalFT table 
 
 	insertFunction(globalFT, id, id_len, input_types, output_types, input_ids, output_ids, input_len/2, output_len/2);
 	funcNode->children[0]->parent = funcNode;
@@ -292,7 +306,7 @@ treeNode* reduceFunction(treeNode* funcNode) {
 		funcNode->children[1]->parent = funcNode;
 	}
 
-	// I think this is redundant check
+	// TK: check if this is redundant
 	if (funcNode->children[2])
 		funcNode->children[2]->parent = funcNode;
 
@@ -301,6 +315,9 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	return funcNode;
 }
 
+/*
+* reduce input parameter list and free nodes
+*/
 
 treeNode* reduceInputPar(treeNode* inputParNode) {
 	treeNode* back_up = inputParNode;
@@ -318,6 +335,9 @@ treeNode* reduceInputPar(treeNode* inputParNode) {
 	return inputParNode;
 }
 
+/*
+* reduce output parameter list and free nodes
+*/
 treeNode* reduceOutputPar(treeNode* outputParNode) {
 	treeNode* back_up = outputParNode;
 
@@ -341,7 +361,9 @@ treeNode* reduceOutputPar(treeNode* outputParNode) {
 	return outputParNode;
 }
 
-
+/*
+* reduce parameter list, called from both input and output
+*/
 treeNode* reduceParameterList(treeNode* paramListNode) {
 	treeNode* orig = paramListNode;
 
@@ -385,6 +407,9 @@ treeNode* reduceParameterList(treeNode* paramListNode) {
 	return orig;
 }
 
+/*
+* reduce datatype and update nodes, called from param lists
+*/
 treeNode* reduceDatatype(treeNode* datatypeNode) {
 	treeNode* datatypeNode_backup = datatypeNode;
 
@@ -405,6 +430,10 @@ treeNode* reduceDatatype(treeNode* datatypeNode) {
 
 	return datatypeNode;
 }
+
+/*
+* reduce different type of statements and update relevant nodes
+*/
 
 treeNode* reduceStmtsNode(treeNode* stmtsNode) {
 
@@ -438,6 +467,9 @@ treeNode* reduceStmtsNode(treeNode* stmtsNode) {
 	return stmtsNode;
 }
 
+/*
+* reduce type definition, e.g. record
+*/
 treeNode* reduceTypeDefns(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
 		return NULL;
@@ -471,6 +503,9 @@ treeNode* reduceTypeDefns(treeNode* orig) {
 	return orig;
 }
 
+/*
+* helper function to type defintions, reduce one type at a time
+*/
 treeNode* reduceTypeDefn(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
@@ -487,6 +522,9 @@ treeNode* reduceTypeDefn(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce field definitions, iterate over all
+*/
 treeNode* reduceFieldDefns(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
@@ -554,6 +592,7 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 
 		orig->children[i] = reduceFieldDefn(defns->children[0]);
 
+		// prepare information to store in type table
 		field_names[i] = (char* )malloc(25*sizeof(char));
         memset(field_names[i], '\0', 25);
 		strcpy(field_names[i], orig->children[i]->children[1]->tk_info.lexeme);
@@ -577,6 +616,7 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 	char* type = (char*) malloc(25*sizeof(char));
 	strcpy(type, orig->parent->children[0]->tk_info.lexeme);
 
+	// insert type in global type table
 	insertType(
 		globalTT, type, strlen(type), width, offset, field_names,
 		field_types, orig->curr_children
@@ -589,6 +629,9 @@ treeNode* reduceFieldDefns(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduces one field defn at a time and update relevant node
+*/
 treeNode* reduceFieldDefn(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
@@ -604,7 +647,9 @@ treeNode* reduceFieldDefn(treeNode* orig) {
 
 	return orig;
 }
-
+/*
+* reduce all declarations
+*/
 treeNode* reduceDeclarations(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
 		// free(orig->children[0]);
@@ -655,7 +700,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 		treeNode* declarationNode = orig->children[k];
 
 		if (declarationNode->curr_children > 2) {
-			// insert in global
+			// insert in global symbol table
 
 			int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
 			char *type = (char*)malloc(type_len * sizeof(char));
@@ -675,6 +720,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 			strcpy(id, declarationNode->children[1]->tk_info.lexeme);
 			// check if exists in global
 			if (lookupSymbol(globalST, id, id_len) == NULL) {
+				// if does not exist in globalST, insert the symbol in local
 				int type_len = strlen(declarationNode->children[0]->tk_info.lexeme);
 				char *type = (char*)malloc(type_len * sizeof(char));
 
@@ -693,7 +739,9 @@ treeNode* reduceDeclarations(treeNode* orig) {
 
 	return orig;
 }
-
+/*
+* reduce each declaration and update the nodes
+*/
 treeNode* reduceDeclaration(treeNode* orig) {
 	free(orig->children[2]);
 	if (orig->symbol_type == eps) {
@@ -719,7 +767,9 @@ treeNode* reduceDeclaration(treeNode* orig) {
 
 	return orig;
 }
-
+/*
+* reduce other statements
+*/
 treeNode* reduceOtherStmts(treeNode* orig) {
 	treeNode* stmts = orig;
 	if (orig->children[0]->symbol_type == eps) {
@@ -760,7 +810,9 @@ treeNode* reduceOtherStmts(treeNode* orig) {
 	orig->curr_children = i;
 	return orig;
 }
-
+/*
+* reduce each statement, called by reduceOtherStmts()
+*/
 treeNode* reduceStatement(treeNode* orig) {
 	treeNode* backup = orig;
 
@@ -805,7 +857,9 @@ treeNode* reduceStatement(treeNode* orig) {
 	free(backup);
 	return orig;
 }
-
+/*
+* reduce return statements
+*/
 treeNode* reduceReturnStmt(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
@@ -821,7 +875,9 @@ treeNode* reduceReturnStmt(treeNode* orig) {
 		return backup;
 	}
 }
-
+/*
+* reduce assignment statements
+*/
 treeNode* reduceAssignStmt(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
@@ -849,6 +905,9 @@ treeNode* reduceAssignStmt(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce iterative statement and update nodes
+*/
 treeNode* reduceIterativeStmt(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
@@ -872,6 +931,9 @@ treeNode* reduceIterativeStmt(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce conditional statement & update nodes
+*/
 treeNode* reduceConditionalStmt(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 
@@ -920,6 +982,9 @@ treeNode* reduceConditionalStmt(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce IO statements and update relevant nodes
+*/
 treeNode* reduceIoStmt(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
@@ -954,6 +1019,9 @@ treeNode* reduceIoStmt(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce function call statement
+*/
 treeNode* reduceFunCallStmt(treeNode* orig) {
 	copySymbolTableToChildren(orig);
 	treeNode* backup = orig;
@@ -985,7 +1053,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 		int i;
 		symbolTableElem* lookup = NULL;
 
-		// check input parameter list
+		// check input parameter list 
 		for (i = 0; i < func->input_len && i < orig->children[1]->curr_children; i++) {
 			lookup = lookupSymbol(
 				orig->st,
@@ -1076,6 +1144,7 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 			}
 		}
 
+		// check for semantic error
 		if (orig->children[0] && func->output_len != orig->children[0]->curr_children) {
 			fprintf(stderr,
 				"*** ERROR: The function %s returns %d parameters, %d catched on line %d\n",
@@ -1103,6 +1172,9 @@ treeNode* reduceFunCallStmt(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce output parameter from the list
+*/
 treeNode* reduceOutputParameters(treeNode* orig) {
 	treeNode* backup = orig;
 	if (orig->symbol_type == eps) {
@@ -1121,7 +1193,9 @@ treeNode* reduceOutputParameters(treeNode* orig) {
 	}
 	return orig;
 }
-
+/*
+* reduce input params from the list
+*/
 treeNode* reduceInputParameters(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
@@ -1135,6 +1209,10 @@ treeNode* reduceInputParameters(treeNode* orig) {
 
 	return orig;
 }
+
+/*
+* reduce ID list
+*/
 
 treeNode* reduceIdList(treeNode* orig) {
 
@@ -1180,6 +1258,9 @@ treeNode* reduceIdList(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce both single or record id
+*/
 treeNode* reduceSingleOrRecId(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
@@ -1202,6 +1283,9 @@ treeNode* reduceSingleOrRecId(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce all var
+*/
 treeNode* reduceAllVar(treeNode* orig) {
 	treeNode* backup = orig;
 
@@ -1244,6 +1328,9 @@ treeNode* reduceAllVar(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce pull up
+*/
 treeNode* pullUp(treeNode* left_child, treeNode* right_child) {
 
 	if (right_child == NULL) {
@@ -1261,6 +1348,9 @@ treeNode* pullUp(treeNode* left_child, treeNode* right_child) {
 	}
 }
 
+/*
+* reduce artihmetic expression
+*/
 treeNode* reduceArithmeticExpr(treeNode* orig) {
 
 	copySymbolTableToChildren(orig);
@@ -1299,6 +1389,9 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce expression 
+*/
 treeNode* reduceExpPrime(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
 		return NULL;
@@ -1324,6 +1417,9 @@ treeNode* reduceExpPrime(treeNode* orig) {
 	}
 }
 
+/*
+* reduce each term in an expression
+*/
 treeNode* reduceTerm(treeNode* orig) {
 	treeNode* backup = orig;
 
@@ -1355,6 +1451,9 @@ treeNode* reduceTerm(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce term prime
+*/
 treeNode* reduceTermPrime(treeNode* orig) {
 	if (orig->children[0]->symbol_type == eps) {
 		free(orig->children[0]);
@@ -1368,6 +1467,7 @@ treeNode* reduceTermPrime(treeNode* orig) {
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
 		copySymbolTableToChildren(orig);
 
+		// call to reduce both children and update here
 		orig->children[0] = reduceFactor(backup->children[1]);
 		orig->children[1] = reduceTermPrime(backup->children[2]);
 
@@ -1384,6 +1484,9 @@ treeNode* reduceTermPrime(treeNode* orig) {
 	}
 }
 
+/*
+* reduce factor
+*/
 treeNode* reduceFactor(treeNode* orig) {
 	treeNode* backup = orig;
 	if (orig->children[0]->symbol_type == all) {
@@ -1400,10 +1503,14 @@ treeNode* reduceFactor(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce all node
+*/
 treeNode* reduceAll(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
 	if (orig->children[0]->symbol_type == TK_ID) {
+		// update tree to AST nodes from parse tree nodes
 		if (orig->children[1]->children[0]->symbol_type == eps) {
 			free(orig->children[1]->children[0]);
 			free(orig->children[1]);
@@ -1429,6 +1536,9 @@ treeNode* reduceAll(treeNode* orig) {
 	return orig;
 }
 
+/*
+* reduce boolean expression
+*/
 treeNode* reduceBooleanExpr(treeNode* orig) {
 	treeNode* backup = orig;
 	copySymbolTableToChildren(orig);
@@ -1437,12 +1547,14 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 		orig = orig->children[3]->children[0];
 		orig->children = (treeNode**)realloc(orig->children, 2 * sizeof(treeNode*));
 
+		// recursive call to reduce boolean expression
 		orig->children[0] = reduceBooleanExpr(backup->children[1]);
 		orig->children[0]->parent = orig;
 		free(backup->children[0]);
 		free(backup->children[2]);
 		free(backup->children[4]);
 		free(backup->children[6]);
+		// recursive call to reduce boolean expression
 		orig->children[1] = reduceBooleanExpr(backup->children[5]);
 		if (orig->children[1])
 			orig->children[1]->parent = orig;
@@ -1455,6 +1567,7 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
 		orig = orig->children[0];
 		orig->children = (treeNode**)realloc(orig->children, 1 * sizeof(treeNode*));
 
+		// recursive call to reduce boolean expression
 		orig->children[0] = reduceBooleanExpr(backup->children[2]);
 		orig->children[0]->parent = orig;
 
@@ -1489,7 +1602,7 @@ treeNode* reduceBooleanExpr(treeNode* orig) {
  * For every symbol in GlobalST, look it up in every other ST
  *   If found, give an sem_error
  *   Else Move ahead
- *
+ *	Helper function
  */
 int checkForDuplicates() {
 	int i, j;
