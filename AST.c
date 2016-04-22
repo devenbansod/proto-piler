@@ -14,8 +14,9 @@
 int curr_number = 0;
 int curr_number_backup = 0;
 int sem_error = 0;
+
 /*
- * Main Function call
+ * Main Function call to create and return AST
  */
 treeNode* createAST(treeNode *parseTreeRoot) {
 	if (parseTreeRoot == NULL
@@ -176,8 +177,10 @@ treeNode* reduceFunction(treeNode* funcNode) {
 	// now make the 3nd child as stmts list
 	funcNode->children[2] = reduceStmtsNode(funcNode->children[4]);
 
-	// printf("%d \n", );
 	// insert() into Function Table
+
+	// also check if returned ids' lexemes and types match
+	// the ones declared in output parameters
 	int id_len = strlen(funcNode->tk_info.lexeme);
 	char *id = (char*)malloc(id_len*sizeof(char));
 	strcpy(id, funcNode->tk_info.lexeme);
@@ -663,7 +666,7 @@ treeNode* reduceDeclarations(treeNode* orig) {
 			strcpy(type, declarationNode->children[0]->tk_info.lexeme);
 
 			insertSymbol(globalST, declarationNode->children[1]->tk_info.lexeme,
-				strlen(declarationNode->children[1]->tk_info.lexeme), type, 
+				strlen(declarationNode->children[1]->tk_info.lexeme), type,
 				&curr_global_offset
 			);
 			free(type);
@@ -1281,13 +1284,14 @@ treeNode* reduceArithmeticExpr(treeNode* orig) {
 		orig->parent = backup->parent;
 	} else {
 
-		orig->children = (treeNode**)realloc(orig->children, sizeof(treeNode*) * 2);
 		// orig = orig->children[1];
 		orig = pullUp(orig->children[0], orig->children[1]);
+		orig->children = (treeNode**)realloc(orig->children, sizeof(treeNode*) * 2);
 
 		// orig->children[1] = orig->children[0];
 		// orig->children[0] = backup->children[0];
 		orig->children[0]->parent = orig;
+		orig->children[1]->parent = orig;
 		// orig->children[1]->parent = orig;
 		orig->curr_children = 2;
 		return orig;

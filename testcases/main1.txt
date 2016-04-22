@@ -7,7 +7,7 @@ _main
 	c2<--- 20;
 	read(d2);
 
-	b3 <--- b2 + c2 + d2;
+	b3 <--- b2 + c2 * d2;
 	write(b3);
 	return;
 end

@@ -99,12 +99,7 @@ int main(int argc, char *argv[]) {
                     AST = (parseTree*)malloc(sizeof(parseTree));
                     AST->root = createAST(tree->root);
 
-                    if (sem_error == 0) {
-                        printParseTree(AST, stdout);
-                        fprintf(stderr, "AST created! Input is semantically correct\n\n");
-                    } else {
-                        fprintf(stderr, "\n*** ERROR! The Input was NOT semantically correct!\n\n");
-                    }
+                    printParseTree(AST, stdout);
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
@@ -142,7 +137,6 @@ int main(int argc, char *argv[]) {
                 } else {
                     fprintf(stderr, "\n*** ERROR! The Input could NOT be parsed!\n\n");
                     error = 0;
-                    free(tree);
                 }
                 sem_error = 0;
                 break;

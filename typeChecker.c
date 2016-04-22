@@ -17,6 +17,7 @@ TypeTable *globalTT;
 FunctionTable *globalFT;
 
 int checkAndReturnType(treeNode* orig, char* type_name) {
+
 	if (orig == NULL || orig->symbol_type == eps) {
 		printf("EPS/NULL so returning\n");
 		return -1;

@@ -18,8 +18,9 @@ end
 _main
 	type real :c4bd56;
 	type int :c2;
+	type int :b3;
 	%type int : b5b567:global;
-	b3 <--- 7;
+	b3 <--- (7 * 2) + ((b3 / 2) - 4.00);
 	read( c2);
 	[c4bd56]<--- call _sumN with parameters [c2];
 	write(c4bd56);

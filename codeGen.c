@@ -366,7 +366,7 @@ int generateRecordExpr(treeNode* orig, FILE *fp, int field_no, int reg) {
 		}
 	} else if (orig->symbol_type == TK_MUL) {
 		if (orig->children[0]->symbol_type == TK_ID
-			&& orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type == TK_ID
 		) {
 			int record_child = 0;
 			symbolTableElem* looked_up = lookupSymbolHelper(
@@ -374,6 +374,7 @@ int generateRecordExpr(treeNode* orig, FILE *fp, int field_no, int reg) {
 				strlen(orig->children[0]->tk_info.lexeme)
 			);
 
+			// handle record scalar multiplication
 			if (strcmp(looked_up->type, "int") != 0
 				&& strcmp(looked_up->type, "real") != 0
 			) {
@@ -423,12 +424,12 @@ int generateRecordExpr(treeNode* orig, FILE *fp, int field_no, int reg) {
 				globalTT, looked_up->type, strlen(looked_up->type)
 			);
 
-			fprintf(fp, "\tMOV EAX, [EBP + %dd]\n",
-				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			fprintf(fp, "\tMOV EAX, %sd\n",
+				orig->children[1]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tMUL %sd\n",
-				orig->children[1]->tk_info.lexeme
+			fprintf(fp, "\tMUL dword [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
 			);
 
 			if (reg != 1) {
@@ -442,7 +443,7 @@ int generateRecordExpr(treeNode* orig, FILE *fp, int field_no, int reg) {
 
 	} else if (orig->symbol_type == TK_DIV) {
 		if (orig->children[0]->symbol_type == TK_ID
-			&& orig->children[0]->symbol_type == TK_ID
+			&& orig->children[1]->symbol_type == TK_ID
 		) {
 			int record_child = 0;
 			symbolTableElem* looked_up = lookupSymbolHelper(
@@ -476,7 +477,7 @@ int generateRecordExpr(treeNode* orig, FILE *fp, int field_no, int reg) {
 				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
 			);
 
-			fprintf(fp, "\tDIV [EBP + %dd]\n",
+			fprintf(fp, "\tDIV dword [EBP + %dd]\n",
 				BASE_ADDR + non_rec->offset
 			);
 
@@ -499,12 +500,12 @@ int generateRecordExpr(treeNode* orig, FILE *fp, int field_no, int reg) {
 				globalTT, looked_up->type, strlen(looked_up->type)
 			);
 
-			fprintf(fp, "\tMOV EAX, [EBP + %dd]\n",
-				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
+			fprintf(fp, "\tMOV EAX, %sd\n",
+				orig->children[1]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tMUL %sd\n",
-				orig->children[1]->tk_info.lexeme
+			fprintf(fp, "\tMUL dword [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset + looked_up_type->offset[field_no]
 			);
 
 			if (reg != 1) {
@@ -1482,13 +1483,13 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(1, reg_str);
 
 			fprintf(fp,
-				"\tMOV %s,  [EBP + %dd]\n",
+				"\tMOV %s, %sd\n",
 				reg_str,
-				BASE_ADDR + looked_up->offset
+				orig->children[1]->tk_info.lexeme
 			);
 			fprintf(
-				fp, "\tMUL %sd\n",
-				orig->children[1]->tk_info.lexeme
+				fp, "\tMUL dword [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset
 			);
 
 			if (reg != 1) {
@@ -1537,13 +1538,15 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			char *reg_str = (char*)malloc(sizeof(char)*3);
 			getRegFromInt(reg, reg_str);
 
-			fprintf(fp, "\tMOV %s, %sd\n", reg_str,
+			fprintf(fp, "\tMOV EBX, %s\n",
+				orig->children[1]->tk_info.lexeme
+			);
+
+			fprintf(fp, "\tMOV EAX, %sd\n",
 				orig->children[0]->tk_info.lexeme
 			);
 
-			fprintf(fp, "\tMUL %sd\n",
-				orig->children[1]->tk_info.lexeme
-			);
+			fprintf(fp, "\tMUL EBX\n");
 
 			if (reg != 1) {
 				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
@@ -1742,13 +1745,13 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			getRegFromInt(1, reg_str);
 
 			fprintf(fp,
-				"\tMOV %s,  [EBP + %dd]\n",
+				"\tMOV %s, %sd\n",
 				reg_str,
-				BASE_ADDR + looked_up->offset
+				orig->children[1]->tk_info.lexeme
 			);
 			fprintf(
-				fp, "\tDIV %sd\n",
-				orig->children[1]->tk_info.lexeme
+				fp, "\tDIV dword [EBP + %dd]\n",
+				BASE_ADDR + looked_up->offset
 			);
 
 			if (reg != 1) {
@@ -1797,13 +1800,14 @@ int generateArithmeticExpr(treeNode *orig, FILE* fp, int reg) {
 			char *reg_str = (char*)malloc(sizeof(char)*3);
 			getRegFromInt(reg, reg_str);
 
-			fprintf(fp, "\tMOV %s, %sd\n", reg_str,
+			fprintf(fp, "\tMOV EAX, %sd\n",
 				orig->children[0]->tk_info.lexeme
 			);
-
-			fprintf(fp, "\tDIV %sd\n",
+			fprintf(fp, "\tMOV EBX, %sd\n",
 				orig->children[1]->tk_info.lexeme
 			);
+
+			fprintf(fp, "\tDIV EBX\n");
 
 			if (reg != 1) {
 				fprintf(fp, "\tMOV %s, EAX\n", reg_str);
