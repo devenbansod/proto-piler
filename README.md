@@ -1,2 +1,3 @@
-# compilers-assignment
-Compiler for the included language specification, built for partial fulfillment of CS F362 - Compiler Construction, BITS Pilani
+# proto-piler
+
+Simple compiler for a (included) language specification, built for partial fulfillment of CS F363 - Compiler Construction, BITS Pilani, outputs x86 instructions
